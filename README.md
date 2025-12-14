@@ -1,53 +1,91 @@
-![logo](https://github.com/user-attachments/assets/654af4b5-5108-462d-b81e-c3f02d1615df)
-<svg width="598" height="346" viewBox="0 0 598 346" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M349 69.474C337.285 70.176 333.552 71.591 329.69 76.794C326.231 81.453 325 85.885 325 93.678V100.513L352.25 100.779L379.5 101.045V107.045V113.045L323 113.545L266.5 114.045L261.85 117.274C256.39 121.066 252 128.876 252 134.797V138.656L316.963 138.397C352.693 138.255 382.183 138.394 382.495 138.707C383.234 139.446 368.773 163.961 341.15 208.795L334.527 219.545H293.264H252V244.54V269.536L358.488 269.79L464.975 270.045L458.698 280.545C453.046 289.997 449.56 295.544 442.326 306.599C441.047 308.553 440 310.466 440 310.849C440 311.232 446.474 311.545 454.386 311.545C468.192 311.545 468.987 311.432 474.12 308.751C478.013 306.717 480.29 304.629 482.485 301.081L485.5 296.206L486 257.626L486.5 219.045H492.5H498.5L498.776 234.295L499.052 249.545L513.276 249.523C524.945 249.505 528.231 249.169 531.571 247.652C536.453 245.435 541.293 239.848 542.859 234.623C543.668 231.922 544 209.992 544 159.305C544 82.695 544.055 83.596 538.969 76.717C537.788 75.12 534.95 72.741 532.661 71.429L528.5 69.045L444 68.944C397.525 68.889 354.775 69.127 349 69.474Z" fill="url(#paint0_linear_1_6)"/>
-<path d="M193 290.817V300.089L184.75 308.13C180.212 312.552 171.438 320.804 165.25 326.469C159.063 332.133 154 337.168 154 337.656C154 338.17 207.345 338.545 280.345 338.545C399.43 338.545 406.777 338.444 408.203 336.795C409.035 335.833 415.228 326.092 421.964 315.149C428.7 304.206 435.754 292.842 437.638 289.896C439.523 286.95 441.323 283.866 441.639 283.042C442.148 281.717 427.863 281.545 317.607 281.545H193V290.817Z" fill="url(#paint1_linear_1_6)"/>
-<path d="M193 179.045V207.545L259.75 207.538L326.5 207.532L335.11 193.788C349.26 171.203 361 151.888 361 151.195C361 150.838 323.2 150.545 277 150.545H193V179.045Z" fill="url(#paint2_linear_1_6)"/>
-<path d="M197.905 0.345994C194.663 0.617994 191.721 3.26799 167.926 27.346C153.415 42.031 137.371 58.162 132.271 63.194L123 72.343V209.027C123 290.747 123.366 345.578 123.91 345.378C124.411 345.195 137.236 333.795 152.41 320.045L180 295.045V175.8V56.555L275.682 56.3L371.365 56.045L387.682 29.064C396.657 14.224 404 1.60501 404 1.02101C404 0.278012 373.537 -0.028 302.75 0.00199996C247.063 0.026 199.882 0.180994 197.905 0.345994Z" fill="url(#paint3_linear_1_6)"/>
-<path d="M0 1.04799C0 1.72999 4.422 12.359 9.828 24.667C15.233 36.975 20.469 49.182 21.464 51.795L23.272 56.545L71.886 56.573L120.5 56.602L147.64 28.823C162.568 13.545 174.718 0.987009 174.64 0.917009C174.563 0.847009 135.238 0.56799 87.25 0.29799C18.204 -0.09001 0 0.06599 0 1.04799Z" fill="url(#paint4_linear_1_6)"/>
-<path d="M436.424 36.545L406.349 37.045L402.296 39.729C397.835 42.683 394 49.34 394 54.13V57.083L461.27 57.214C507.222 57.303 529.853 57.698 532.683 58.46C541.704 60.889 551.183 70.137 554.113 79.368C554.935 81.957 555.416 103.09 555.739 150.795L556.196 218.545L568.848 218.523C578.987 218.505 582.308 218.134 585.571 216.652C591.092 214.144 595.694 208.308 597.041 202.102C597.799 198.61 598.04 174.435 597.82 123.966L597.5 50.886L594.495 45.966C592.298 42.369 590.145 40.372 586.495 38.545L581.5 36.045H524C492.375 36.045 452.966 36.27 436.424 36.545Z" fill="url(#paint5_linear_1_6)"/>
-<defs>
-<linearGradient id="paint0_linear_1_6" x1="-0.498047" y1="0.0377251" x2="597.502" y2="345.038" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="#999999"/>
-</linearGradient>
-<linearGradient id="paint1_linear_1_6" x1="-0.498047" y1="0.0377251" x2="597.502" y2="345.038" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="#999999"/>
-</linearGradient>
-<linearGradient id="paint2_linear_1_6" x1="-0.498047" y1="0.0377251" x2="597.502" y2="345.038" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="#999999"/>
-</linearGradient>
-<linearGradient id="paint3_linear_1_6" x1="-0.498047" y1="0.0377251" x2="597.502" y2="345.038" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="#999999"/>
-</linearGradient>
-<linearGradient id="paint4_linear_1_6" x1="-0.498047" y1="0.0377251" x2="597.502" y2="345.038" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="#999999"/>
-</linearGradient>
-<linearGradient id="paint5_linear_1_6" x1="-0.498047" y1="0.0377251" x2="597.502" y2="345.038" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="#999999"/>
-</linearGradient>
-</defs>
-</svg>
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/87ec6879-ec1e-4266-9f06-a71081d0a88a" alt="Kazuha Logo" width="100"/>
+    <h1>Kazuha 万叶演示助手</h1>
+    <p>一款能平替希沃演示助手部分功能的演示工具。</p>
+    
+[![Latest Release](https://img.shields.io/github/v/release/TCYKyousen/Kazuha?style=for-the-badge)](https://github.com/TCYKyousen/Kazuha/releases)
+[![License](https://img.shields.io/github/license/TCYKyousen/Kazuha?style=for-the-badge)](https://github.com/TCYKyousen/Kazuha/blob/main/LICENSE) 
+[![GitHub Stars](https://img.shields.io/github/stars/TCYKyousen/Kazuha?style=for-the-badge&color=yellow)](https://github.com/TCYKyousen/Kazuha/stargazers)
+[![Total Downloads](https://img.shields.io/github/downloads/TCYKyousen/Kazuha/total?style=for-the-badge)](https://github.com/TCYKyousen/Kazuha/releases) 
+[![Open Issues](https://img.shields.io/github/issues-raw/TCYKyousen/Kazuha?style=for-the-badge&color=red)](https://github.com/TCYKyousen/Kazuha/issues)
+
+</div>
 
 ---
-# 正来演示助手
-一款能平替希沃演示助手部分功能的演示助手软件。
+
+> ### 📢 重要通知：名称变更
+> 
+> 你并没有找错，只是我们换名字了。**“正来演示助手”** 现已正式更名为 **Kazuha 万叶演示助手**。Enjoy it！
 
 ---
-## 主要功能
-### 屏幕批注
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/34b64b01-219a-4bf7-b4ca-5394e22f6a7c" />
-具有所有演示助手都普遍具备的功能——屏幕批注，同时支持颜色选择。
 
-### 重点框选
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b39b7941-b98b-406c-9f1c-d32850ac2bb4" />
-框选屏幕区域后，重点区域外的内容将被压暗。可在课堂中要求学生记录知识点时开启本功能，便于学生方便地找出何处应该记录。
+## ✨ 核心功能（Features）
+
+Kazuha 致力于提供简洁、高效的演示体验，特别针对课堂教学和远程会议场景。
+
+### 1. 屏幕批注（Screen Annotation）
+
+具备所有演示助手工具的核心能力，允许您在演示软件上实时进行标记、绘画和书写。
+
+* **🖍️ 自由绘制：** 支持自由地进行批注。
+* **🎨 颜色选择：** 拥有便捷的颜色选择工具。
+
+<img width="1920" height="1080" alt="屏幕批注功能截图" src="https://github.com/user-attachments/assets/34b64b01-219a-4bf7-b4ca-5394e22f6a7c" />
+
+### 2. 重点框选（Focus Highlight / Spotlight）
+
+聚焦模式，帮助观众或学生将注意力集中在关键信息上。
+
+* **💡 聚焦：** 框选屏幕区域后，重点区域以外的内容将自动被**压暗**。
+* **📚 教学辅助：** 极其适用于课堂中要求学生记录知识点时，便于学生方便地找出何处应该记录。
+
+<img width="1920" height="1080" alt="重点框选功能截图" src="https://github.com/user-attachments/assets/b39b7941-b98b-406c-9f1c-d32850ac2bb4" />
+
+### 3. 高度自定义（High Customization）
+
+Kazuha 提供了灵活的界面布局，您可以根据个人习惯和演示需求调整元素位置。
+
+* **🔄 自由拖拽：** 您基本上可以在演示过程中修改任何元素的位置，**工具栏除外**。
+
+<img width="1920" height="1080" alt="上部截图" src="https://github.com/user-attachments/assets/532e2a25-a832-4e64-a7cf-0872c85c6f32" />
+<img width="1920" height="1080" alt="下部截图" src="https://github.com/user-attachments/assets/b255f662-3f51-404b-92ee-98dc45fa10e7" />
+<img width="1920" height="1080" alt="中部截图" src="https://github.com/user-attachments/assets/4c14fdf7-63af-4fe2-8d09-0301399fa9d8" />
 
 ---
-软件仍在继续开发并将长期处于测试阶段。
-这只是我的新人作，欢迎向我提出 Issues 或提交拉取请求。
+
+## 📈 项目概况（Project Statistics）
+
+<div align="center">
+    <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=TCYKyousen&repo=Kazuha&layout=compact&theme=vision-friendly-light&hide_border=true" alt="Top Languages Chart" />
+</div>
+
+---
+
+## ⬇️ 下载与社区（Download & Community）
+
+Kazuha 演示助手当前版本处于长期 **alpha 测试阶段**，请通过下方二维码加入 **QQ 群** 或访问我们的 [Release 页面](https://github.com/TCYKyousen/Kazuha/releases) 获取最新版本。
+
+<div align="center">
+    <img width="150" height="150" alt="QQ群二维码" src="https://github.com/user-attachments/assets/fcfa5426-51f8-4162-a5bc-1b724ccdb31c" />
+</div>
+
+---
+
+## 🤝 贡献者（Contributors）
+
+感谢所有为 Kazuha 项目做出贡献的人！
+
+<div align="center">
+    <a href="https://github.com/TCYKyousen/Kazuha/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=TCYKyousen/Kazuha" />
+    </a>
+</div>
+
+---
+
+## 🛠️ 贡献与反馈（Contributing & Feedback）
+
+我们欢迎所有形式的贡献和反馈！
+
+* 这是我的新人作品，欢迎向我提出 [**Issues**](https://github.com/TCYKyousen/Kazuha/issues)（提交 Bug 报告或功能请求）。
+* 同时，也欢迎提交 [**拉取请求（Pull Requests）**](https://github.com/TCYKyousen/Kazuha/pulls) 帮助改进代码。
