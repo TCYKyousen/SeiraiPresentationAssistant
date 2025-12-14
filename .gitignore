@@ -17,3 +17,4 @@ build/SeiraiPPTAssistant/localpycs/pyimod04_pywin32.pyc
 build/SeiraiPPTAssistant/localpycs/struct.pyc
 dist/SeiraiPPTAssistant.exe
 SeiraiPPTAssistant.spec
+venv/*
