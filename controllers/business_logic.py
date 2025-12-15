@@ -73,7 +73,7 @@ class BusinessLogicController(QWidget):
             return os.path.join(os.path.dirname(base_dir), "icons", name)
         
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon(icon_path("Mouse.svg")))
+        self.tray_icon.setIcon(QIcon(icon_path("trayicon.svg")))
         
         tray_menu = QMenu()
         # 将切换按钮改为复选框
