@@ -2,7 +2,7 @@ import sys
 import os
 from PyQt6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, 
                              QLabel, QFrame, QPushButton)
-from PyQt6.QtCore import Qt, QSize, pyqtSignal, QEvent, QRect
+from PyQt6.QtCore import Qt, QSize, pyqtSignal, QEvent, QRect, QTimer, QPoint
 from PyQt6.QtGui import QIcon
 from qfluentwidgets import (TransparentToolButton, ToolButton, 
                             ToolTipFilter, ToolTipPosition, Flyout, FlyoutAnimationType)
@@ -650,11 +650,18 @@ class SpotlightOverlay(QWidget):
 class PageNavWidget(QWidget):
     request_slide_jump = pyqtSignal(int)
     clicked = pyqtSignal()
+    dragged = pyqtSignal(int)
     
     def __init__(self, parent=None, is_right=False):
         super().__init__(parent)
         self.ppt_app = None 
         self.is_right = is_right
+        self.anchor = "bottom"
+        self.dragging = False
+        self.drag_start_global_pos = None
+        self.long_press_timer = QTimer(self)
+        self.long_press_timer.setSingleShot(True)
+        self.long_press_timer.timeout.connect(self._on_long_press_timeout)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
@@ -679,9 +686,9 @@ class PageNavWidget(QWidget):
         """)
         self.container.setObjectName("Container")
         
-        inner_layout = QHBoxLayout(self.container)
-        inner_layout.setContentsMargins(8, 6, 8, 6) 
-        inner_layout.setSpacing(15) 
+        self.inner_layout = QHBoxLayout(self.container)
+        self.inner_layout.setContentsMargins(8, 6, 8, 6) 
+        self.inner_layout.setSpacing(15) 
         
         # Ensure consistent height
         self.container.setMinimumHeight(52)
@@ -722,24 +729,28 @@ class PageNavWidget(QWidget):
         info_layout.addWidget(self.lbl_page_num, 0, Qt.AlignmentFlag.AlignCenter)
         info_layout.addWidget(self.lbl_page_text, 0, Qt.AlignmentFlag.AlignCenter)
         
-        inner_layout.addWidget(self.btn_prev)
+        self.inner_layout.addWidget(self.btn_prev)
         
         line1 = QFrame()
         line1.setFrameShape(QFrame.Shape.VLine)
         line1.setStyleSheet("color: rgba(255, 255, 255, 0.2);")
-        inner_layout.addWidget(line1)
+        self.inner_layout.addWidget(line1)
         
-        inner_layout.addWidget(self.page_info_widget)
+        self.inner_layout.addWidget(self.page_info_widget)
         
         line2 = QFrame()
         line2.setFrameShape(QFrame.Shape.VLine)
         line2.setStyleSheet("color: rgba(255, 255, 255, 0.2);")
-        inner_layout.addWidget(line2)
+        self.inner_layout.addWidget(line2)
         
-        inner_layout.addWidget(self.btn_next)
+        self.inner_layout.addWidget(self.btn_next)
         
         layout.addWidget(self.container)
         self.setLayout(layout)
+        self.container.installEventFilter(self)
+        self.page_info_widget.installEventFilter(self)
+        self.btn_prev.installEventFilter(self)
+        self.btn_next.installEventFilter(self)
 
     def style_nav_btn(self, btn):
         btn.setStyleSheet("""
@@ -758,13 +769,51 @@ class PageNavWidget(QWidget):
         """)
     
     def eventFilter(self, obj, event):
+        target_objs = [self.container, self.page_info_widget, self.btn_prev, self.btn_next]
+        if obj in target_objs:
+            if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
+                self.dragging = False
+                self.drag_start_global_pos = event.globalPosition().toPoint()
+                self.long_press_timer.start(300)
+            elif event.type() == QEvent.Type.MouseMove:
+                if self.long_press_timer.isActive():
+                    if (event.globalPosition().toPoint() - self.drag_start_global_pos).manhattanLength() > 10:
+                        self.long_press_timer.stop()
+                if self.dragging:
+                    self.dragged.emit(event.globalPosition().toPoint().y())
+                    return True
+            elif event.type() == QEvent.Type.MouseButtonRelease and event.button() == Qt.MouseButton.LeftButton:
+                if self.dragging:
+                    self.long_press_timer.stop()
+                    self.dragging = False
+                    self.dragged.emit(event.globalPosition().toPoint().y())
+                    return True
+                else:
+                    self.long_press_timer.stop()
         if obj == self.page_info_widget:
             if event.type() == QEvent.Type.MouseButtonDblClick:
                 return super().eventFilter(obj, event)
             elif event.type() == QEvent.Type.MouseButtonRelease:
-                self.show_slide_selector()
-                return True
+                if not self.dragging and not self.long_press_timer.isActive():
+                    self.show_slide_selector()
+                    return True
         return super().eventFilter(obj, event)
+
+    def _on_long_press_timeout(self):
+        self.dragging = True
+
+    def set_anchor(self, anchor):
+        self.anchor = anchor
+        if anchor == "middle":
+            from PyQt6.QtWidgets import QBoxLayout
+            self.inner_layout.setDirection(QBoxLayout.Direction.TopToBottom)
+            self.inner_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.container.setMinimumSize(80, 140)
+        else:
+            from PyQt6.QtWidgets import QBoxLayout
+            self.inner_layout.setDirection(QBoxLayout.Direction.LeftToRight)
+            self.inner_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+            self.container.setMinimumSize(0, 52)
 
     def show_slide_selector(self):
         if not self.ppt_app:
