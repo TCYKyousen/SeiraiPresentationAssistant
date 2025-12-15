@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="https://github.com/Haraguse/Kazuha/blob/main/icons%2Ftrayicon.svg" alt="Kazuha Logo" width="100"/>
+    <img src="https://github.com/Haraguse/Kazuha/blob/main/icons/trayicon.svg" alt="Kazuha Logo" width="100"/>
     <h1>Kazuha 万叶演示助手</h1>
     <p>一款能平替希沃演示助手部分功能的演示工具。</p>
     
