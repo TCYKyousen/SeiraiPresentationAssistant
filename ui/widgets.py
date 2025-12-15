@@ -1,10 +1,11 @@
 import sys
 import os
 from PyQt6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, 
-                             QLabel, QFrame, QPushButton)
-from PyQt6.QtCore import Qt, QSize, pyqtSignal, QEvent, QRect
-from PyQt6.QtGui import QIcon
-from qfluentwidgets import (TransparentToolButton, ToolButton, 
+                             QLabel, QFrame, QPushButton, QGridLayout)
+from PyQt6.QtCore import Qt, QSize, pyqtSignal, QEvent, QRect, QPropertyAnimation, QEasingCurve, QAbstractAnimation, QTimer
+from PyQt6.QtGui import QIcon, QPixmap
+from qfluentwidgets import (TransparentToolButton, ToolButton, SpinBox,
+                            PrimaryPushButton, PushButton, TabWidget,
                             ToolTipFilter, ToolTipPosition, Flyout, FlyoutAnimationType)
 from qfluentwidgets.components.material import AcrylicFlyout
 
@@ -466,7 +467,7 @@ class CompatibilityAnnotationWidget(QWidget):
             self.erase_at_point(event.pos())
             
     def mouseReleaseEvent(self, event):
-        from PyQt6.QtCore import Qt
+        from PyQt6.QtCore import Qt, QPoint
         if event.button() == Qt.MouseButton.LeftButton:
             if self.drawing and self.current_line:
                 # 完成当前线条
@@ -561,7 +562,7 @@ class AnnotationWidget(QWidget):
             self.update()
             
     def mouseReleaseEvent(self, event):
-        from PyQt6.QtCore import Qt
+        from PyQt6.QtCore import Qt, QPoint
         if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = False
             self.last_point = None
@@ -611,7 +612,7 @@ class SpotlightOverlay(QWidget):
             self.update()
             
     def mouseReleaseEvent(self, event):
-        from PyQt6.QtCore import Qt
+        from PyQt6.QtCore import Qt, QPoint
         if self.is_selecting:
             self.is_selecting = False
             self.has_selection = True
@@ -622,7 +623,7 @@ class SpotlightOverlay(QWidget):
             self.update()
             
     def paintEvent(self, event):
-        from PyQt6.QtGui import QPainter, QColor
+        from PyQt6.QtGui import QPainter, QColor, QPen
         from PyQt6.QtCore import Qt
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -649,7 +650,8 @@ class SpotlightOverlay(QWidget):
 
 class PageNavWidget(QWidget):
     request_slide_jump = pyqtSignal(int)
-    clicked = pyqtSignal()
+    prev_clicked = pyqtSignal()
+    next_clicked = pyqtSignal()
     
     def __init__(self, parent=None, is_right=False):
         super().__init__(parent)
@@ -691,7 +693,7 @@ class PageNavWidget(QWidget):
         self.btn_prev.setIconSize(QSize(18, 18))
         self.btn_prev.setToolTip("上一页")
         self.btn_prev.installEventFilter(ToolTipFilter(self.btn_prev, 1000, ToolTipPosition.TOP))
-        self.btn_prev.clicked.connect(self.clicked.emit)
+        self.btn_prev.clicked.connect(self.prev_clicked.emit)
         self.style_nav_btn(self.btn_prev)
         
         self.btn_next = TransparentToolButton(parent=self)
@@ -700,7 +702,7 @@ class PageNavWidget(QWidget):
         self.btn_next.setIconSize(QSize(18, 18))
         self.btn_next.setToolTip("下一页")
         self.btn_next.installEventFilter(ToolTipFilter(self.btn_next, 1000, ToolTipPosition.TOP))
-        self.btn_next.clicked.connect(self.clicked.emit)
+        self.btn_next.clicked.connect(self.next_clicked.emit)
         self.style_nav_btn(self.btn_next)
 
         # Page Info Clickable Area
@@ -741,6 +743,9 @@ class PageNavWidget(QWidget):
         layout.addWidget(self.container)
         self.setLayout(layout)
 
+        self.setup_click_feedback(self.btn_prev, QSize(18, 18))
+        self.setup_click_feedback(self.btn_next, QSize(18, 18))
+
     def style_nav_btn(self, btn):
         btn.setStyleSheet("""
             TransparentToolButton {
@@ -756,6 +761,22 @@ class PageNavWidget(QWidget):
                 background-color: rgba(255, 255, 255, 0.2);
             }
         """)
+    
+    def setup_click_feedback(self, btn, base_size):
+        anim = QPropertyAnimation(btn, b"iconSize", self)
+        anim.setDuration(120)
+        anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+
+        def on_pressed():
+            if anim.state() == QAbstractAnimation.State.Running:
+                anim.stop()
+            shrink = QSize(int(base_size.width() * 0.85), int(base_size.height() * 0.85))
+            anim.setStartValue(base_size)
+            anim.setKeyValueAt(0.5, shrink)
+            anim.setEndValue(base_size)
+            anim.start()
+
+        btn.pressed.connect(on_pressed)
     
     def eventFilter(self, obj, event):
         if obj == self.page_info_widget:
@@ -792,6 +813,7 @@ class ToolBarWidget(QWidget):
     request_pen_color = pyqtSignal(int)
     request_clear_ink = pyqtSignal()
     request_exit = pyqtSignal()
+    request_timer = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -838,7 +860,9 @@ class ToolBarWidget(QWidget):
         
         self.btn_spotlight = self.create_action_btn("聚焦", QIcon(icon_path("Select.svg")))
         self.btn_spotlight.clicked.connect(self.request_spotlight.emit)
-        
+        self.btn_timer = self.create_action_btn("计时器", QIcon(icon_path("timer.svg")))
+        self.btn_timer.clicked.connect(self.request_timer.emit)
+
         self.btn_exit = self.create_action_btn("结束放映", QIcon(icon_path("Minimaze.svg")))
         self.btn_exit.clicked.connect(self.request_exit.emit)
         self.btn_exit.setStyleSheet("""
@@ -867,12 +891,13 @@ class ToolBarWidget(QWidget):
         container_layout.addWidget(line1)
         
         container_layout.addWidget(self.btn_spotlight)
-        
+        container_layout.addWidget(self.btn_timer)
+
         line2 = QFrame()
         line2.setFrameShape(QFrame.Shape.VLine)
         line2.setStyleSheet("color: rgba(255, 255, 255, 0.2);")
         container_layout.addWidget(line2)
-        
+
         container_layout.addWidget(self.btn_exit)
         
         layout.addWidget(self.container)
@@ -883,6 +908,14 @@ class ToolBarWidget(QWidget):
         # Install event filter to detect second click for expansion
         self.btn_pen.installEventFilter(self)
         self.btn_eraser.installEventFilter(self)
+
+        self.setup_click_feedback(self.btn_arrow, QSize(20, 20))
+        self.setup_click_feedback(self.btn_pen, QSize(20, 20))
+        self.setup_click_feedback(self.btn_eraser, QSize(20, 20))
+        self.setup_click_feedback(self.btn_clear, QSize(20, 20))
+        self.setup_click_feedback(self.btn_spotlight, QSize(20, 20))
+        self.setup_click_feedback(self.btn_timer, QSize(20, 20))
+        self.setup_click_feedback(self.btn_exit, QSize(20, 20))
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.MouseButtonPress:
@@ -914,12 +947,14 @@ class ToolBarWidget(QWidget):
         self.btn_eraser.setToolTip("橡皮")
         self.btn_clear.setToolTip("一键清除")
         self.btn_spotlight.setToolTip("聚焦")
+        self.btn_timer.setToolTip("计时器")
         self.btn_exit.setToolTip("结束放映")
         self.style_tool_btn(self.btn_arrow)
         self.style_tool_btn(self.btn_pen)
         self.style_tool_btn(self.btn_eraser)
         self.style_action_btn(self.btn_clear)
         self.style_action_btn(self.btn_spotlight)
+        self.style_action_btn(self.btn_timer)
         self.style_action_btn(self.btn_exit)
 
     def create_tool_btn(self, text, icon):
@@ -982,3 +1017,206 @@ class ToolBarWidget(QWidget):
                 background-color: rgba(255, 255, 255, 0.2);
             }
         """)
+
+    def setup_click_feedback(self, btn, base_size):
+        anim = QPropertyAnimation(btn, b"iconSize", self)
+        anim.setDuration(120)
+        anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+
+        def on_pressed():
+            if anim.state() == QAbstractAnimation.State.Running:
+                anim.stop()
+            shrink = QSize(int(base_size.width() * 0.85), int(base_size.height() * 0.85))
+            anim.setStartValue(base_size)
+            anim.setKeyValueAt(0.5, shrink)
+            anim.setEndValue(base_size)
+            anim.start()
+
+        btn.pressed.connect(on_pressed)
+
+
+class TimerWindow(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("计时器")
+        flags = Qt.WindowType.Window | Qt.WindowType.WindowTitleHint | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint | Qt.WindowType.WindowStaysOnTopHint
+        self.setWindowFlags(flags)
+        self.resize(320, 220)
+        self.up_seconds = 0
+        self.up_running = False
+        self.down_total_seconds = 0
+        self.down_remaining = 0
+        self.down_running = False
+        self.sound_effect = None
+        self.init_ui()
+        self.init_timers()
+        self.init_sound()
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(12)
+
+        self.up_page = QWidget()
+        self.down_page = QWidget()
+        self.setup_up_page()
+        self.setup_down_page()
+        self.tab_widget = TabWidget(self)
+        self.tab_widget.addPage(self.up_page, "正计时")
+        self.tab_widget.addPage(self.down_page, "倒计时")
+        layout.addWidget(self.tab_widget)
+
+    def setup_up_page(self):
+        layout = QVBoxLayout(self.up_page)
+        layout.setContentsMargins(0, 16, 0, 0)
+        layout.setSpacing(16)
+        self.up_label = QLabel("00:00", self.up_page)
+        self.up_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.up_label.setStyleSheet("font-size: 32px; color: white;")
+        layout.addWidget(self.up_label)
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(12)
+        self.up_start_btn = PrimaryPushButton(self.up_page)
+        self.up_start_btn.setText("开始")
+        self.up_reset_btn = PushButton(self.up_page)
+        self.up_reset_btn.setText("重置")
+        self.up_start_btn.clicked.connect(self.toggle_up)
+        self.up_reset_btn.clicked.connect(self.reset_up)
+        btn_layout.addStretch()
+        btn_layout.addWidget(self.up_start_btn)
+        btn_layout.addWidget(self.up_reset_btn)
+        btn_layout.addStretch()
+        layout.addLayout(btn_layout)
+
+    def setup_down_page(self):
+        layout = QVBoxLayout(self.down_page)
+        layout.setContentsMargins(0, 16, 0, 0)
+        layout.setSpacing(16)
+        input_layout = QHBoxLayout()
+        input_layout.setSpacing(8)
+        self.down_min_spin = SpinBox(self.down_page)
+        self.down_min_spin.setRange(0, 999)
+        self.down_min_spin.setSuffix(" 分")
+        self.down_sec_spin = SpinBox(self.down_page)
+        self.down_sec_spin.setRange(0, 59)
+        self.down_sec_spin.setSuffix(" 秒")
+        input_layout.addStretch()
+        input_layout.addWidget(self.down_min_spin)
+        input_layout.addWidget(self.down_sec_spin)
+        input_layout.addStretch()
+        layout.addLayout(input_layout)
+        self.down_label = QLabel("00:00", self.down_page)
+        self.down_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.down_label.setStyleSheet("font-size: 32px; color: white;")
+        layout.addWidget(self.down_label)
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(12)
+        self.down_start_btn = ToolButton(self.down_page)
+        self.down_start_btn.setText("开始")
+        self.down_reset_btn = ToolButton(self.down_page)
+        self.down_reset_btn.setText("重置")
+        self.down_start_btn.clicked.connect(self.toggle_down)
+        self.down_reset_btn.clicked.connect(self.reset_down)
+        btn_layout.addStretch()
+        btn_layout.addWidget(self.down_start_btn)
+        btn_layout.addWidget(self.down_reset_btn)
+        btn_layout.addStretch()
+        layout.addLayout(btn_layout)
+
+    def init_timers(self):
+        self.up_timer = QTimer(self)
+        self.up_timer.setInterval(1000)
+        self.up_timer.timeout.connect(self.update_up)
+        self.down_timer = QTimer(self)
+        self.down_timer.setInterval(1000)
+        self.down_timer.timeout.connect(self.update_down)
+
+    def init_sound(self):
+        try:
+            from PyQt6.QtMultimedia import QSoundEffect
+            from PyQt6.QtCore import QUrl
+        except Exception:
+            self.sound_effect = None
+            return
+        self.sound_effect = QSoundEffect(self)
+        base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+        path = os.path.join(base_dir, "timer_ring.ogg")
+        self.sound_effect.setSource(QUrl.fromLocalFile(path))
+        self.sound_effect.setLoopCount(1)
+        self.sound_effect.setVolume(0.9)
+
+    def play_ring(self):
+        if not self.sound_effect:
+            return
+        self.sound_effect.stop()
+        self.sound_effect.play()
+
+    def format_time(self, seconds):
+        h = seconds // 3600
+        m = (seconds % 3600) // 60
+        s = seconds % 60
+        if h > 0:
+            return f"{h:02d}:{m:02d}:{s:02d}"
+        return f"{m:02d}:{s:02d}"
+
+    def toggle_up(self):
+        if not self.up_running:
+            self.up_timer.start()
+            self.up_running = True
+            self.up_start_btn.setText("暂停")
+        else:
+            self.up_timer.stop()
+            self.up_running = False
+            self.up_start_btn.setText("开始")
+
+    def reset_up(self):
+        self.up_timer.stop()
+        self.up_running = False
+        self.up_seconds = 0
+        self.up_start_btn.setText("开始")
+        self.up_label.setText(self.format_time(self.up_seconds))
+
+    def update_up(self):
+        self.up_seconds += 1
+        self.up_label.setText(self.format_time(self.up_seconds))
+
+    def toggle_down(self):
+        if not self.down_running:
+            minutes = self.down_min_spin.value()
+            seconds = self.down_sec_spin.value()
+            total = minutes * 60 + seconds
+            if total <= 0:
+                return
+            self.down_total_seconds = total
+            self.down_remaining = total
+            self.down_label.setText(self.format_time(self.down_remaining))
+            self.down_min_spin.setEnabled(False)
+            self.down_sec_spin.setEnabled(False)
+            self.down_timer.start()
+            self.down_running = True
+            self.down_start_btn.setText("暂停")
+        else:
+            self.down_timer.stop()
+            self.down_running = False
+            self.down_start_btn.setText("开始")
+
+    def reset_down(self):
+        self.down_timer.stop()
+        self.down_running = False
+        self.down_remaining = 0
+        self.down_start_btn.setText("开始")
+        self.down_label.setText("00:00")
+        self.down_min_spin.setEnabled(True)
+        self.down_sec_spin.setEnabled(True)
+
+    def update_down(self):
+        if self.down_remaining > 0:
+            self.down_remaining -= 1
+            self.down_label.setText(self.format_time(self.down_remaining))
+        if self.down_remaining <= 0 and self.down_running:
+            self.down_timer.stop()
+            self.down_running = False
+            self.down_start_btn.setText("开始")
+            self.down_min_spin.setEnabled(True)
+            self.down_sec_spin.setEnabled(True)
+            self.play_ring()

@@ -6,13 +6,12 @@ import win32gui
 import pyautogui
 import psutil
 
-from PyQt6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QLabel
-from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QLabel
 from PyQt6.QtCore import QTimer, Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
-from qfluentwidgets import setTheme, Theme, Flyout, FlyoutView, FlyoutAnimationType
+from qfluentwidgets import setTheme, Theme, Flyout, FlyoutView, FlyoutAnimationType, SystemTrayMenu, Action
 from qfluentwidgets.components.material import AcrylicFlyout
-from ui.widgets import AnnotationWidget, CompatibilityAnnotationWidget
+from ui.widgets import AnnotationWidget, CompatibilityAnnotationWidget, TimerWindow
 
 class BusinessLogicController(QWidget):
     def __init__(self):
@@ -31,6 +30,7 @@ class BusinessLogicController(QWidget):
         
         # 批注功能组件
         self.annotation_widget = None
+        self.timer_window = None
         
         # UI组件引用（将在主程序中设置）
         self.toolbar = None
@@ -50,14 +50,17 @@ class BusinessLogicController(QWidget):
             self.toolbar.request_spotlight.connect(self.toggle_spotlight)
             self.toolbar.request_pen_color.connect(self.change_pen_color)
             self.toolbar.request_clear_ink.connect(self.clear_ink)
-            self.toolbar.request_exit.connect(self.exit_application)
+            self.toolbar.request_exit.connect(self.exit_slideshow)
+            self.toolbar.request_timer.connect(self.toggle_timer_window)
             
         if self.nav_left:
-            self.nav_left.clicked.connect(self.prev_page)
+            self.nav_left.prev_clicked.connect(self.prev_page)
+            self.nav_left.next_clicked.connect(self.next_page)
             self.nav_left.request_slide_jump.connect(self.jump_to_slide)
             
         if self.nav_right:
-            self.nav_right.clicked.connect(self.next_page)
+            self.nav_right.prev_clicked.connect(self.prev_page)
+            self.nav_right.next_clicked.connect(self.next_page)
             self.nav_right.request_slide_jump.connect(self.jump_to_slide)
     
     def setup_tray(self):
@@ -72,24 +75,20 @@ class BusinessLogicController(QWidget):
         
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(icon_path("Mouse.svg")))
-        
-        tray_menu = QMenu()
-        # 将切换按钮改为复选框
-        self.compatibility_checkbox = QAction("com接口模式", self)
-        self.compatibility_checkbox.setCheckable(True)
-        self.compatibility_checkbox.setChecked(not self.compatibility_mode)  # 兼容模式启用时，标准模式复选框不勾选
-        self.compatibility_checkbox.triggered.connect(self.toggle_compatibility_mode)
+
+        tray_menu = SystemTrayMenu(parent=self)
+
+        self.compatibility_checkbox = Action(self, text="com接口模式", checkable=True, checked=not self.compatibility_mode, triggered=self.toggle_compatibility_mode)
+        annotation_action = Action(self, text="独立批注", triggered=self.toggle_annotation_mode)
+        timer_action = Action(self, text="计时器", triggered=self.toggle_timer_window)
+        exit_action = Action(self, text="退出", triggered=self.exit_application)
+
         tray_menu.addAction(self.compatibility_checkbox)
-        
-        # 添加独立批注功能选项
-        annotation_action = QAction("独立批注", self)
-        annotation_action.triggered.connect(self.toggle_annotation_mode)
         tray_menu.addAction(annotation_action)
-        
-        exit_action = QAction("退出", self)
-        exit_action.triggered.connect(self.exit_application)
+        tray_menu.addAction(timer_action)
+        tray_menu.addSeparator()
         tray_menu.addAction(exit_action)
-        
+
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
 
@@ -128,11 +127,22 @@ class BusinessLogicController(QWidget):
         except Exception as e:
             print(f"Error saving compatibility mode setting: {e}")
     
-    def toggle_compatibility_mode(self, checked):
-        """切换兼容模式"""
-        # 复选框勾选表示标准模式，未勾选表示兼容模式
+    def toggle_compatibility_mode(self):
+        checked = False
+        if hasattr(self, "compatibility_checkbox") and self.compatibility_checkbox is not None:
+            checked = self.compatibility_checkbox.isChecked()
         self.compatibility_mode = not checked
         self.save_compatibility_mode_setting(self.compatibility_mode)
+    
+    def toggle_timer_window(self):
+        if not self.timer_window:
+            self.timer_window = TimerWindow()
+        if self.timer_window.isVisible():
+            self.timer_window.hide()
+        else:
+            self.timer_window.show()
+            self.timer_window.activateWindow()
+            self.timer_window.raise_()
     
     def toggle_annotation_mode(self):
         """切换独立批注模式"""
@@ -179,14 +189,15 @@ class BusinessLogicController(QWidget):
     def find_presentation_window(self):
         """查找WPS或PowerPoint的放映窗口"""
         windows = []
+        title_keywords = ['wps', 'powerpoint', '演示', '幻灯片', 'slide show', 'slideshow']
+        class_keywords = ['wpp', 'powerpnt', 'presentation', 'screenclass', 'ppt', 'kwpp']
         
         def enum_windows_callback(hwnd, extra):
             if win32gui.IsWindowVisible(hwnd):
-                window_text = win32gui.GetWindowText(hwnd) or ""
-                class_name = win32gui.GetClassName(hwnd) or ""
-                # 查找WPS或PowerPoint的放映窗口
-                if (any(keyword in window_text.lower() for keyword in ['wps', 'powerpoint', '演示']) or 
-                    any(keyword in class_name.lower() for keyword in ['wpp', 'powerpnt', 'presentation'])):
+                window_text = (win32gui.GetWindowText(hwnd) or "").lower()
+                class_name = (win32gui.GetClassName(hwnd) or "").lower()
+                if (any(keyword in window_text for keyword in title_keywords) or 
+                    any(keyword in class_name for keyword in class_keywords)):
                     extra.append(hwnd)
             return True
         
@@ -279,29 +290,23 @@ class BusinessLogicController(QWidget):
             return None
 
     def check_state(self):
-        # 在兼容模式下，检查是否有演示进程在运行（包括WPS和PowerPoint）
-        if self.compatibility_mode and self.check_presentation_processes():
+        has_presentation = self.check_presentation_processes()
+        if has_presentation:
             if not self.widgets_visible:
                 self.show_widgets()
-            # 在兼容模式下，我们不需要同步状态或更新页码
-            return
-        
-        # 正常模式下，检查PowerPoint应用程序
-        view = self.get_ppt_view()
-        if view:
-            if not self.widgets_visible:
-                self.show_widgets()
-            
-            # Update ppt_app reference for nav widgets
-            if self.ppt_app:
-                self.nav_left.ppt_app = self.ppt_app
-                self.nav_right.ppt_app = self.ppt_app
-            
-            self.sync_state(view)
-            self.update_page_num(view)
         else:
             if self.widgets_visible:
                 self.hide_widgets()
+        
+        if self.compatibility_mode:
+            return
+        
+        view = self.get_ppt_view()
+        if view and self.ppt_app:
+            self.nav_left.ppt_app = self.ppt_app
+            self.nav_right.ppt_app = self.ppt_app
+            self.sync_state(view)
+            self.update_page_num(view)
 
     def show_widgets(self):
         self.toolbar.show()
@@ -374,13 +379,15 @@ class BusinessLogicController(QWidget):
                 self.simulate_up_key()
             return
         
-        # 否则使用COM接口
         view = self.get_ppt_view()
         if view:
             try:
                 view.Previous()
             except:
                 pass
+        else:
+            if self.check_presentation_processes():
+                self.simulate_up_key()
 
     def go_next(self):
         # 如果启用了兼容模式，则使用pyautogui模拟按键
@@ -390,13 +397,15 @@ class BusinessLogicController(QWidget):
                 self.simulate_down_key()
             return
         
-        # 否则使用COM接口
         view = self.get_ppt_view()
         if view:
             try:
                 view.Next()
             except:
                 pass
+        else:
+            if self.check_presentation_processes():
+                self.simulate_down_key()
                 
     def next_page(self):
         """下一页"""
@@ -518,17 +527,22 @@ class BusinessLogicController(QWidget):
                 self.simulate_esc_key()
             return
         
-        # 否则使用COM接口
         view = self.get_ppt_view()
         if view:
             try:
                 view.Exit()
             except:
                 pass
+        else:
+            if self.check_presentation_processes():
+                self.simulate_esc_key()
                 
     def exit_application(self):
         """退出应用程序"""
         self.exit_slideshow()
+        app = QApplication.instance()
+        if app is not None:
+            app.quit()
 
     def has_ink(self):
         try:
