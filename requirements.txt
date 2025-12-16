@@ -1,5 +1,4 @@
 PyQt6
 pywin32
-pywebview
-pyautogui
 psutil
+PyQt6-Fluent-Widgets

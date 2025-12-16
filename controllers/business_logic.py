@@ -1,36 +1,66 @@
 import sys
 import os
 import winreg
-import win32com.client
-import win32gui
-import pyautogui
 import psutil
 
-from PyQt6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QLabel
-from PyQt6.QtCore import QTimer, Qt, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QWidget, QSystemTrayIcon
+from PyQt6.QtCore import QTimer, Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon
-from qfluentwidgets import setTheme, Theme, Flyout, FlyoutView, FlyoutAnimationType, SystemTrayMenu, Action
-from qfluentwidgets.components.material import AcrylicFlyout
-from ui.widgets import AnnotationWidget, CompatibilityAnnotationWidget, TimerWindow
+from qfluentwidgets import setTheme, Theme, SystemTrayMenu, Action
+from ui.widgets import AnnotationWidget, TimerWindow, LoadingOverlay
+from .ppt_client import PPTClient
+import pythoncom
+import os
+
+class SlideExportThread(QThread):
+    def __init__(self, cache_dir):
+        super().__init__()
+        self.cache_dir = cache_dir
+        
+    def run(self):
+        pythoncom.CoInitialize()
+        try:
+            import win32com.client
+            try:
+                app = win32com.client.GetActiveObject("PowerPoint.Application")
+            except:
+                app = win32com.client.Dispatch("PowerPoint.Application")
+                
+            if app.SlideShowWindows.Count > 0:
+                presentation = app.ActivePresentation
+                slides_count = presentation.Slides.Count
+                
+                if not os.path.exists(self.cache_dir):
+                    os.makedirs(self.cache_dir)
+                    
+                for i in range(1, slides_count + 1):
+                    thumb_path = os.path.join(self.cache_dir, f"slide_{i}.jpg")
+                    if not os.path.exists(thumb_path):
+                        try:
+                            presentation.Slides(i).Export(thumb_path, "JPG", 320, 180)
+                        except:
+                            pass
+        except Exception as e:
+            print(f"Slide export error: {e}")
+        pythoncom.CoUninitialize()
 
 class BusinessLogicController(QWidget):
     def __init__(self):
         super().__init__()
-        setTheme(Theme.DARK) 
+        self.theme_mode = self.load_theme_setting()
+        setTheme(self.theme_mode)
         
         self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(1, 1)
         self.move(-100, -100) 
         
-        self.ppt_app = None
-        self.current_view = None
-        # 兼容模式设置
-        self.compatibility_mode = self.load_compatibility_mode_setting()
+        self.ppt_client = PPTClient()
         
         # 批注功能组件
         self.annotation_widget = None
         self.timer_window = None
+        self.loading_overlay = None
         
         # UI组件引用（将在主程序中设置）
         self.toolbar = None
@@ -43,11 +73,13 @@ class BusinessLogicController(QWidget):
         self.timer.start(500)
         
         self.widgets_visible = False
+        self.slides_loaded = False
     
     def setup_connections(self):
         """设置UI组件与业务逻辑之间的信号连接"""
         if self.toolbar:
             self.toolbar.request_spotlight.connect(self.toggle_spotlight)
+            self.toolbar.request_pointer_mode.connect(self.change_pointer_mode)
             self.toolbar.request_pen_color.connect(self.change_pen_color)
             self.toolbar.request_clear_ink.connect(self.clear_ink)
             self.toolbar.request_exit.connect(self.exit_slideshow)
@@ -78,65 +110,120 @@ class BusinessLogicController(QWidget):
 
         tray_menu = SystemTrayMenu(parent=self)
 
-        self.compatibility_checkbox = Action(self, text="com接口模式", checkable=True, checked=not self.compatibility_mode, triggered=self.toggle_compatibility_mode)
+        # Removed Compatibility Mode Checkbox
         annotation_action = Action(self, text="独立批注", triggered=self.toggle_annotation_mode)
         timer_action = Action(self, text="计时器", triggered=self.toggle_timer_window)
+
+        self.theme_auto_action = Action(self, text="跟随系统", checkable=True, triggered=self.set_theme_auto)
+        self.theme_light_action = Action(self, text="浅色模式", checkable=True, triggered=self.set_theme_light)
+        self.theme_dark_action = Action(self, text="深色模式", checkable=True, triggered=self.set_theme_dark)
+
         exit_action = Action(self, text="退出", triggered=self.exit_application)
 
-        tray_menu.addAction(self.compatibility_checkbox)
         tray_menu.addAction(annotation_action)
         tray_menu.addAction(timer_action)
+        tray_menu.addSeparator()
+        tray_menu.addAction(self.theme_auto_action)
+        tray_menu.addAction(self.theme_light_action)
+        tray_menu.addAction(self.theme_dark_action)
         tray_menu.addSeparator()
         tray_menu.addAction(exit_action)
 
         self.tray_icon.setContextMenu(tray_menu)
+        self.set_theme_mode(self.theme_mode)
         self.tray_icon.show()
 
     def closeEvent(self, event):
         self.timer.stop()
-        if self.ppt_app:
+        if self.ppt_client.app:
             try:
-                self.ppt_app.Quit()
+                # self.ppt_client.app.Quit() # Should not quit PPT app on helper exit?
+                pass
             except:
                 pass
         # 清理批注功能
         if self.annotation_widget:
             self.annotation_widget.close()
         event.accept()
-
-    def load_compatibility_mode_setting(self):
-        """加载兼容模式设置"""
+    
+    def load_theme_setting(self):
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SeiraiPPTAssistant", 0, winreg.KEY_READ)
-            value, _ = winreg.QueryValueEx(key, "CompatibilityMode")
+            value, _ = winreg.QueryValueEx(key, "ThemeMode")
             winreg.CloseKey(key)
-            return bool(value)
+            if isinstance(value, str):
+                v = value.lower()
+                if v == "light":
+                    return Theme.LIGHT
+                if v == "dark":
+                    return Theme.DARK
+                if v == "auto":
+                    return Theme.AUTO
         except WindowsError:
-            return False  # 默认关闭兼容模式
+            pass
+        return Theme.AUTO
     
-    def save_compatibility_mode_setting(self, enabled):
-        """保存兼容模式设置"""
+    def save_theme_setting(self, theme):
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SeiraiPPTAssistant", 0, winreg.KEY_ALL_ACCESS)
         except WindowsError:
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\SeiraiPPTAssistant")
         
         try:
-            winreg.SetValueEx(key, "CompatibilityMode", 0, winreg.REG_DWORD, int(enabled))
+            value = getattr(theme, "value", None)
+            if not isinstance(value, str):
+                value = str(theme)
+            winreg.SetValueEx(key, "ThemeMode", 0, winreg.REG_SZ, value)
             winreg.CloseKey(key)
         except Exception as e:
-            print(f"Error saving compatibility mode setting: {e}")
+            print(f"Error saving theme setting: {e}")
     
-    def toggle_compatibility_mode(self):
-        checked = False
-        if hasattr(self, "compatibility_checkbox") and self.compatibility_checkbox is not None:
-            checked = self.compatibility_checkbox.isChecked()
-        self.compatibility_mode = not checked
-        self.save_compatibility_mode_setting(self.compatibility_mode)
+    def set_theme_mode(self, theme):
+        self.theme_mode = theme
+        setTheme(theme)
+        self.save_theme_setting(theme)
+        if hasattr(self, "theme_auto_action"):
+            self.theme_auto_action.setChecked(theme == Theme.AUTO)
+        if hasattr(self, "theme_light_action"):
+            self.theme_light_action.setChecked(theme == Theme.LIGHT)
+        if hasattr(self, "theme_dark_action"):
+            self.theme_dark_action.setChecked(theme == Theme.DARK)
+        
+        self.update_widgets_theme()
+            
+    def update_widgets_theme(self):
+        """Update theme for all active widgets"""
+        theme = self.theme_mode
+        widgets = [
+            self.toolbar,
+            self.nav_left,
+            self.nav_right,
+            self.timer_window,
+            self.spotlight
+        ]
+        
+        # Add optional widgets if they exist
+        if hasattr(self, 'annotation_widget') and self.annotation_widget:
+            widgets.append(self.annotation_widget)
+            
+        for widget in widgets:
+            if widget and hasattr(widget, 'set_theme'):
+                widget.set_theme(theme)
+    
+    def set_theme_auto(self, checked=False):
+        self.set_theme_mode(Theme.AUTO)
+    
+    def set_theme_light(self, checked=False):
+        self.set_theme_mode(Theme.LIGHT)
+    
+    def set_theme_dark(self, checked=False):
+        self.set_theme_mode(Theme.DARK)
     
     def toggle_timer_window(self):
         if not self.timer_window:
             self.timer_window = TimerWindow()
+            if hasattr(self.timer_window, 'set_theme'):
+                self.timer_window.set_theme(self.theme_mode)
         if self.timer_window.isVisible():
             self.timer_window.hide()
         else:
@@ -146,24 +233,16 @@ class BusinessLogicController(QWidget):
     
     def toggle_annotation_mode(self):
         """切换独立批注模式"""
-        if self.compatibility_mode:
-            # 在兼容模式下使用CompatibilityAnnotationWidget
-            if not hasattr(self, 'compatibility_annotation_widget') or self.compatibility_annotation_widget is None:
-                self.compatibility_annotation_widget = CompatibilityAnnotationWidget()
-            
-            if self.compatibility_annotation_widget.isVisible():
-                self.compatibility_annotation_widget.hide()
-            else:
-                self.compatibility_annotation_widget.showFullScreen()
+        # 在标准模式下使用AnnotationWidget
+        if not self.annotation_widget:
+            self.annotation_widget = AnnotationWidget()
+            if hasattr(self.annotation_widget, 'set_theme'):
+                self.annotation_widget.set_theme(self.theme_mode)
+        
+        if self.annotation_widget.isVisible():
+            self.annotation_widget.hide()
         else:
-            # 在标准模式下使用原来的AnnotationWidget
-            if not self.annotation_widget:
-                self.annotation_widget = AnnotationWidget()
-            
-            if self.annotation_widget.isVisible():
-                self.annotation_widget.hide()
-            else:
-                self.annotation_widget.showFullScreen()
+            self.annotation_widget.showFullScreen()
     
     def check_presentation_processes(self):
         """检查演示进程并控制窗口显示"""
@@ -173,7 +252,6 @@ class BusinessLogicController(QWidget):
         for proc in psutil.process_iter(['name']):
             try:
                 proc_name = proc.info.get('name', '') or ""
-                # 增加空值检查后再调用lower()
                 proc_name_lower = proc_name.lower()
                 
                 # 检查是否为PowerPoint或WPS演示相关进程
@@ -185,63 +263,6 @@ class BusinessLogicController(QWidget):
                 continue
         
         return presentation_detected
-    
-    def find_presentation_window(self):
-        """查找WPS或PowerPoint的放映窗口"""
-        windows = []
-        title_keywords = ['wps', 'powerpoint', '演示', '幻灯片', 'slide show', 'slideshow']
-        class_keywords = ['wpp', 'powerpnt', 'presentation', 'screenclass', 'ppt', 'kwpp']
-        
-        def enum_windows_callback(hwnd, extra):
-            if win32gui.IsWindowVisible(hwnd):
-                window_text = (win32gui.GetWindowText(hwnd) or "").lower()
-                class_name = (win32gui.GetClassName(hwnd) or "").lower()
-                if (any(keyword in window_text for keyword in title_keywords) or 
-                    any(keyword in class_name for keyword in class_keywords)):
-                    extra.append(hwnd)
-            return True
-        
-        win32gui.EnumWindows(enum_windows_callback, windows)
-        return windows[0] if windows else None
-    
-    def simulate_up_key(self):
-        """模拟上一页按键"""
-        # 查找并激活演示窗口
-        hwnd = self.find_presentation_window()
-        if hwnd:
-            # 激活窗口
-            import win32con
-            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-            win32gui.SetForegroundWindow(hwnd)
-            
-        # 模拟按下向上键
-        pyautogui.press('up')
-    
-    def simulate_down_key(self):
-        """模拟下一页按键"""
-        # 查找并激活演示窗口
-        hwnd = self.find_presentation_window()
-        if hwnd:
-            # 激活窗口
-            import win32con
-            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-            win32gui.SetForegroundWindow(hwnd)
-            
-        # 模拟按下向下键
-        pyautogui.press('down')
-    
-    def simulate_esc_key(self):
-        """模拟ESC键退出演示"""
-        # 查找并激活演示窗口
-        hwnd = self.find_presentation_window()
-        if hwnd:
-            # 激活窗口
-            import win32con
-            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-            win32gui.SetForegroundWindow(hwnd)
-            
-        # 模拟按下ESC键
-        pyautogui.press('esc')
     
     def is_autorun(self):#设定程序自启动
         try:
@@ -279,34 +300,26 @@ class BusinessLogicController(QWidget):
         except Exception as e:
             print(f"Error setting autorun: {e}")
 
-    def get_ppt_view(self):#获取ppt全部页面
-        try:
-            self.ppt_app = win32com.client.GetActiveObject("PowerPoint.Application")
-            if self.ppt_app.SlideShowWindows.Count > 0:
-                return self.ppt_app.SlideShowWindows(1).View
-            else:
-                return None
-        except Exception:
-            return None
-
     def check_state(self):
-        has_presentation = self.check_presentation_processes()
-        if has_presentation:
+        # 仅在有活动放映视图时显示控件
+        view = None
+        has_process = self.check_presentation_processes()
+        
+        if has_process:
+            view = self.ppt_client.get_active_view()
+            
+        if view:
             if not self.widgets_visible:
                 self.show_widgets()
+            
+            if self.ppt_client.app:
+                self.nav_left.ppt_app = self.ppt_client.app
+                self.nav_right.ppt_app = self.ppt_client.app
+                self.update_page_num(view)
+                self.sync_state(view)
         else:
             if self.widgets_visible:
                 self.hide_widgets()
-        
-        if self.compatibility_mode:
-            return
-        
-        view = self.get_ppt_view()
-        if view and self.ppt_app:
-            self.nav_left.ppt_app = self.ppt_app
-            self.nav_right.ppt_app = self.ppt_app
-            self.sync_state(view)
-            self.update_page_num(view)
 
     def show_widgets(self):
         self.toolbar.show()
@@ -314,6 +327,55 @@ class BusinessLogicController(QWidget):
         self.nav_right.show()
         self.adjust_positions()
         self.widgets_visible = True
+        
+        # Trigger slide loading with overlay
+        if not self.slides_loaded:
+            self.start_loading_slides()
+
+    def start_loading_slides(self):
+        try:
+            if not self.ppt_client.app:
+                return
+                
+            presentation = self.ppt_client.app.ActivePresentation
+            presentation_path = presentation.FullName
+            
+            # Reset if path changed (simple check)
+            if hasattr(self, 'last_presentation_path') and self.last_presentation_path != presentation_path:
+                self.slides_loaded = False
+            self.last_presentation_path = presentation_path
+            
+            if self.slides_loaded:
+                return
+
+            import hashlib
+            path_hash = hashlib.md5(presentation_path.encode('utf-8')).hexdigest()
+            cache_dir = os.path.join(os.environ['APPDATA'], 'PPTAssistant', 'Cache', path_hash)
+            
+            if not self.loading_overlay:
+                self.loading_overlay = LoadingOverlay()
+            
+            # Force show overlay
+            self.loading_overlay.show()
+            QApplication.processEvents() # Ensure it renders
+            
+            self.loader_thread = SlideExportThread(cache_dir)
+            self.loader_thread.finished.connect(self.on_slides_loaded)
+            self.loader_thread.start()
+            
+        except Exception as e:
+            print(f"Error starting slide load: {e}")
+            self.slides_loaded = True # Prevent loop
+
+    def on_slides_loaded(self):
+        if self.loading_overlay:
+            self.loading_overlay.hide()
+        self.slides_loaded = True
+
+    def change_pointer_mode(self, mode):
+        self.ppt_client.set_pointer_type(mode)
+        # Update button state if needed, but toolbar handles its own exclusive group
+        # We might want to sync back if PPT changes mode externally, but that's for sync_state
 
     def hide_widgets(self):
         self.toolbar.hide()
@@ -365,47 +427,17 @@ class BusinessLogicController(QWidget):
     def update_page_num(self, view):
         try:
             current = view.Slide.SlideIndex
-            total = self.ppt_app.ActivePresentation.Slides.Count
+            total = self.ppt_client.get_slide_count()
             self.nav_left.update_page(current, total)
             self.nav_right.update_page(current, total)
         except:
             pass
 
     def go_prev(self):
-        # 如果启用了兼容模式，则使用pyautogui模拟按键
-        if self.compatibility_mode:
-            # 检查是否有演示进程在运行
-            if self.check_presentation_processes():
-                self.simulate_up_key()
-            return
-        
-        view = self.get_ppt_view()
-        if view:
-            try:
-                view.Previous()
-            except:
-                pass
-        else:
-            if self.check_presentation_processes():
-                self.simulate_up_key()
+        self.ppt_client.prev_slide()
 
     def go_next(self):
-        # 如果启用了兼容模式，则使用pyautogui模拟按键
-        if self.compatibility_mode:
-            # 检查是否有演示进程在运行
-            if self.check_presentation_processes():
-                self.simulate_down_key()
-            return
-        
-        view = self.get_ppt_view()
-        if view:
-            try:
-                view.Next()
-            except:
-                pass
-        else:
-            if self.check_presentation_processes():
-                self.simulate_down_key()
+        self.ppt_client.next_slide()
                 
     def next_page(self):
         """下一页"""
@@ -416,102 +448,28 @@ class BusinessLogicController(QWidget):
         self.go_prev()
                 
     def jump_to_slide(self, index):
-        view = self.get_ppt_view()
-        if view:
-            try:
-                view.GotoSlide(index)
-            except:
-                pass
+        self.ppt_client.goto_slide(index)
 
     def set_pointer(self, type_id):
-        # 如果在兼容模式下，控制CompatibilityAnnotationWidget
-        if self.compatibility_mode and hasattr(self, 'compatibility_annotation_widget') and self.compatibility_annotation_widget:
-            try:
-                if type_id == 2:  # 笔模式
-                    self.compatibility_annotation_widget.set_pen_mode()
-                elif type_id == 5:  # 橡皮擦模式
-                    self.compatibility_annotation_widget.set_eraser_mode()
-                return
-            except:
-                pass
+        # 强制使用COM接口
+        if type_id == 5:
+            # Check for ink but DO NOT BLOCK
+            if not self.ppt_client.has_ink():
+                self.show_warning(None, "当前页没有笔迹")
         
-        # 否则使用COM接口
-        view = self.get_ppt_view()
-        if view:
-            try:
-                # If switching to eraser (5)
-                if type_id == 5:
-                    # Check for ink but DO NOT BLOCK
-                    if not self.has_ink():
-                        self.show_warning(None, "当前页没有笔迹")
-                
-                view.PointerType = type_id
-                self.activate_ppt_window()
-            except:
-                pass
+        self.ppt_client.set_pointer_type(type_id)
     
     def set_pen_color(self, color):
-        # 如果在兼容模式下，控制CompatibilityAnnotationWidget
-        if self.compatibility_mode and hasattr(self, 'compatibility_annotation_widget') and self.compatibility_annotation_widget:
-            try:
-                # 将RGB整数转换为Qt颜色
-                from PyQt6.QtCore import Qt
-                if color == 255:  # 红色 (R=255, G=0, B=0)
-                    qt_color = Qt.GlobalColor.red
-                elif color == 65280:  # 绿色 (R=0, G=255, B=0)
-                    qt_color = Qt.GlobalColor.green
-                elif color == 16711680:  # 蓝色 (R=0, G=0, B=255)
-                    qt_color = Qt.GlobalColor.blue
-                else:
-                    # 默认使用红色
-                    qt_color = Qt.GlobalColor.red
-                
-                self.compatibility_annotation_widget.set_pen_color(qt_color)
-                return
-            except:
-                pass
-        
-        # 否则使用COM接口
-        view = self.get_ppt_view()
-        if view:
-            try:
-                view.PointerType = 2 # Switch to pen first
-                view.PointerColor.RGB = color
-                self.activate_ppt_window()
-            except:
-                pass
+        self.ppt_client.set_pen_color(color)
                 
     def change_pen_color(self, color):
         """更改笔颜色"""
         self.set_pen_color(color)
-
-    def activate_ppt_window(self):
-        try:
-            # Try to get the window handle of the slide show
-            hwnd = self.ppt_app.SlideShowWindows(1).HWND
-            # Force bring to foreground
-            win32gui.SetForegroundWindow(hwnd)
-        except:
-            pass
                 
     def clear_ink(self):
-        # 如果在兼容模式下，控制CompatibilityAnnotationWidget
-        if self.compatibility_mode and hasattr(self, 'compatibility_annotation_widget') and self.compatibility_annotation_widget:
-            try:
-                self.compatibility_annotation_widget.clear_all()
-                return
-            except:
-                pass
-        
-        # 否则使用COM接口
-        view = self.get_ppt_view()
-        if view:
-            try:
-                if not self.has_ink():
-                    self.show_warning(None, "当前页没有笔迹")
-                view.EraseDrawing()
-            except:
-                pass
+        if not self.ppt_client.has_ink():
+            self.show_warning(None, "当前页没有笔迹")
+        self.ppt_client.erase_ink()
                 
     def toggle_spotlight(self):
         if self.spotlight.isVisible():
@@ -520,22 +478,7 @@ class BusinessLogicController(QWidget):
             self.spotlight.showFullScreen()
             
     def exit_slideshow(self):
-        # 如果启用了兼容模式，则使用pyautogui模拟ESC键退出演示
-        if self.compatibility_mode:
-            # 检查是否有演示进程在运行
-            if self.check_presentation_processes():
-                self.simulate_esc_key()
-            return
-        
-        view = self.get_ppt_view()
-        if view:
-            try:
-                view.Exit()
-            except:
-                pass
-        else:
-            if self.check_presentation_processes():
-                self.simulate_esc_key()
+        self.ppt_client.exit_show()
                 
     def exit_application(self):
         """退出应用程序"""
@@ -543,23 +486,6 @@ class BusinessLogicController(QWidget):
         app = QApplication.instance()
         if app is not None:
             app.quit()
-
-    def has_ink(self):
-        try:
-            view = self.get_ppt_view()
-            if not view:
-                return False
-            slide = view.Slide
-            if slide.Shapes.Count == 0:
-                return False
-            for shape in slide.Shapes:
-                if shape.Type == 22: # msoInk
-                    return True
-            return False
-        except:
-            # If any error occurs during check (e.g. COM busy), 
-            # fail safe to True to allow eraser usage (don't block user)
-            return True
 
     def show_warning(self, target, message):
         title = "PPT助手提示"
