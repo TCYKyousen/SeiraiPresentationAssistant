@@ -1,3 +1,9 @@
+> [!IMPORTANT]
+> **温馨提示**：本项目有部分成分由**氛围编程 (Vibe Coding)** 方式编写。
+> 
+> 如果您对此类项目有固有的排斥感，请无视此项目，谢谢。
+---
+
 <div align="center">
     <img src="https://github.com/Haraguse/Kazuha/blob/main/icons/trayicon.svg" alt="Kazuha Logo" width="100"/>
     <h1>Kazuha 万叶演示助手</h1>
