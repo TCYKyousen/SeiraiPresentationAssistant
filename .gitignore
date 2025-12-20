@@ -178,3 +178,5 @@ cython_debug/
 build.bat
 .gitignore
 run.bat
+ui/__pycache__/widgets.cpython-313.pyc
+controllers/__pycache__/business_logic.cpython-313.pyc

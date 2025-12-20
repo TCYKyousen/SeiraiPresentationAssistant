@@ -73,6 +73,7 @@ class Config(QConfig):
         OptionsValidator(["Simplified Chinese", "English"]),
         None,
     )
+    showButtonLabels = ConfigItem("General", "ShowButtonLabels", False)
 
 
 cfg = Config()
@@ -199,6 +200,15 @@ class BusinessLogicController(QWidget):
         # but we can try to set it on specific widgets if needed.
         # For now, this is a placeholder or we can implement specific animation toggles.
         pass
+
+    def on_labels_toggled(self, visible):
+        if cfg.showButtonLabels.value != visible:
+            cfg.set(cfg.showButtonLabels, visible)
+            qconfig.save()
+        if self.toolbar:
+            self.toolbar.set_labels_visible(visible)
+        if hasattr(self, "show_labels_action"):
+            self.show_labels_action.setChecked(visible)
 
     def set_window_effect(self, effect_name):
         # Update config if needed
@@ -360,6 +370,8 @@ class BusinessLogicController(QWidget):
             self.toolbar.request_clear_ink.connect(self.clear_ink)
             self.toolbar.request_exit.connect(self.exit_slideshow)
             self.toolbar.request_timer.connect(self.toggle_timer_window)
+            self.toolbar.labels_toggled.connect(self.on_labels_toggled)
+            self.toolbar.set_labels_visible(cfg.showButtonLabels.value)
             
         if self.nav_left:
             self.nav_left.prev_clicked.connect(self.prev_page)
@@ -388,6 +400,7 @@ class BusinessLogicController(QWidget):
 
         annotation_action = Action(self, text="独立批注", triggered=self.toggle_annotation_mode)
         timer_action = Action(self, text="计时器", triggered=self.toggle_timer_window)
+        self.show_labels_action = Action(self, text="显示按钮提示", checkable=True, triggered=self.on_labels_toggled)
 
         self.theme_auto_action = Action(self, text="跟随系统", checkable=True, triggered=self.set_theme_auto)
         self.theme_light_action = Action(self, text="浅色模式", checkable=True, triggered=self.set_theme_light)
@@ -428,6 +441,7 @@ class BusinessLogicController(QWidget):
 
         tray_menu.addAction(annotation_action)
         tray_menu.addAction(timer_action)
+        tray_menu.addAction(self.show_labels_action)
         tray_menu.addSeparator()
         tray_menu.addAction(self.theme_auto_action)
         tray_menu.addAction(self.theme_light_action)
@@ -460,6 +474,8 @@ class BusinessLogicController(QWidget):
 
         if cfg.enableStartUp.value:
             self.autorun_action.setChecked(True)
+
+        self.show_labels_action.setChecked(cfg.showButtonLabels.value)
 
         timer_pos = cfg.timerPosition.value
         self.timer_pos_center_action.setChecked(timer_pos == "Center")

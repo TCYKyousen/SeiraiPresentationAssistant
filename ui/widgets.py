@@ -2,11 +2,11 @@ import sys
 import os
 from PyQt6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, 
                              QLabel, QFrame, QPushButton, QGridLayout, QStackedWidget,
-                             QScrollArea)
+                             QScrollArea, QMenu)
 from PyQt6.QtCore import (Qt, QSize, pyqtSignal, QEvent, QRect, QPropertyAnimation, 
                           QEasingCurve, QAbstractAnimation, QTimer, QSequentialAnimationGroup, QDateTime, 
                           QPoint, QThread, pyqtProperty, QPointF)
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QRadialGradient
+from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QRadialGradient, QAction
 from qfluentwidgets import (TransparentToolButton, ToolButton, SpinBox,
                             PrimaryPushButton, PushButton, TabWidget,
                             ToolTipFilter, ToolTipPosition, Flyout, FlyoutAnimationType,
@@ -1017,6 +1017,7 @@ class PageNavWidget(QWidget):
             anim.start()
 
         btn.pressed.connect(on_pressed)
+
     
     def eventFilter(self, obj, event):
         if obj == self.page_info_widget:
@@ -1090,6 +1091,7 @@ class ToolBarWidget(QWidget):
     request_clear_ink = pyqtSignal()
     request_exit = pyqtSignal()
     request_timer = pyqtSignal()
+    labels_toggled = pyqtSignal(bool)
     
     def __init__(self):
         super().__init__()
@@ -1144,23 +1146,25 @@ class ToolBarWidget(QWidget):
         self.btn_exit = self.create_action_btn("结束放映", "Minimaze.svg")
         self.btn_exit.clicked.connect(self.request_exit.emit)
         
-        container_layout.addWidget(self.btn_arrow)
-        container_layout.addWidget(self.btn_pen)
-        container_layout.addWidget(self.btn_eraser)
-        container_layout.addWidget(self.btn_clear)
+        self.btn_wrappers = {}
+
+        self.add_btn_with_label(container_layout, self.btn_arrow, "选择")
+        self.add_btn_with_label(container_layout, self.btn_pen, "笔")
+        self.add_btn_with_label(container_layout, self.btn_eraser, "橡皮")
+        self.add_btn_with_label(container_layout, self.btn_clear, "清屏")
         
         self.line1 = QFrame()
         self.line1.setFrameShape(QFrame.Shape.VLine)
         container_layout.addWidget(self.line1)
         
-        container_layout.addWidget(self.btn_spotlight)
-        container_layout.addWidget(self.btn_timer)
+        self.add_btn_with_label(container_layout, self.btn_spotlight, "聚焦")
+        self.add_btn_with_label(container_layout, self.btn_timer, "计时")
 
         self.line2 = QFrame()
         self.line2.setFrameShape(QFrame.Shape.VLine)
         container_layout.addWidget(self.line2)
 
-        container_layout.addWidget(self.btn_exit)
+        self.add_btn_with_label(container_layout, self.btn_exit, "结束")
         
         layout.addWidget(self.container)
         self.setLayout(layout)
@@ -1278,13 +1282,20 @@ class ToolBarWidget(QWidget):
             text_color = "white"
             line_color = "rgba(255, 255, 255, 0.2)"
             
-        # [修改] 统一圆角为 25px，对应 50px 高度
+        # [修改] 统一圆角为 25px，对应 50px 高度 (dynamic now)
+        border_radius = self.container.height() // 2
+        
         self.container.setStyleSheet(f"""
             QWidget#Container {{
                 background-color: {bg_color};
                 border: 1px solid {border_color};
                 border-bottom: 1px solid {border_color};
-                border-radius: 25px;
+                border-radius: {border_radius}px;
+            }}
+            QLabel {{
+                color: {text_color};
+                background: transparent;
+                border: none;
             }}
         """)
         
@@ -1430,8 +1441,12 @@ class ToolBarWidget(QWidget):
         indicator_width = int(btn.width() * 0.6)
         if indicator_width <= 0:
             indicator_width = btn.width()
+        
+        # Map button position to container coordinates
+        pos = btn.mapTo(self.container, QPoint(0, 0))
+        
         h = self.indicator.height()
-        x = btn.x() + (btn.width() - indicator_width) // 2
+        x = pos.x() + (btn.width() - indicator_width) // 2
         y = self.container.height() - h - 4
         self.indicator.setGeometry(x, y, indicator_width, h)
         self.indicator.show()
@@ -1496,6 +1511,64 @@ class ToolBarWidget(QWidget):
             anim.start()
 
         btn.pressed.connect(on_pressed)
+
+    def add_btn_with_label(self, layout, btn, text):
+        wrapper = QWidget()
+        wrapper_layout = QHBoxLayout(wrapper)
+        wrapper_layout.setContentsMargins(0, 0, 0, 0)
+        wrapper_layout.setSpacing(6)
+        wrapper_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        wrapper_layout.addWidget(btn, 0, Qt.AlignmentFlag.AlignCenter)
+        
+        label = QLabel(text)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font = label.font()
+        font.setPixelSize(12)
+        font.setBold(False)
+        label.setFont(font)
+        
+        wrapper_layout.addWidget(label, 0, Qt.AlignmentFlag.AlignCenter)
+        label.setVisible(False)
+        
+        layout.addWidget(wrapper)
+        self.btn_wrappers[btn] = (wrapper, label)
+        
+    def set_labels_visible(self, visible):
+        old_center = self.geometry().center()
+        
+        for btn, (wrapper, label) in self.btn_wrappers.items():
+            label.setVisible(visible)
+            
+        self.adjustSize()
+        self.resize(self.sizeHint())
+        
+        # Only preserve center if widget is actually visible on screen
+        if self.isVisible():
+            new_geometry = self.frameGeometry()
+            new_geometry.moveCenter(old_center)
+            self.move(new_geometry.topLeft())
+            
+        self.set_theme(self.current_theme)
+        self.update_indicator_for_current()
+        
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        menu.setStyleSheet("QMenu { background-color: white; border: 1px solid #ccc; }")
+        if self.current_theme == Theme.DARK:
+             menu.setStyleSheet("QMenu { background-color: #2d2d2d; color: white; border: 1px solid #444; }")
+             
+        is_visible = False
+        if self.btn_wrappers:
+            first_label = list(self.btn_wrappers.values())[0][1]
+            is_visible = first_label.isVisible()
+            
+        action_text = "隐藏按钮提示" if is_visible else "显示按钮提示"
+        toggle_action = QAction(action_text, self)
+        toggle_action.triggered.connect(lambda: self.labels_toggled.emit(not is_visible))
+        
+        menu.addAction(toggle_action)
+        menu.exec(event.globalPos())
 
 
 class ClockWidget(QWidget):
