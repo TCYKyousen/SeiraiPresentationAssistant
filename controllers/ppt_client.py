@@ -34,6 +34,14 @@ class PPTClient:
                 
         return False
 
+    def get_slideshow_window_hwnd(self):
+        try:
+            if self.app and self.app.SlideShowWindows.Count > 0:
+                return self.app.SlideShowWindows(1).HWND
+        except:
+            pass
+        return 0
+
     def activate_window(self):
         try:
             if self.app and self.app.SlideShowWindows.Count > 0:

@@ -13,7 +13,7 @@ from qfluentwidgets import (TransparentToolButton, ToolButton, SpinBox,
                             Pivot, SegmentedWidget, TimePicker, Theme, isDarkTheme,
                             FluentIcon, StrongBodyLabel, TitleLabel, LargeTitleLabel,
                             BodyLabel, CaptionLabel, IndeterminateProgressRing,
-                            SmoothScrollArea, FlowLayout)
+                            SmoothScrollArea, FlowLayout, SwitchButton, MessageBox, MessageDialog)
 from qfluentwidgets.components.material import AcrylicFlyout
 HEIGHT_BAR = 60
 
@@ -1206,6 +1206,15 @@ class ToolBarWidget(QWidget):
         super().mousePressEvent(event)
         self.update_indicator_for_current()
 
+    def set_pointer_mode(self, mode):
+        if mode == 1:
+            self.btn_arrow.setChecked(True)
+        elif mode == 2:
+            self.btn_pen.setChecked(True)
+        elif mode == 5:
+            self.btn_eraser.setChecked(True)
+        self.update_indicator_for_current()
+
     def show_pen_settings(self):
         if self.pen_settings_win and self.pen_settings_win.isVisible():
             self.pen_settings_win.close()
@@ -1604,19 +1613,22 @@ class ClockWidget(QWidget):
 class TimerWindow(QWidget):
     timer_state_changed = pyqtSignal(int, bool, int, bool)
     countdown_finished = pyqtSignal()
+    timer_reset = pyqtSignal()
+    pre_reminder_triggered = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_theme = Theme.DARK
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.resize(340, 280)
+        self.resize(460, 360)
         
         self.up_seconds = 0
         self.up_running = False
         self.down_total_seconds = 0
         self.down_remaining = 0
         self.down_running = False
+        self.strong_reminder_mode = False
         self.sound_effect = None
         self.drag_pos = None
         
@@ -1665,7 +1677,6 @@ class TimerWindow(QWidget):
         self.layout.addWidget(self.stack)
         
         self.init_timers()
-        self.init_sound()
         self.set_theme(Theme.DARK)
         
         self.pivot.setCurrentItem("up")
@@ -1692,9 +1703,9 @@ class TimerWindow(QWidget):
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(15)
         self.up_start_btn = PrimaryPushButton("开始", self.up_page)
-        self.up_start_btn.setFixedWidth(100)
+        self.up_start_btn.setFixedWidth(130)
         self.up_reset_btn = PushButton("重置", self.up_page)
-        self.up_reset_btn.setFixedWidth(100)
+        self.up_reset_btn.setFixedWidth(130)
         
         self.up_start_btn.clicked.connect(self.toggle_up)
         self.up_reset_btn.clicked.connect(self.reset_up)
@@ -1720,7 +1731,7 @@ class TimerWindow(QWidget):
         layout.addSpacing(20)
         
         self.back_btn = PrimaryPushButton("返回", self.completed_page)
-        self.back_btn.setFixedWidth(120)
+        self.back_btn.setFixedWidth(150)
         self.back_btn.clicked.connect(self.on_completed_back)
         
         btn_layout = QHBoxLayout()
@@ -1734,6 +1745,11 @@ class TimerWindow(QWidget):
     def on_completed_back(self):
         self.reset_down()
         self.stack.setCurrentWidget(self.down_page)
+        # Stop shaking if it was loop
+        if hasattr(self, 'shake_anim'):
+            self.shake_anim.stop()
+        # Signals for controller to stop sound/mask
+        self.timer_reset.emit()
 
     def setup_down_page(self):
         layout = QVBoxLayout(self.down_page)
@@ -1749,13 +1765,13 @@ class TimerWindow(QWidget):
         self.down_min_spin = SpinBox()
         self.down_min_spin.setRange(0, 999)
         self.down_min_spin.setSuffix(" 分")
-        self.down_min_spin.setFixedWidth(110)
+        self.down_min_spin.setFixedWidth(140)
         self.down_min_spin.setValue(5) # Default 5 mins
         
         self.down_sec_spin = SpinBox()
         self.down_sec_spin.setRange(0, 59)
         self.down_sec_spin.setSuffix(" 秒")
-        self.down_sec_spin.setFixedWidth(110)
+        self.down_sec_spin.setFixedWidth(140)
         
         input_layout.addStretch()
         input_layout.addWidget(self.down_min_spin)
@@ -1766,17 +1782,76 @@ class TimerWindow(QWidget):
         self.down_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.down_label.hide()
         
+        # Strong reminder settings
+        self.strong_reminder_switch = SwitchButton(self.down_page)
+        self.strong_reminder_switch.setOnText("强提醒已开启")
+        self.strong_reminder_switch.setOffText("强提醒已关闭")
+        self.strong_reminder_switch.checkedChanged.connect(self.on_strong_reminder_toggled)
+
+        # Voice settings container (hidden by default)
+        self.voice_settings_container = QWidget()
+        voice_layout = QVBoxLayout(self.voice_settings_container)
+        voice_layout.setContentsMargins(10, 5, 10, 5)
+        voice_layout.setSpacing(10)
+        self.voice_settings_container.hide()
+
+        # Separator line
+        self.separator_line = QFrame()
+        self.separator_line.setFrameShape(QFrame.Shape.HLine)
+        self.separator_line.setFrameShadow(QFrame.Shadow.Sunken)
+        self.separator_line.setStyleSheet("background-color: rgba(255, 255, 255, 0.1); max-height: 1px;")
+        voice_layout.addWidget(self.separator_line)
+
+        # Pre-reminder settings
+        pre_layout = QHBoxLayout()
+        pre_layout.setContentsMargins(0,0,0,0)
+        pre_label = BodyLabel("剩余播报:", self)
+        
+        self.pre_rem_min = SpinBox()
+        self.pre_rem_min.setRange(0, 59)
+        self.pre_rem_min.setSuffix("分")
+        self.pre_rem_min.setFixedWidth(130)
+        
+        self.pre_rem_sec = SpinBox()
+        self.pre_rem_sec.setRange(0, 59)
+        self.pre_rem_sec.setSuffix("秒")
+        self.pre_rem_sec.setFixedWidth(130)
+        
+        pre_layout.addWidget(pre_label)
+        pre_layout.addStretch()
+        pre_layout.addWidget(self.pre_rem_min)
+        pre_layout.addWidget(self.pre_rem_sec)
+
+        # Post-reminder settings
+        post_layout = QHBoxLayout()
+        post_layout.setContentsMargins(0,0,0,0)
+        post_label = BodyLabel("结束播报:", self)
+        self.post_rem_switch = SwitchButton()
+        self.post_rem_switch.setOnText("开启")
+        self.post_rem_switch.setOffText("关闭")
+        self.post_rem_switch.setChecked(True)
+        
+        post_layout.addWidget(post_label)
+        post_layout.addStretch()
+        post_layout.addWidget(self.post_rem_switch)
+        
+        voice_layout.addLayout(pre_layout)
+        voice_layout.addLayout(post_layout)
+        
         layout.addStretch()
         layout.addWidget(self.input_widget)
         layout.addWidget(self.down_label)
+        layout.addSpacing(10)
+        layout.addWidget(self.strong_reminder_switch, 0, Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.voice_settings_container)
         layout.addStretch()
         
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(15)
         self.down_start_btn = PrimaryPushButton("开始", self.down_page)
-        self.down_start_btn.setFixedWidth(100)
+        self.down_start_btn.setFixedWidth(130)
         self.down_reset_btn = PushButton("重置", self.down_page)
-        self.down_reset_btn.setFixedWidth(100)
+        self.down_reset_btn.setFixedWidth(130)
         
         self.down_start_btn.clicked.connect(self.toggle_down)
         self.down_reset_btn.clicked.connect(self.reset_down)
@@ -1841,30 +1916,68 @@ class TimerWindow(QWidget):
         original_pos = self.pos()
         offset = 10
         
-        for _ in range(2):
-            anim1 = QPropertyAnimation(self, b"pos")
-            anim1.setDuration(50)
-            anim1.setStartValue(original_pos)
-            anim1.setEndValue(original_pos + QPoint(offset, 0))
-            anim1.setEasingCurve(QEasingCurve.Type.InOutQuad)
-            
-            anim2 = QPropertyAnimation(self, b"pos")
-            anim2.setDuration(50)
-            anim2.setStartValue(original_pos + QPoint(offset, 0))
-            anim2.setEndValue(original_pos - QPoint(offset, 0))
-            anim2.setEasingCurve(QEasingCurve.Type.InOutQuad)
-            
-            anim3 = QPropertyAnimation(self, b"pos")
-            anim3.setDuration(50)
-            anim3.setStartValue(original_pos - QPoint(offset, 0))
-            anim3.setEndValue(original_pos)
-            anim3.setEasingCurve(QEasingCurve.Type.InOutQuad)
-            
-            self.shake_anim.addAnimation(anim1)
-            self.shake_anim.addAnimation(anim2)
-            self.shake_anim.addAnimation(anim3)
+        # In strong reminder mode, loop indefinitely
+        loop_count = -1 if self.strong_reminder_mode else 2
+        
+        # Create one cycle of shake
+        cycle_anim = QSequentialAnimationGroup(self)
+        
+        anim1 = QPropertyAnimation(self, b"pos")
+        anim1.setDuration(50)
+        anim1.setStartValue(original_pos)
+        anim1.setEndValue(original_pos + QPoint(offset, 0))
+        anim1.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        
+        anim2 = QPropertyAnimation(self, b"pos")
+        anim2.setDuration(50)
+        anim2.setStartValue(original_pos + QPoint(offset, 0))
+        anim2.setEndValue(original_pos - QPoint(offset, 0))
+        anim2.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        
+        anim3 = QPropertyAnimation(self, b"pos")
+        anim3.setDuration(50)
+        anim3.setStartValue(original_pos - QPoint(offset, 0))
+        anim3.setEndValue(original_pos)
+        anim3.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        
+        cycle_anim.addAnimation(anim1)
+        cycle_anim.addAnimation(anim2)
+        cycle_anim.addAnimation(anim3)
+        
+        if loop_count == -1:
+            self.shake_anim.setLoopCount(0) # 0 means infinite in some contexts, but let's check docs or use loop
+            # QSequentialAnimationGroup doesn't have setLoopCount directly in all Qt versions, 
+            # but we can re-start on finished if needed.
+            # Actually QAbstractAnimation has setLoopCount.
+            self.shake_anim.addAnimation(cycle_anim)
+            self.shake_anim.setLoopCount(-1) 
+        else:
+             # Add multiple cycles
+             for _ in range(loop_count):
+                 self.shake_anim.addAnimation(cycle_anim)
             
         self.shake_anim.start()
+
+    def on_strong_reminder_toggled(self, checked):
+        if checked:
+            w = MessageDialog(
+                "开启强提醒",
+                "强提醒模式下，倒计时结束时将：\n\n1. 强制弹出计时窗口\n2. 播放高强度警报音\n3. 窗口持续抖动\n4. 显示全屏遮罩\n\n只有点击“返回”按钮才能停止提醒。",
+                self.window()
+            )
+            w.yesButton.setText("开启")
+            w.cancelButton.setText("取消")
+            if w.exec():
+                self.strong_reminder_mode = True
+                self.voice_settings_container.show()
+                # Expand window slightly if needed, or let layout handle it
+            else:
+                self.strong_reminder_switch.setChecked(False)
+                self.strong_reminder_mode = False
+                self.voice_settings_container.hide()
+        else:
+            self.strong_reminder_mode = False
+            self.voice_settings_container.hide()
 
     def init_timers(self):
         self.up_timer = QTimer(self)
@@ -1874,29 +1987,6 @@ class TimerWindow(QWidget):
         self.down_timer.setInterval(1000)
         self.down_timer.timeout.connect(self.update_down)
 
-    def init_sound(self):
-        try:
-            from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-            from PyQt6.QtCore import QUrl
-        except Exception:
-            self.player = None
-            return
-            
-        self.player = QMediaPlayer(self)
-        self.audio_output = QAudioOutput(self)
-        self.player.setAudioOutput(self.audio_output)
-        
-        base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-        path = os.path.join(base_dir, "timer_ring.ogg")
-        
-        if os.path.exists(path):
-            self.player.setSource(QUrl.fromLocalFile(path))
-            self.audio_output.setVolume(1.0)
-
-    def play_ring(self):
-        if hasattr(self, 'player') and self.player:
-            self.player.stop()
-            self.player.play()
 
     def emit_state(self):
         self.timer_state_changed.emit(self.up_seconds, self.up_running, self.down_remaining, self.down_running)
@@ -1927,6 +2017,7 @@ class TimerWindow(QWidget):
         self.up_start_btn.setText("开始")
         self.up_label.setText(self.format_time(self.up_seconds))
         self.emit_state()
+        self.timer_reset.emit()
 
     def update_up(self):
         self.up_seconds += 1
@@ -1952,10 +2043,12 @@ class TimerWindow(QWidget):
             self.down_timer.start()
             self.down_running = True
             self.down_start_btn.setText("暂停")
+            self.strong_reminder_switch.setEnabled(False)
         else:
             self.down_timer.stop()
             self.down_running = False
             self.down_start_btn.setText("开始")
+            self.strong_reminder_switch.setEnabled(True)
         self.emit_state()
 
     def reset_down(self):
@@ -1964,16 +2057,30 @@ class TimerWindow(QWidget):
         self.down_remaining = 0
         self.down_total_seconds = 0
         self.down_start_btn.setText("开始")
+        self.strong_reminder_switch.setEnabled(True)
         
         self.down_label.hide()
         self.input_widget.show()
         self.emit_state()
+        self.timer_reset.emit()
 
     def update_down(self):
         if self.down_remaining > 0:
             self.down_remaining -= 1
             self.down_label.setText(self.format_time(self.down_remaining))
             self.emit_state()
+            
+            # Pre-reminder logic
+            if self.strong_reminder_mode:
+                rem_min = self.pre_rem_min.value()
+                rem_sec = self.pre_rem_sec.value()
+                total_rem = rem_min * 60 + rem_sec
+                if total_rem > 0 and self.down_remaining == total_rem:
+                    msg = f"倒计时剩余{rem_min}分{rem_sec}秒" if rem_min > 0 else f"倒计时剩余{rem_sec}秒"
+                    # If seconds is 0, just say minutes
+                    if rem_sec == 0 and rem_min > 0:
+                        msg = f"倒计时剩余{rem_min}分钟"
+                    self.pre_reminder_triggered.emit(msg)
         
         if self.down_remaining <= 0 and self.down_running:
             self.down_timer.stop()
@@ -1981,7 +2088,6 @@ class TimerWindow(QWidget):
             self.down_start_btn.setText("开始")
             
             self.stack.setCurrentWidget(self.completed_page)
-            self.play_ring()
             self.shake_window()
             self.countdown_finished.emit()
             self.emit_state()
