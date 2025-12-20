@@ -25,14 +25,16 @@ from qfluentwidgets import (
     MessageBox,
     PushButton,
 )
-from ui.widgets import AnnotationWidget, TimerWindow, LoadingOverlay, RippleOverlay
+from ui.widgets import AnnotationWidget, TimerWindow, ToolBarWidget, PageNavWidget, SpotlightOverlay, ClockWidget
 from .ppt_client import PPTClient
 from .version_manager import VersionManager
 from .sound_manager import SoundManager
 import pythoncom
 import os
+from typing import Optional
 
-CONFIG_DIR = Path(os.getenv("APPDATA")) / "SeiraiPPTAssistant"
+# fallback 到 Temp
+CONFIG_DIR = Path(os.getenv("APPDATA", os.getenv("TEMP", "C:\\"))) / "SeiraiPPTAssistant"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 CONFIG_PATH = CONFIG_DIR / "config.json"
 
@@ -128,16 +130,16 @@ class BusinessLogicController(QWidget):
         self.sound_manager = SoundManager(sound_dir)
         
         # 批注功能组件
-        self.annotation_widget = None
+        self.annotation_widget: Optional[AnnotationWidget] = None
         self.timer_window = None
         self.loading_overlay = None
         
         # UI组件引用（将在主程序中设置）
-        self.toolbar = None
-        self.nav_left = None
-        self.nav_right = None
-        self.spotlight = None
-        self.clock_widget = None
+        self.toolbar: Optional[ToolBarWidget] = None
+        self.nav_left: Optional[PageNavWidget] = None
+        self.nav_right: Optional[PageNavWidget] = None
+        self.spotlight: Optional[SpotlightOverlay] = None
+        self.clock_widget: Optional[ClockWidget] = None
         
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.check_state)
@@ -155,7 +157,7 @@ class BusinessLogicController(QWidget):
         is_auto = self.is_autorun()
         if cfg.enableStartUp.value != is_auto:
             cfg.set(cfg.enableStartUp, is_auto)
-            cfg.save()
+            qconfig.save()
 
     def check_conflicting_processes(self):
         try:
@@ -243,13 +245,13 @@ class BusinessLogicController(QWidget):
         enabled = bool(checked)
         if cfg.enableStartUp.value != enabled:
             cfg.set(cfg.enableStartUp, enabled)
-            cfg.save()
+            qconfig.save()
         self.set_start_up(enabled)
 
     def set_tray_timer_position(self, pos):
         if cfg.timerPosition.value != pos:
             cfg.set(cfg.timerPosition, pos)
-            cfg.save()
+            qconfig.save()
         if pos == "Center":
             self.timer_pos_center_action.setChecked(True)
             self.timer_pos_tl_action.setChecked(False)
@@ -284,7 +286,7 @@ class BusinessLogicController(QWidget):
     def set_tray_clock_position(self, pos):
         if cfg.clockPosition.value != pos:
             cfg.set(cfg.clockPosition, pos)
-            cfg.save()
+            qconfig.save()
         if pos == "TopLeft":
             self.clock_pos_tl_action.setChecked(True)
             self.clock_pos_tr_action.setChecked(False)
@@ -315,7 +317,7 @@ class BusinessLogicController(QWidget):
     def set_language(self, language):
         if cfg.language.value != language:
             cfg.set(cfg.language, language)
-            cfg.save()
+            qconfig.save()
         self.show_warning(None, "语言设置将在重启后生效")
 
     def set_language_zh(self, checked=False):
@@ -640,7 +642,7 @@ class BusinessLogicController(QWidget):
             
             # Position the window
             pos_setting = cfg.timerPosition.value
-            screen = QApplication.primaryScreen().geometry()
+            screen = QApplication.primaryScreen().geometry() # type: ignore
             w = self.timer_window.width()
             h = self.timer_window.height()
             
@@ -801,6 +803,8 @@ class BusinessLogicController(QWidget):
                 self.show_widgets()
             
             if self.ppt_client.app:
+                assert self.nav_left is not None
+                assert self.nav_right is not None
                 self.nav_left.ppt_app = self.ppt_client.app
                 self.nav_right.ppt_app = self.ppt_client.app
                 self.update_page_num(view)
@@ -810,6 +814,9 @@ class BusinessLogicController(QWidget):
                 self.hide_widgets()
 
     def show_widgets(self):
+        assert self.toolbar is not None
+        assert self.nav_left is not None
+        assert self.nav_right is not None
         self.toolbar.show()
         self.nav_left.show()
         self.nav_right.show()
@@ -858,6 +865,9 @@ class BusinessLogicController(QWidget):
             self.toolbar.set_pointer_mode(mode)
 
     def hide_widgets(self):
+        assert self.toolbar is not None
+        assert self.nav_left is not None
+        assert self.nav_right is not None
         self.toolbar.hide()
         self.nav_left.hide()
         self.nav_right.hide()
@@ -866,10 +876,13 @@ class BusinessLogicController(QWidget):
         self.widgets_visible = False
 
     def adjust_positions(self):
+        assert self.toolbar is not None
+        assert self.nav_left is not None
+        assert self.nav_right is not None
         if self.toolbar and self.toolbar.screen():
-            screen = self.toolbar.screen().geometry()
+            screen = self.toolbar.screen().geometry() # type: ignore
         else:
-            screen = QApplication.primaryScreen().geometry()
+            screen = QApplication.primaryScreen().geometry() # type: ignore
         MARGIN = 20
         left = screen.left()
         top = screen.top()
@@ -922,6 +935,7 @@ class BusinessLogicController(QWidget):
 
     def sync_state(self, view):
         try:
+            assert self.toolbar is not None
             pt = view.PointerType
             if pt == 1:
                 self.toolbar.btn_arrow.setChecked(True)
@@ -934,6 +948,8 @@ class BusinessLogicController(QWidget):
 
     def update_page_num(self, view):
         try:
+            assert self.nav_left is not None
+            assert self.nav_right is not None
             current = view.Slide.SlideIndex
             total = self.ppt_client.get_slide_count()
             self.nav_left.update_page(current, total)
@@ -991,10 +1007,7 @@ class BusinessLogicController(QWidget):
         self.sound_manager.play("ClearAll")
                 
     def toggle_spotlight(self):
-        if not self.spotlight:
-            from ui.widgets import SpotlightWidget
-            self.spotlight = SpotlightWidget()
-            
+        assert self.spotlight is not None
         if self.spotlight.isVisible():
             self.spotlight.hide()
         else:

@@ -85,7 +85,7 @@ class IconFactory:
 
     @staticmethod
     def draw_arrow(color, direction='left'):#绘画托盘菜单里的箭头图标……
-        from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QPoint
+        from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor
         from PyQt6.QtCore import Qt
         
         pixmap = QPixmap(32, 32)
@@ -101,10 +101,10 @@ class IconFactory:
         
         if direction == 'left':
             points = [QPoint(20, 8), QPoint(12, 16), QPoint(20, 24)]
-            painter.drawPolyline(points)
+            painter.drawPolyline(points) # type: ignore
         elif direction == 'right':
             points = [QPoint(12, 8), QPoint(20, 16), QPoint(12, 24)]
-            painter.drawPolyline(points)
+            painter.drawPolyline(points) # type: ignore
             
         painter.end()
         return QIcon(pixmap)
@@ -242,7 +242,7 @@ class LoadingOverlay(QWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         from PyQt6.QtWidgets import QApplication
-        self.setGeometry(QApplication.primaryScreen().geometry())
+        self.setGeometry(QApplication.primaryScreen().geometry()) # type: ignore
         
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -282,9 +282,9 @@ class SlideSelectorFlyout(QWidget):
         title = StrongBodyLabel("幻灯片预览", self)
         layout.addWidget(title)
         
-        self.scroll = SmoothScrollArea()
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setStyleSheet("background-color: transparent; border: none;")
+        self.scroll_area = SmoothScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setStyleSheet("background-color: transparent; border: none;")
         
         self.container = QWidget()
         self.container.setStyleSheet("background-color: transparent;")
@@ -293,8 +293,8 @@ class SlideSelectorFlyout(QWidget):
         self.flow.setHorizontalSpacing(12)
         self.flow.setVerticalSpacing(12)
         
-        self.scroll.setWidget(self.container)
-        layout.addWidget(self.scroll)
+        self.scroll_area.setWidget(self.container)
+        layout.addWidget(self.scroll_area)
         
         # We will load slides in background if possible, but here we just trigger load
         QTimer.singleShot(10, self.load_slides)
@@ -348,7 +348,7 @@ class CompatibilityAnnotationWidget(QWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         from PyQt6.QtWidgets import QApplication
-        self.setGeometry(QApplication.primaryScreen().geometry())
+        self.setGeometry(QApplication.primaryScreen().geometry()) # type: ignore
         
         # 绘图属性
         self.drawing = False
@@ -621,7 +621,7 @@ class AnnotationWidget(QWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         from PyQt6.QtWidgets import QApplication
-        self.setGeometry(QApplication.primaryScreen().geometry())
+        self.setGeometry(QApplication.primaryScreen().geometry()) # type: ignore
         
         self.drawing = False
         self.last_point = None
@@ -672,6 +672,9 @@ class AnnotationWidget(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         # Paint implementation would go here if needed
 
+    def set_theme(self, theme):
+        pass
+
 
 class SpotlightOverlay(QWidget):
     def __init__(self, parent=None):
@@ -679,7 +682,7 @@ class SpotlightOverlay(QWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         from PyQt6.QtWidgets import QApplication
-        self.setGeometry(QApplication.primaryScreen().geometry())
+        self.setGeometry(QApplication.primaryScreen().geometry()) # type: ignore
         
         self.selection_rect = QRect()
         self.is_selecting = False
@@ -1640,9 +1643,9 @@ class TimerWindow(QWidget):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.addWidget(self.container)
         
-        self.layout = QVBoxLayout(self.container)
-        self.layout.setContentsMargins(20, 20, 20, 20)
-        self.layout.setSpacing(15)
+        self.main_layout = QVBoxLayout(self.container)
+        self.main_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_layout.setSpacing(15)
         
         # Header
         header_layout = QHBoxLayout()
@@ -1654,14 +1657,14 @@ class TimerWindow(QWidget):
         header_layout.addWidget(self.title_label)
         header_layout.addStretch()
         header_layout.addWidget(self.close_btn)
-        self.layout.addLayout(header_layout)
+        self.main_layout.addLayout(header_layout)
         
         # Segmented Widget for switching modes
         self.pivot = SegmentedWidget(self)
         self.pivot.addItem("up", "正计时")
         self.pivot.addItem("down", "倒计时")
         self.pivot.currentItemChanged.connect(self.on_pivot_changed)
-        self.layout.addWidget(self.pivot)
+        self.main_layout.addWidget(self.pivot)
         
         # Content Stack
         self.stack = QStackedWidget(self)
@@ -1674,7 +1677,7 @@ class TimerWindow(QWidget):
         self.stack.addWidget(self.up_page)
         self.stack.addWidget(self.down_page)
         self.stack.addWidget(self.completed_page)
-        self.layout.addWidget(self.stack)
+        self.main_layout.addWidget(self.stack)
         
         self.init_timers()
         self.set_theme(Theme.DARK)
@@ -1875,12 +1878,12 @@ class TimerWindow(QWidget):
             bg_color = "rgba(243, 243, 243, 0.95)" if not is_transparent else "rgba(243, 243, 243, 0.1)"
             border_color = "rgba(0, 0, 0, 0.05)"
             text_color = "#333333"
-            self.title_label.setTextColor("#333333", "#333333")
+            self.title_label.setTextColor(QColor(0x33,0x33,0x33), QColor(0x33,0x33,0x33))
         else:
             bg_color = "rgba(32, 32, 32, 0.95)" if not is_transparent else "rgba(32, 32, 32, 0.1)"
             border_color = "rgba(255, 255, 255, 0.08)"
             text_color = "white"
-            self.title_label.setTextColor("white", "white")
+            self.title_label.setTextColor(QColor(0xFF,0xFF,0xFF), QColor(0xFF,0xFF,0xFF))
             
         self.container.setStyleSheet(f"""
             QWidget#Container {{
