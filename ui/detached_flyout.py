@@ -13,6 +13,8 @@ class DetachedFlyoutWindow(QWidget):
         self.hide_anim = None
         self._closing = False
 
+        self.setWindowFlags(Qt.WindowType.Popup)
+
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
 

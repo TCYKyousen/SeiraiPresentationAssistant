@@ -3,10 +3,11 @@ import os
 import winreg
 import psutil
 import subprocess
+import ctypes
 from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication, QWidget, QSystemTrayIcon
-from PyQt6.QtCore import QTimer, Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QTimer, Qt, QThread, pyqtSignal, QUrl, QObject, QPoint
 from PyQt6.QtGui import QIcon, QFont
 from qfluentwidgets import (
     setTheme,
@@ -27,6 +28,7 @@ from qfluentwidgets import (
 from ui.widgets import AnnotationWidget, TimerWindow, ToolBarWidget, PageNavWidget, SpotlightOverlay, ClockWidget
 from .ppt_client import PPTClient
 from .version_manager import VersionManager
+from .sound_manager import SoundManager
 import pythoncom
 import os
 from typing import Optional
@@ -122,6 +124,11 @@ class BusinessLogicController(QWidget):
         self.ppt_client = PPTClient()
         self.version_manager = VersionManager()
         
+        # Initialize SoundManager
+        base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        sound_dir = os.path.join(base_dir, "SoundEffectResources")
+        self.sound_manager = SoundManager(sound_dir)
+        
         # 批注功能组件
         self.annotation_widget: Optional[AnnotationWidget] = None
         self.timer_window = None
@@ -165,6 +172,7 @@ class BusinessLogicController(QWidget):
                     self.clock_widget.hide()
                 if not self.conflicting_process_running and hasattr(self, "tray_icon"):
                     self.tray_icon.showMessage("提示", "检测到 ClassIsland/ClassWidgets，已自动隐藏时钟组件。", QSystemTrayIcon.MessageIcon.Information, 2000)
+                    self.sound_manager.play("ConflictCICW")
                 self.conflicting_process_running = True
             else:
                 if self.clock_widget and not self.clock_widget.isVisible() and self.widgets_visible:
@@ -504,6 +512,7 @@ class BusinessLogicController(QWidget):
         version_info = self.version_manager.current_version_info
         v_name = version_info.get('versionName', 'Unknown')
         
+        self.sound_manager.play("WindowPop")
         w = MessageBox("关于 PPT助手", f"当前版本: {v_name}\n\n一个专注于演示辅助的工具。\n\nDesigned by Seirai.", self.get_parent_for_dialog())
         w.exec()
 
@@ -620,11 +629,14 @@ class BusinessLogicController(QWidget):
             if self.clock_widget:
                 self.timer_window.timer_state_changed.connect(self.on_timer_state_changed)
                 self.timer_window.countdown_finished.connect(self.on_countdown_finished)
+                self.timer_window.timer_reset.connect(self.on_timer_reset)
+                self.timer_window.pre_reminder_triggered.connect(self.sound_manager.speak)
                 self.timer_window.emit_state()
         if self.timer_window.isVisible():
             self.timer_window.hide()
         else:
             self.timer_window.show()
+            self.sound_manager.play("WindowPop")
             self.timer_window.activateWindow()
             self.timer_window.raise_()
             
@@ -664,13 +676,51 @@ class BusinessLogicController(QWidget):
             self.adjust_positions()
     
     def on_countdown_finished(self):
+        if self.timer_window and self.timer_window.strong_reminder_mode and self.timer_window.post_rem_switch.isChecked():
+            self.sound_manager.speak("倒计时结束")
+
+        if self.timer_window and self.timer_window.strong_reminder_mode:
+            self.sound_manager.play("StrongTimerRing", loop=True)
+            # Force show timer window
+            if not self.timer_window.isVisible():
+                self.toggle_timer_window()
+            else:
+                self.timer_window.activateWindow()
+                self.timer_window.raise_()
+            
+            # Show full screen mask
+            if not self.loading_overlay:
+                from ui.widgets import LoadingOverlay
+                # We reuse LoadingOverlay or create a specific mask. 
+                # Let's create a simple black mask if LoadingOverlay is not suitable or use a new MaskOverlay.
+                # Since we don't have MaskOverlay, let's use a full screen window with semi-transparent black.
+                self.mask_overlay = QWidget()
+                self.mask_overlay.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
+                self.mask_overlay.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+                self.mask_overlay.setStyleSheet("background-color: rgba(0, 0, 0, 180);")
+                screen = QApplication.primaryScreen().geometry()
+                self.mask_overlay.setGeometry(screen)
+                self.mask_overlay.show()
+                # Ensure timer window is above mask
+                self.timer_window.raise_()
+        else:
+            self.sound_manager.play("TimerRing")
+            
         if not self.clock_widget:
             return
         self.clock_widget.show_countdown_finished()
         self.clock_widget.adjustSize()
         if self.widgets_visible:
             self.adjust_positions()
-    
+
+    def on_timer_reset(self):
+        self.sound_manager.stop("StrongTimerRing")
+        self.sound_manager.stop("TimerRing")
+        self.sound_manager.play("Reset")
+        if hasattr(self, 'mask_overlay') and self.mask_overlay:
+            self.mask_overlay.close()
+            self.mask_overlay = None
+
     def toggle_annotation_mode(self):
         """切换独立批注模式"""
         # 在标准模式下使用AnnotationWidget
@@ -810,6 +860,9 @@ class BusinessLogicController(QWidget):
 
     def change_pointer_mode(self, mode):
         self.ppt_client.set_pointer_type(mode)
+        self.sound_manager.play("Switch")
+        if self.toolbar:
+            self.toolbar.set_pointer_mode(mode)
 
     def hide_widgets(self):
         assert self.toolbar is not None
@@ -912,14 +965,23 @@ class BusinessLogicController(QWidget):
                 
     def next_page(self):
         """下一页"""
-        self.go_next()
+        current = self.ppt_client.get_current_slide_index()
+        total = self.ppt_client.get_slide_count()
+        if current >= total and total > 0:
+             self.sound_manager.play("Error")
+        else:
+             self.go_next()
+             self.sound_manager.play("Cursor")
         
     def prev_page(self):
         """上一页"""
         self.go_prev()
+        self.sound_manager.play("Cursor")
                 
     def jump_to_slide(self, index):
         self.ppt_client.goto_slide(index)
+        self.sound_manager.play("Cursor")
+        self.sound_manager.play("Confirm")
 
     def set_pointer(self, type_id):
         # 强制使用COM接口
@@ -936,11 +998,13 @@ class BusinessLogicController(QWidget):
     def change_pen_color(self, color):
         """更改笔颜色"""
         self.set_pen_color(color)
+        self.sound_manager.play("Confirm")
                 
     def clear_ink(self):
         if not self.ppt_client.has_ink():
             self.show_warning(None, "当前页没有笔迹")
         self.ppt_client.erase_ink()
+        self.sound_manager.play("ClearAll")
                 
     def toggle_spotlight(self):
         assert self.spotlight is not None
@@ -948,6 +1012,7 @@ class BusinessLogicController(QWidget):
             self.spotlight.hide()
         else:
             self.spotlight.showFullScreen()
+            self.sound_manager.play("Switch")
             
 
     def exit_slideshow(self):
@@ -963,3 +1028,4 @@ class BusinessLogicController(QWidget):
     def show_warning(self, target, message):
         title = "PPT助手提示"
         self.tray_icon.showMessage(title, message, QSystemTrayIcon.MessageIcon.Warning, 2000)
+
