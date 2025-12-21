@@ -1089,7 +1089,6 @@ class PageNavWidget(QWidget):
             anim.start()
 
         btn.pressed.connect(on_pressed)
-
     
     def eventFilter(self, obj, event):
         if obj == self.page_info_widget:
@@ -1349,20 +1348,13 @@ class ToolBarWidget(QWidget):
             text_color = "white"
             line_color = "rgba(255, 255, 255, 0.2)"
             
-        # [修改] 统一圆角为 25px，对应 50px 高度 (dynamic now)
-        border_radius = self.container.height() // 2
-        
+        # [修改] 统一圆角为 25px，对应 50px 高度
         self.container.setStyleSheet(f"""
             QWidget#Container {{
                 background-color: {bg_color};
                 border: 1px solid {border_color};
                 border-bottom: 1px solid {border_color};
-                border-radius: {border_radius}px;
-            }}
-            QLabel {{
-                color: {text_color};
-                background: transparent;
-                border: none;
+                border-radius: 25px;
             }}
         """)
         
@@ -1504,12 +1496,8 @@ class ToolBarWidget(QWidget):
         indicator_width = int(btn.width() * 0.6)
         if indicator_width <= 0:
             indicator_width = btn.width()
-        
-        # Map button position to container coordinates
-        pos = btn.mapTo(self.container, QPoint(0, 0))
-        
         h = self.indicator.height()
-        x = pos.x() + (btn.width() - indicator_width) // 2
+        x = btn.x() + (btn.width() - indicator_width) // 2
         y = self.container.height() - h - 4
         self.indicator.setGeometry(x, y, indicator_width, h)
         self.indicator.show()
@@ -1574,7 +1562,6 @@ class ToolBarWidget(QWidget):
             anim.start()
 
         btn.pressed.connect(on_pressed)
-
 
 
 class ClockWidget(QWidget):
