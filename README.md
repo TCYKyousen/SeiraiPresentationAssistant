@@ -36,7 +36,8 @@ Kazuha 致力于提供简洁、高效的演示体验，特别针对课堂教学�
 * **🖍️ 自由绘制：** 支持自由地进行批注。
 * **🎨 颜色选择：** 拥有便捷的颜色选择工具。
 
-<img width="1920" height="1080" alt="屏幕批注功能截图" src="https://github.com/user-attachments/assets/34b64b01-219a-4bf7-b4ca-5394e22f6a7c" />
+<img width="1920" height="1080" alt="批注" src="https://github.com/user-attachments/assets/58596eb8-dfb7-4897-9a28-4e2449e24302" />
+
 
 ### 2. 重点框选（Focus Highlight / Spotlight）
 
@@ -45,17 +46,16 @@ Kazuha 致力于提供简洁、高效的演示体验，特别针对课堂教学�
 * **💡 聚焦：** 框选屏幕区域后，重点区域以外的内容将自动被**压暗**。
 * **📚 教学辅助：** 极其适用于课堂中要求学生记录知识点时，便于学生方便地找出何处应该记录。
 
-<img width="1920" height="1080" alt="重点框选功能截图" src="https://github.com/user-attachments/assets/b39b7941-b98b-406c-9f1c-d32850ac2bb4" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a011b804-330b-4706-a672-d80dd928ab5d" />
+
 
 ### 3. 高度自定义（High Customization）
 
 Kazuha 提供了灵活的界面布局，您可以根据个人习惯和演示需求调整元素位置。
 
-* **🔄 自由拖拽：** 您基本上可以在演示过程中修改任何元素的位置，**工具栏除外**。
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/43ff8d47-4935-407b-acab-1082ef75ea98" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0e4b820d-61bf-48a9-92e6-8d03007783ef" />
 
-<img width="1920" height="1080" alt="上部截图" src="https://github.com/user-attachments/assets/532e2a25-a832-4e64-a7cf-0872c85c6f32" />
-<img width="1920" height="1080" alt="下部截图" src="https://github.com/user-attachments/assets/b255f662-3f51-404b-92ee-98dc45fa10e7" />
-<img width="1920" height="1080" alt="中部截图" src="https://github.com/user-attachments/assets/4c14fdf7-63af-4fe2-8d09-0301399fa9d8" />
 
 ---
 
