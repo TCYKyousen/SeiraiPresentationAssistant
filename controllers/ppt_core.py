@@ -272,7 +272,7 @@ def ppt_worker_process(cmd_queue, result_queue):
     client = PPTClient()
     
     # Debug log
-    log_file = os.path.join(os.getenv("APPDATA"), "SeiraiPPTAssistant", "worker_core.log")
+    log_file = os.path.join(os.getenv("APPDATA"), "Kazuha", "worker_core.log")
     def worker_log(msg):
         try:
             with open(log_file, "a", encoding='utf-8') as f:

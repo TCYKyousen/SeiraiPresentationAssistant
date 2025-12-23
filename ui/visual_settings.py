@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFrame
 from PyQt6.QtCore import Qt, QTimer, QDateTime
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QRegion, QPainterPath
 from qfluentwidgets import SettingCard, Theme, isDarkTheme, ComboBox, SwitchButton, PushButton, BodyLabel
 
 class ClockPreviewWidget(QWidget):
@@ -8,7 +8,7 @@ class ClockPreviewWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(200, 100) # Fixed size for preview
+        self.setFixedHeight(100)
         
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -17,11 +17,10 @@ class ClockPreviewWidget(QWidget):
         self.container = QWidget()
         self.container.setObjectName("Container")
         self.container.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.container.setFixedSize(160, 80) # Mini version
         
-        inner_layout = QVBoxLayout(self.container)
-        inner_layout.setContentsMargins(12, 6, 12, 6)
-        inner_layout.setSpacing(2)
+        inner_layout = QHBoxLayout(self.container)
+        inner_layout.setContentsMargins(16, 6, 16, 6)
+        inner_layout.setSpacing(12)
         inner_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.lbl_time = QLabel()
@@ -76,6 +75,15 @@ class ClockPreviewWidget(QWidget):
         import re
         new_style = re.sub(r"border-radius: .*?;", f"border-radius: {radius}px;", style)
         self.container.setStyleSheet(new_style)
+
+        rect = self.container.rect()
+        if rect.width() > 0 and rect.height() > 0:
+            r = min(radius, int(rect.height() / 2))
+            path = QPainterPath()
+            path.addRoundedRect(rect, r, r)
+            self.container.setMask(QRegion(path.toFillPolygon().toPolygon()))
+        else:
+            self.container.clearMask()
 
     def update_style(self):
         # Apply theme

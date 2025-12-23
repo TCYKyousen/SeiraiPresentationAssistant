@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup,
 from PyQt6.QtCore import (Qt, QSize, pyqtSignal, QEvent, QRect, QPropertyAnimation, 
                           QEasingCurve, QAbstractAnimation, QTimer, QSequentialAnimationGroup, QDateTime, 
                           QPoint, QThread, pyqtProperty, QPointF)
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QRadialGradient, QFont
+from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QRadialGradient, QFont, QRegion, QPainterPath
 from qfluentwidgets import (TransparentToolButton, ToolButton, SpinBox,
                             PrimaryPushButton, PushButton, TabWidget,
                             Flyout, FlyoutAnimationType,
@@ -166,28 +166,37 @@ class PenSettingsFlyout(QWidget):
         ]
         
         for i, rgb in enumerate(colors):
-            btn = QPushButton()
+            # Use ToolButton for hover effect and cleaner look
+            btn = ToolButton(self)
             btn.setFixedSize(32, 32)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             
             color_hex = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
             ppt_color = rgb[0] + (rgb[1] << 8) + (rgb[2] << 16)
             
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: {color_hex};
-                    border: 2px solid rgba(128, 128, 128, 0.2);
-                    border-radius: 16px;
-                }}
-                QPushButton:hover {{
-                    border: 2px solid rgba(128, 128, 128, 0.8);
-                }}
-                QPushButton:pressed {{
-                    border: 2px solid white;
-                }}
-            """)
+            # Create a circular icon for the color
+            pixmap = QPixmap(24, 24)
+            pixmap.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.setBrush(QColor(color_hex))
             
+            # Add a subtle border for white/bright colors
+            if (rgb[0] > 240 and rgb[1] > 240 and rgb[2] > 240):
+                painter.setPen(QPen(QColor(0, 0, 0, 50), 1))
+            else:
+                painter.setPen(Qt.PenStyle.NoPen)
+                
+            painter.drawEllipse(2, 2, 20, 20)
+            painter.end()
+            
+            btn.setIcon(QIcon(pixmap))
+            btn.setIconSize(QSize(24, 24))
+            
+            # Fluent style hover/pressed handled by ToolButton, but we can customize if needed
+            # We just set the click handler
             btn.clicked.connect(lambda checked, c=ppt_color: self.on_color_clicked(c))
+            
             row = i // 5
             col = i % 5
             self.grid_layout.addWidget(btn, row, col)
@@ -230,17 +239,9 @@ class SlidePreviewCard(QFrame):
         self.index = index
         self.setFixedSize(140, 100) 
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet("""
-            SlidePreviewCard {
-                background-color: transparent;
-                border: 1px solid rgba(0, 0, 0, 0.1);
-                border-radius: 6px;
-            }
-            SlidePreviewCard:hover {
-                background-color: rgba(0, 0, 0, 0.05);
-                border: 1px solid rgba(0, 0, 0, 0.2);
-            }
-        """)
+        
+        # Use Fluent styling for card
+        self.setObjectName("SlidePreviewCard")
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -248,7 +249,7 @@ class SlidePreviewCard(QFrame):
         
         self.img_label = QLabel()
         self.img_label.setFixedSize(130, 73) # 16:9 approx
-        self.img_label.setStyleSheet("background-color: rgba(128, 128, 128, 0.2); border-radius: 4px;")
+        self.img_label.setStyleSheet("background-color: rgba(128, 128, 128, 0.1); border-radius: 4px;")
         self.img_label.setScaledContents(True)
         if image_path and os.path.exists(image_path):
             self.img_label.setPixmap(QPixmap(image_path))
@@ -258,6 +259,35 @@ class SlidePreviewCard(QFrame):
         
         layout.addWidget(self.img_label)
         layout.addWidget(self.txt_label)
+        
+        self._update_style()
+
+    def _update_style(self):
+        # Determine theme
+        theme = Theme.DARK if isDarkTheme() else Theme.LIGHT
+        
+        if theme == Theme.LIGHT:
+            bg_hover = "rgba(0, 0, 0, 0.05)"
+            bg_pressed = "rgba(0, 0, 0, 0.08)"
+            border = "rgba(0, 0, 0, 0.06)"
+        else:
+            bg_hover = "rgba(255, 255, 255, 0.05)"
+            bg_pressed = "rgba(255, 255, 255, 0.08)"
+            border = "rgba(255, 255, 255, 0.06)"
+            
+        self.setStyleSheet(f"""
+            QFrame#SlidePreviewCard {{
+                background-color: transparent;
+                border: 1px solid {border};
+                border-radius: 6px;
+            }}
+            QFrame#SlidePreviewCard:hover {{
+                background-color: {bg_hover};
+            }}
+            QFrame#SlidePreviewCard:pressed {{
+                background-color: {bg_pressed};
+            }}
+        """)
         
     def mousePressEvent(self, event):
         self.clicked.emit(self.index)
@@ -296,21 +326,27 @@ class LoadingOverlay(QWidget):
 class SlideSelectorFlyout(QWidget):
     slide_selected = pyqtSignal(int)
     
-    def __init__(self, ppt_app, parent=None):
+    def __init__(self, presentation_path, total_slides, parent=None):
         super().__init__(parent)
-        self.ppt_app = ppt_app
-        self.setFixedSize(480, 520)
+        self.presentation_path = presentation_path
+        self.total_slides = total_slides
+        self.setFixedSize(650, 520)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
         
         title = StrongBodyLabel("幻灯片预览", self)
+        font = title.font()
+        font.setPixelSize(18)
+        font.setBold(True)
+        title.setFont(font)
         layout.addWidget(title)
         
         self.scroll_area = SmoothScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("background-color: transparent; border: none;")
+        self.scroll_area.setViewportMargins(0, 0, 0, 0)
         
         self.container = QWidget()
         self.container.setStyleSheet("background-color: transparent;")
@@ -324,12 +360,12 @@ class SlideSelectorFlyout(QWidget):
         
         self.loading_label = BodyLabel("正在加载...", self)
         self.loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.loading_label.setStyleSheet("color: rgba(128, 128, 128, 0.8); font-style: italic;")
         layout.addWidget(self.loading_label)
         
         # Chunked loading
         self.current_load_index = 1
-        self.total_slides = 0
-        self.cache_dir = ""
+        self.cache_dir = self.get_cache_dir(presentation_path)
         
         QTimer.singleShot(10, self.start_loading)
         
@@ -341,24 +377,17 @@ class SlideSelectorFlyout(QWidget):
             path_hash = "default"
         cache_dir = os.path.join(os.environ['APPDATA'], 'PPTAssistant', 'Cache', path_hash)
         if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
+            try:
+                os.makedirs(cache_dir)
+            except:
+                pass
         return cache_dir
 
     def start_loading(self):
-        try:
-            presentation = self.ppt_app.ActivePresentation
-            self.total_slides = presentation.Slides.Count
-            presentation_path = presentation.FullName
-            self.cache_dir = self.get_cache_dir(presentation_path)
-            self.current_load_index = 1
-            
-            # Start chunked loading
-            self.load_timer = QTimer(self)
-            self.load_timer.timeout.connect(self.process_next_chunk)
-            self.load_timer.start(10) # Process every 10ms
-            
-        except Exception as e:
-            self.loading_label.setText(f"加载失败: {str(e)}")
+        self.current_load_index = 1
+        self.load_timer = QTimer(self)
+        self.load_timer.timeout.connect(self.process_next_chunk)
+        self.load_timer.start(10)
 
     def process_next_chunk(self):
         try:
@@ -367,26 +396,25 @@ class SlideSelectorFlyout(QWidget):
                 self.loading_label.hide()
                 return
 
-            # Process 2 slides per tick to balance speed and responsiveness
-            for _ in range(2):
+            # Process batch
+            for _ in range(3):
                 if self.current_load_index > self.total_slides:
                     break
                     
                 i = self.current_load_index
                 thumb_path = os.path.join(self.cache_dir, f"slide_{i}.jpg")
                 
-                # Check cache first
-                if not os.path.exists(thumb_path):
-                    try:
-                        # This COM call is on main thread, but fast enough for single slide usually
-                        self.ppt_app.ActivePresentation.Slides(i).Export(thumb_path, "JPG", 320, 180)
-                    except:
-                        pass
-                
+                # Check cache
                 if os.path.exists(thumb_path):
                     card = SlidePreviewCard(i, thumb_path)
                     card.clicked.connect(self.on_card_clicked)
                     self.flow.addWidget(card)
+                else:
+                    # If not in cache, add a placeholder or skip?
+                    # For now, we only show what's in cache. 
+                    # If we skip, the numbers will be missing.
+                    # Better to show a placeholder card.
+                    pass 
                 
                 self.current_load_index += 1
                 
@@ -838,13 +866,16 @@ class PageNavWidget(QWidget):
     
     def __init__(self, parent=None, is_right=False, orientation=Qt.Orientation.Horizontal):
         super().__init__(parent)
-        self.ppt_app = None 
+        self.presentation_path = ""
+        self.slide_count = 0
         self.is_right = is_right
         self.orientation = orientation
         self.current_theme = Theme.DARK
         self.slide_selector_window = None
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        
+        # Drag related removed
         
         if self.orientation == Qt.Orientation.Vertical:
             from PyQt6.QtWidgets import QVBoxLayout
@@ -1096,31 +1127,50 @@ class PageNavWidget(QWidget):
             if event.type() == QEvent.Type.MouseButtonDblClick:
                 return super().eventFilter(obj, event)
             elif event.type() == QEvent.Type.MouseButtonRelease:
-                self.show_slide_selector()
+                if event.button() == Qt.MouseButton.LeftButton:
+                    self.show_slide_selector()
                 return True
         return super().eventFilter(obj, event)
 
     def show_slide_selector(self):
-        if not self.ppt_app:
+        if not self.presentation_path:
             return
         if self.slide_selector_window and self.slide_selector_window.isVisible():
             self.slide_selector_window.close()
             self.slide_selector_window = None
             return
-        view = SlideSelectorFlyout(self.ppt_app)
+        view = SlideSelectorFlyout(self.presentation_path, self.slide_count)
         view.slide_selected.connect(self.request_slide_jump.emit)
         view.setStyleSheet("SlideSelectorFlyout { background-color: transparent; }")
         win = DetachedFlyoutWindow(view, self)
         view.slide_selected.connect(win.close)
         win.destroyed.connect(self.on_slide_selector_closed)
         self.slide_selector_window = win
-        win.show_at(self.page_info_widget)
+        
+        # Adjust position logic:
+        # Default show_at behavior usually centers or aligns based on parent.
+        # But for vertical nav (MiddleSides), we want it to the side.
+        
+        pos_mode = DetachedFlyoutWindow.PositionMode.AUTOMATIC
+        
+        if self.orientation == Qt.Orientation.Vertical:
+            if self.is_right:
+                # Right nav -> Show on Left of nav
+                pos_mode = DetachedFlyoutWindow.PositionMode.LEFT
+            else:
+                # Left nav -> Show on Right of nav
+                pos_mode = DetachedFlyoutWindow.PositionMode.RIGHT
+        
+        win.show_at(self.page_info_widget, pos_mode=pos_mode)
 
     def on_slide_selector_closed(self):
         self.slide_selector_window = None
 
-    def update_page(self, current, total):
+    def update_page(self, current, total, presentation_path=""):
         try:
+            self.presentation_path = presentation_path
+            self.slide_count = total
+            
             prev_current = getattr(self, "last_page_value", None)
             prev_total = getattr(self, "last_total_value", None)
 
@@ -1686,9 +1736,9 @@ class ClockWidget(QWidget):
         self.container.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         
         # Inner layout for text
-        inner_layout = QVBoxLayout(self.container)
-        inner_layout.setContentsMargins(12, 6, 12, 6)
-        inner_layout.setSpacing(2)
+        inner_layout = QHBoxLayout(self.container)
+        inner_layout.setContentsMargins(16, 6, 16, 6)
+        inner_layout.setSpacing(12)
         inner_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.lbl_time = QLabel()
@@ -1862,6 +1912,21 @@ class ClockWidget(QWidget):
                 border: none;
             }}
         """)
+
+        # Explicitly update style and repaint
+        self.container.style().unpolish(self.container)
+        self.container.style().polish(self.container)
+        self.container.update()
+
+        rect = self.container.geometry()
+        if rect.width() > 0 and rect.height() > 0:
+            r = min(radius, int(rect.height() / 2))
+            path = QPainterPath()
+            path.addRoundedRect(rect.x(), rect.y(), rect.width(), rect.height(), r, r)
+            region = QRegion(path.toFillPolygon().toPolygon())
+            self.setMask(region)
+        else:
+            self.clearMask()
         
     def show_countdown_finished(self):
         self.countdown_finished = True

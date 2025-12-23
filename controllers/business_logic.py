@@ -42,7 +42,7 @@ from datetime import datetime
 
 def log(msg):
     try:
-        log_dir = os.path.join(os.getenv("APPDATA"), "SeiraiPPTAssistant")
+        log_dir = os.path.join(os.getenv("APPDATA"), "Kazuha")
         log_path = os.path.join(log_dir, "debug.log")
         with open(log_path, "a") as f:
             f.write(f"{datetime.now()}: [BusinessLogic] {msg}\n")
@@ -50,7 +50,7 @@ def log(msg):
         pass
 
 # fallback 到 Temp
-CONFIG_DIR = Path(os.getenv("APPDATA", os.getenv("TEMP", "C:\\"))) / "SeiraiPPTAssistant"
+CONFIG_DIR = Path(os.getenv("APPDATA", os.getenv("TEMP", "C:\\"))) / "Kazuha"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 CONFIG_PATH = CONFIG_DIR / "config.json"
 
@@ -108,10 +108,11 @@ class Config(QConfig):
     clockShowSeconds = ConfigItem("Clock", "ShowSeconds", False)
     clockShowDate = ConfigItem("Clock", "ShowDate", False)
     clockShowLunar = ConfigItem("Clock", "ShowLunar", False)
+    enableClock = ConfigItem("General", "EnableClock", False)
 
 
 cfg = Config()
-cfg.file = str(CONFIG_PATH)
+cfg.file = CONFIG_PATH
 try:
     cfg.load()
 except Exception:
@@ -180,7 +181,7 @@ class BusinessLogicController(QWidget):
         # Initialize VersionManager with correct path
         base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         version_config_path = os.path.join(base_dir, "config", "version.json")
-        self.version_manager = VersionManager(config_path=version_config_path)
+        self.version_manager = VersionManager(config_path=version_config_path, repo_owner="Haraguse", repo_name="Kazuha")
         
         # Initialize SoundManager
         sound_dir = os.path.join(base_dir, "SoundEffectResources")
@@ -230,12 +231,12 @@ class BusinessLogicController(QWidget):
             if running:
                 if self.clock_widget and self.clock_widget.isVisible():
                     self.clock_widget.hide()
-                if not self.conflicting_process_running and hasattr(self, "tray_icon"):
+                if not self.conflicting_process_running and hasattr(self, "tray_icon") and cfg.enableClock.value:
                     self.tray_icon.showMessage("提示", "检测到 ClassIsland/ClassWidgets，已自动隐藏时钟组件。", QSystemTrayIcon.MessageIcon.Information, 2000)
                     self.sound_manager.play("ConflictCICW")
                 self.conflicting_process_running = True
             else:
-                if self.clock_widget and not self.clock_widget.isVisible() and self.widgets_visible:
+                if self.clock_widget and not self.clock_widget.isVisible() and self.widgets_visible and cfg.enableClock.value:
                     self.clock_widget.show()
                 self.conflicting_process_running = False
         except Exception as e:
@@ -331,14 +332,17 @@ class BusinessLogicController(QWidget):
             self.clock_pos_br_action.setChecked(True)
 
     def set_tray_nav_position(self, pos):
-        if cfg.navPosition.value != pos:
+        # Always save/update to ensure snapping effect even if mode is same
+        changed = (cfg.navPosition.value != pos)
+        if changed:
             cfg.set(cfg.navPosition, pos)
             cfg.save()
             
-            if self.widgets_visible:
-                self.show_widgets(animate=True)
-            elif hasattr(self, "tray_icon"):
-                self.tray_icon.showMessage("提示", "翻页组件位置设置已保存，将在下一次放映时生效。", QSystemTrayIcon.MessageIcon.Information, 2000)
+        if self.widgets_visible:
+            # Force update to snap back to correct position
+            self.show_widgets(animate=True)
+        elif changed and hasattr(self, "tray_icon"):
+            self.tray_icon.showMessage("提示", "翻页组件位置设置已保存，将在下一次放映时生效。", QSystemTrayIcon.MessageIcon.Information, 2000)
 
         if pos == "BottomSides":
             self.nav_pos_bottom_action.setChecked(True)
@@ -436,7 +440,6 @@ class BusinessLogicController(QWidget):
         
         tray_menu.addActions([
             Action("选项", triggered=self.show_settings),
-            Action("关于", triggered=self.show_about),
             Action("退出", triggered=self.exit_application),
         ])
         
@@ -448,6 +451,7 @@ class BusinessLogicController(QWidget):
             from ui.settings_window import SettingsWindow
             self.settings_window = SettingsWindow()
             self.settings_window.configChanged.connect(self.on_settings_changed)
+            self.settings_window.checkUpdateClicked.connect(self.check_for_updates)
             if hasattr(self.settings_window, 'set_theme'):
                 self.settings_window.set_theme(self.theme_mode)
                 
@@ -457,6 +461,13 @@ class BusinessLogicController(QWidget):
     def on_settings_changed(self):
         # Handle immediate updates
         self.toggle_autorun(cfg.enableStartUp.value)
+        
+        # Update clock visibility
+        if self.clock_widget:
+            if cfg.enableClock.value and self.widgets_visible and not self.conflicting_process_running:
+                self.clock_widget.show()
+            elif not cfg.enableClock.value:
+                self.clock_widget.hide()
         
         # Update window effect for all widgets
         self.update_widgets_theme()
@@ -473,6 +484,9 @@ class BusinessLogicController(QWidget):
         # Update clock settings
         if self.clock_widget and hasattr(self.clock_widget, 'apply_settings'):
             self.clock_widget.apply_settings(cfg)
+        
+        # Save settings
+        cfg.save()
         
         # Re-layout widgets if positions changed (with animation)
         if self.widgets_visible:
@@ -570,10 +584,11 @@ class BusinessLogicController(QWidget):
         event.accept()
     
     def load_theme_setting(self):
+        key = None
         try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SeiraiPPTAssistant", 0, winreg.KEY_READ)
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Kazuha", 0, winreg.KEY_READ)
             value, _ = winreg.QueryValueEx(key, "ThemeMode")
-            winreg.CloseKey(key)
+            
             if isinstance(value, str):
                 v = value.lower()
                 if v == "light":
@@ -582,22 +597,28 @@ class BusinessLogicController(QWidget):
                     return Theme.DARK
                 if v == "auto":
                     return Theme.AUTO
-        except WindowsError:
+        except Exception:
             pass
+        finally:
+            if key:
+                try:
+                    winreg.CloseKey(key)
+                except Exception:
+                    pass
         return Theme.AUTO
     
     def save_theme_setting(self, theme):
         try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SeiraiPPTAssistant", 0, winreg.KEY_ALL_ACCESS)
-        except WindowsError:
-            key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\SeiraiPPTAssistant")
-        
-        try:
-            value = getattr(theme, "value", None)
-            if not isinstance(value, str):
-                value = str(theme)
-            winreg.SetValueEx(key, "ThemeMode", 0, winreg.REG_SZ, value)
-            winreg.CloseKey(key)
+            try:
+                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Kazuha", 0, winreg.KEY_ALL_ACCESS)
+            except Exception:
+                key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Kazuha")
+            
+            with key:
+                value = getattr(theme, "value", None)
+                if not isinstance(value, str):
+                    value = str(theme)
+                winreg.SetValueEx(key, "ThemeMode", 0, winreg.REG_SZ, value)
         except Exception as e:
             print(f"Error saving theme setting: {e}")
     
@@ -803,11 +824,10 @@ class BusinessLogicController(QWidget):
     
     def is_autorun(self):#设定程序自启动
         try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
-            winreg.QueryValueEx(key, "SeiraiPPTAssistant")
-            winreg.CloseKey(key)
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ) as key:
+                winreg.QueryValueEx(key, "Kazuha")
             return True
-        except WindowsError:
+        except Exception:
             return False
 
     def toggle_autorun(self, checked):#程序未编译下自启动
@@ -827,10 +847,10 @@ class BusinessLogicController(QWidget):
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_ALL_ACCESS)
             if checked:
-                winreg.SetValueEx(key, "SeiraiPPTAssistant", 0, winreg.REG_SZ, cmd)
+                winreg.SetValueEx(key, "Kazuha", 0, winreg.REG_SZ, cmd)
             else:
                 try:
-                    winreg.DeleteValue(key, "SeiraiPPTAssistant")
+                    winreg.DeleteValue(key, "Kazuha")
                 except WindowsError:
                     pass
             winreg.CloseKey(key)
@@ -1018,9 +1038,9 @@ class BusinessLogicController(QWidget):
             # If widgets need thumbnail generation, they should rely on the cache path we provide.
 
             if self.nav_left:
-                self.nav_left.update_page(state.slide_index, state.slide_count)
+                self.nav_left.update_page(state.slide_index, state.slide_count, state.presentation_path)
             if self.nav_right:
-                self.nav_right.update_page(state.slide_index, state.slide_count)
+                self.nav_right.update_page(state.slide_index, state.slide_count, state.presentation_path)
             
             self.sync_state(state.pointer_type)
             
@@ -1046,13 +1066,11 @@ class BusinessLogicController(QWidget):
                 
             cache_dir = os.path.join(os.environ['APPDATA'], 'PPTAssistant', 'Cache', path_hash)
             
-            # self.loader_thread = SlideExportThread(cache_dir)
-            # self.loader_thread.finished.connect(self.on_slides_loaded)
-            # self.loader_thread.start()
+            self.loader_thread = SlideExportThread(cache_dir)
+            self.loader_thread.finished.connect(self.on_slides_loaded)
+            self.loader_thread.start()
             
-            # Since we removed SlideExportThread usage in previous edits or it's missing context,
-            # let's just mark loaded for now to avoid error.
-            self.on_slides_loaded()
+            # self.on_slides_loaded()
             
         except Exception as e:
             print(f"Error starting slide load: {e}")
@@ -1088,7 +1106,7 @@ class BusinessLogicController(QWidget):
         self.toolbar.show()
         self.nav_left.show()
         self.nav_right.show()
-        if self.clock_widget and not self.conflicting_process_running:
+        if self.clock_widget and not self.conflicting_process_running and cfg.enableClock.value:
             self.clock_widget.show()
             
         self.adjust_positions(self.last_state.hwnd, animate=animate)
@@ -1139,13 +1157,36 @@ class BusinessLogicController(QWidget):
         if nav_pos_setting == "MiddleSides":
             # Vertical layout centered vertically
             nav_y = top + (height - nav_h) // 2
-            self.nav_left.setGeometry(left + MARGIN, nav_y, nav_w, nav_h)
-            self.nav_right.setGeometry(right - nav_w - MARGIN, nav_y, nav_w, nav_h)
         else:
             # Bottom sides (default)
             nav_y = top + height - nav_h - MARGIN
-            self.nav_left.setGeometry(left + MARGIN, nav_y, nav_w, nav_h)
-            self.nav_right.setGeometry(right - nav_w - MARGIN, nav_y, nav_w, nav_h)
+
+        target_nav_l = QRect(left + MARGIN, nav_y, nav_w, nav_h)
+        target_nav_r = QRect(right - nav_w - MARGIN, nav_y, nav_w, nav_h)
+
+        if animate and self.widgets_visible and (self.nav_left.geometry() != target_nav_l or self.nav_right.geometry() != target_nav_r):
+             from PyQt6.QtCore import QPropertyAnimation, QEasingCurve, QParallelAnimationGroup
+             
+             self._nav_anim_group = QParallelAnimationGroup(self)
+             
+             anim_l = QPropertyAnimation(self.nav_left, b"geometry", self.nav_left)
+             anim_l.setDuration(400)
+             anim_l.setStartValue(self.nav_left.geometry())
+             anim_l.setEndValue(target_nav_l)
+             anim_l.setEasingCurve(QEasingCurve.Type.OutCubic)
+             
+             anim_r = QPropertyAnimation(self.nav_right, b"geometry", self.nav_right)
+             anim_r.setDuration(400)
+             anim_r.setStartValue(self.nav_right.geometry())
+             anim_r.setEndValue(target_nav_r)
+             anim_r.setEasingCurve(QEasingCurve.Type.OutCubic)
+             
+             self._nav_anim_group.addAnimation(anim_l)
+             self._nav_anim_group.addAnimation(anim_r)
+             self._nav_anim_group.start()
+        else:
+            self.nav_left.setGeometry(target_nav_l)
+            self.nav_right.setGeometry(target_nav_r)
 
         try:
             flags = win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE

@@ -9,7 +9,7 @@ from crash_handler import CrashAwareApplication, CrashHandler
 
 def setup_logging():
     try:
-        log_dir = os.path.join(os.getenv("APPDATA"), "SeiraiPPTAssistant")
+        log_dir = os.path.join(os.getenv("APPDATA"), "Kazuha")
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         log_path = os.path.join(log_dir, "debug.log")
@@ -23,7 +23,7 @@ def setup_logging():
         return None
 
 def log_message(msg):
-    log_dir = os.path.join(os.getenv("APPDATA"), "SeiraiPPTAssistant")
+    log_dir = os.path.join(os.getenv("APPDATA"), "Kazuha")
     log_path = os.path.join(log_dir, "debug.log")
     try:
         with open(log_path, "a") as f:
@@ -45,10 +45,18 @@ def main():
         crash_handler.install()
         app = CrashAwareApplication(sys.argv, crash_handler)
         app.setQuitOnLastWindowClosed(False)
+
+        # Set global font
+        from PyQt6.QtGui import QFont
+        font = QFont()
+        font.setFamilies(["Bahnschrift", "Microsoft YaHei"])
+        font.setPixelSize(14)
+        font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias)
+        app.setFont(font)
         
         log_message("Initializing Controller...")
         controller = BusinessLogicController()
-        controller.set_font()
+        controller.set_font("Bahnschrift")
         
         # Initialize UI components
         log_message("Initializing UI...")

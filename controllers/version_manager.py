@@ -67,22 +67,33 @@ class VersionManager(QObject):
                 response = requests.get(url, headers=headers, timeout=10)
                 if response.status_code == 200:
                     release_data = response.json()
-                    remote_version = release_data.get('tag_name', '0.0.0').lstrip('v')
-                    local_version = self.current_version_info.get('versionName', '0.0.0')
+                    remote_version_str = release_data.get('tag_name', '0.0.0').lstrip('v')
+                    local_version_str = self.current_version_info.get('versionName', '0.0.0')
                     
-                    if version.parse(remote_version) > version.parse(local_version):
-                        self.latest_release_info = release_data
-                        self.update_available.emit({
-                            'version': remote_version,
-                            'name': release_data.get('name', ''),
-                            'body': release_data.get('body', ''),
-                            'assets': release_data.get('assets', [])
-                        })
+                    # Normalize version strings for packaging.version
+                    remote_version_str = remote_version_str.replace('α', 'a').replace('β', 'b')
+                    local_version_str = local_version_str.replace('α', 'a').replace('β', 'b')
+                    
+                    try:
+                        remote_ver = version.parse(remote_version_str)
+                        local_ver = version.parse(local_version_str)
+                        
+                        if remote_ver > local_ver:
+                            self.latest_release_info = release_data
+                            self.update_available.emit({
+                                'version': remote_version_str,
+                                'name': release_data.get('name', ''),
+                                'body': release_data.get('body', ''),
+                                'assets': release_data.get('assets', [])
+                            })
+                            return
+                        else:
+                            print("No new version found.")
+                            return
+                    except Exception as e:
+                        print(f"Version parsing error: {e}")
                         return
-                    else:
-                        print("No new version found.")
-                        # Optional: Emit a signal saying "No updates" if this was a manual check
-                        return
+                        
                 elif response.status_code == 403: # Rate limit
                     print(f"Rate limit exceeded. Retrying in {backoff_factor ** attempt}s...")
                 else:
@@ -90,6 +101,8 @@ class VersionManager(QObject):
                     
             except requests.RequestException as e:
                 print(f"Network error: {e}")
+            except Exception as e:
+                print(f"Unexpected error in update check: {e}")
             
             time.sleep(backoff_factor ** attempt)
 

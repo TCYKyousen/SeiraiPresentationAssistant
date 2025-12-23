@@ -48,26 +48,50 @@ class DetachedFlyoutWindow(QWidget):
         self.shadow.setOffset(0, 8)
         self.background.setGraphicsEffect(self.shadow)
 
-    def show_at(self, target_widget):
+    class PositionMode:
+        AUTOMATIC = 0
+        LEFT = 1
+        RIGHT = 2
+        TOP = 3
+        BOTTOM = 4
+
+    def show_at(self, target_widget, pos_mode=0):
         self.adjustSize()
         w = self.width()
         h = self.height()
 
         rect = target_widget.rect()
         global_pos = target_widget.mapToGlobal(rect.topLeft())
-
-        x = global_pos.x() + rect.width() // 2 - w // 2
-        y = global_pos.y() + rect.height() + 5
-
         screen = QApplication.primaryScreen().geometry()
-
+        
+        x, y = 0, 0
+        
+        # Calculate based on mode
+        if pos_mode == self.PositionMode.LEFT:
+             # Left of target
+             x = global_pos.x() - w - 10
+             y = global_pos.y() + rect.height() // 2 - h // 2
+        elif pos_mode == self.PositionMode.RIGHT:
+             # Right of target
+             x = global_pos.x() + rect.width() + 10
+             y = global_pos.y() + rect.height() // 2 - h // 2
+        else:
+             # Default (Bottom/Top auto)
+             x = global_pos.x() + rect.width() // 2 - w // 2
+             y = global_pos.y() + rect.height() + 5
+             if y + h > screen.bottom():
+                 y = global_pos.y() - h - 5
+                 
+        # Boundary checks
         if x < screen.left():
             x = screen.left() + 5
         if x + w > screen.right():
             x = screen.right() - w - 5
-
+            
+        if y < screen.top():
+            y = screen.top() + 5
         if y + h > screen.bottom():
-            y = global_pos.y() - h - 5
+             y = screen.bottom() - h - 5
         
         self.move(x, y)
         self.setWindowOpacity(0.0)

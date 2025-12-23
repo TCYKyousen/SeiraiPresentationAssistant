@@ -19,7 +19,7 @@ class CrashInfo:
 
 
 def _default_log_path() -> str:
-    log_dir = os.path.join(os.getenv("APPDATA") or os.getenv("TEMP") or "C:\\", "SeiraiPPTAssistant")
+    log_dir = os.path.join(os.getenv("APPDATA") or os.getenv("TEMP") or "C:\\", "Kazuha")
     return os.path.join(log_dir, "debug.log")
 
 
@@ -206,6 +206,27 @@ class CrashHandler:
         win.exit_btn.clicked.connect(do_exit)
         win.copy_btn.clicked.connect(do_copy)
         win.restart_btn.clicked.connect(do_restart)
+        
+        # Play crash sound
+        try:
+            base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+            sound_path = os.path.join(base_dir, "SoundEffectResources", "Error.ogg")
+            if os.path.exists(sound_path):
+                from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
+                from PyQt6.QtCore import QUrl
+                
+                player = QMediaPlayer()
+                audio_output = QAudioOutput()
+                player.setAudioOutput(audio_output)
+                player.setSource(QUrl.fromLocalFile(sound_path))
+                audio_output.setVolume(1.0)
+                player.play()
+                
+                # Keep reference to prevent GC
+                win._crash_player = player
+                win._crash_audio = audio_output
+        except Exception:
+            pass
 
         win.exec()
         os._exit(1)
