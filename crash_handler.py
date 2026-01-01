@@ -100,7 +100,7 @@ class CrashWindow(QDialog):
         icon_label = QLabel(self)
         icon_label.setFixedSize(40, 40)
         icon_label.setScaledContents(True)
-        for name in ("erroremoji.png", "ErrorEmoji.png"):
+        for name in ("resources/icons/ErrorEmoji.png", "resources/icons/ErrorEmoji.png"):
             p = _icon_path(name)
             if os.path.exists(p):
                 pm = QPixmap(p)

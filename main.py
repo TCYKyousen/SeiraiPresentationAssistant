@@ -14,7 +14,7 @@ from ui.widgets import ToolBarWidget, PageNavWidget, SpotlightOverlay, ClockWidg
 from crash_handler import CrashAwareApplication, CrashHandler
 
 def tr(text):
-    return QCoreApplication.translate("Main", text)
+    return text
 
 def setup_logging():
     try:
@@ -37,47 +37,6 @@ def log_message(msg):
     except:
         pass
 
-def install_translator(app):
-    translator = QTranslator(app)
-    try:
-        base_dir = get_app_base_dir()
-    except Exception:
-        base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    language = cfg.language.value
-    if language == "English":
-        code = "en"
-    elif language == "Japanese":
-        code = "ja"
-    elif language == "Traditional Chinese":
-        code = "zh_TW"
-    elif language == "Tibetan":
-        code = "bo"
-    else:
-        code = "zh_CN"
-    trans_dir = base_dir / "translations"
-    if not trans_dir.exists():
-        trans_dir = base_dir / "resources" / "translations"
-    
-    file_path = trans_dir / f"kazuha_{code}.qm"
-    if translator.load(str(file_path)):
-        app.installTranslator(translator)
-        app._translator = translator
-
-def reload_translator():
-    app = QApplication.instance()
-    if app is None:
-        return
-    
-    cfg.save()
-    
-    old = getattr(app, "_translator", None)
-    if old is not None:
-        try:
-            app.removeTranslator(old)
-        except Exception:
-            pass
-    install_translator(app)
-
 def main():
     log_path = setup_logging()
     
@@ -96,8 +55,6 @@ def main():
         crash_handler.install()
         app = CrashAwareApplication(sys.argv, crash_handler)
         app.setQuitOnLastWindowClosed(False)
-
-        install_translator(app)
 
         app.setApplicationName("Kazuha")
         app.setApplicationDisplayName("Kazuha.Sou.Settings")

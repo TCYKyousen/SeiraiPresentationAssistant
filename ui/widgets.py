@@ -8,7 +8,8 @@ from PyQt6.QtCore import (Qt, QSize, pyqtSignal, QEvent, QRect, QPropertyAnimati
                           QEasingCurve, QAbstractAnimation, QTimer, QSequentialAnimationGroup, 
                           QDateTime, QPoint, QThread, pyqtProperty, QPointF)
 from PyQt6.QtGui import (QIcon, QPixmap, QPainter, QColor, QPen, QRadialGradient, 
-                         QFont, QRegion, QPainterPath, QTransform, QBrush, QPolygonF)
+                         QFont, QRegion, QPainterPath, QTransform, QBrush, QPolygonF,
+                         QCursor, QGuiApplication)
 from qfluentwidgets import (TransparentToolButton, ToolButton, SpinBox,
                             PrimaryPushButton, PushButton, TabWidget,
                             Flyout, FlyoutAnimationType,
@@ -28,9 +29,9 @@ except ImportError:
 
 def icon_path(name):
     if hasattr(sys, "_MEIPASS"):
-        return os.path.join(sys._MEIPASS, "icons", name)
+        return os.path.join(sys._MEIPASS, "resources", "icons", name)
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(os.path.dirname(base_dir), "icons", name)
+    return os.path.join(os.path.dirname(base_dir), "resources", "icons", name)
 
 _ICON_CACHE = {}
 
@@ -647,7 +648,9 @@ class SpotlightOverlay(QWidget):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setGeometry(QApplication.primaryScreen().geometry())
+        
+        screen = QGuiApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
+        self.setGeometry(screen.geometry())
         
         self.selection_rect = QRect()
         self.is_selecting = False
@@ -736,7 +739,9 @@ class RippleOverlay(QWidget):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        screen = QApplication.primaryScreen().geometry()
+        
+        screen_obj = QGuiApplication.screenAt(center) or QApplication.primaryScreen()
+        screen = screen_obj.geometry()
         self.setGeometry(screen)
         self.center = QPoint(center.x() - screen.left(), center.y() - screen.top())
         self._radius = 0.0
@@ -953,7 +958,7 @@ class PageNavWidget(QWidget):
         """)
         
         self.lbl_page_num.setStyleSheet(f"""
-            font-family: 'Bahnschrift', sans-serif;
+            font-family: 'Bahnschrift', 'Segoe UI', sans-serif;
             font-size: 16px; 
             font-weight: bold; 
             color: {text_color}; 
@@ -974,7 +979,7 @@ class PageNavWidget(QWidget):
             self.btn_next.setIcon(get_icon("Next.svg", theme))
 
         if hasattr(self, 'is_last_page') and self.is_last_page:
-             self.btn_next.setIcon(get_icon("Minimaze.svg", theme))
+             self.btn_next.setIcon(get_icon("Minimize.svg", theme))
         
         self.style_nav_btn(self.btn_prev, theme)
         self.style_nav_btn(self.btn_next, theme)
@@ -1074,20 +1079,22 @@ class PageNavWidget(QWidget):
             if prev_current == current and prev_total == total:
                 return
 
-            if self.orientation == Qt.Orientation.Vertical:
-                self.lbl_page_num.blockSignals(True)
-                html = (
-                    "<html><head/><body>"
-                    "<div align='center' style='margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;'>"
-                    f"<span style='font-size:12pt; font-weight:600;'>{current}</span>"
-                    f"<span style='font-size:10pt; color:#aaaaaa;'>/{total}</span>"
-                    "</div></body></html>"
-                )
-                self.lbl_page_num.setText(html)
-                self.lbl_page_num.blockSignals(False)
-            else:
-                html = f"<html><head/><body><p><span style='font-size:16pt;'>{current}</span><span style='font-size:10pt;'>/{total}</span></p></body></html>"
-                self.lbl_page_num.setText(html)
+                if self.orientation == Qt.Orientation.Vertical:
+                    self.lbl_page_num.blockSignals(True)
+                    color_style = "color: white;" if self.current_theme == Theme.DARK else "color: black;"
+                    html = (
+                        "<html><head/><body>"
+                        "<div align='center' style='margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;'>"
+                        f"<span style='font-size:12pt; font-weight:600; {color_style}'>{current}</span>"
+                        f"<span style='font-size:10pt; color:#aaaaaa;'>/{total}</span>"
+                        "</div></body></html>"
+                    )
+                    self.lbl_page_num.setText(html)
+                    self.lbl_page_num.blockSignals(False)
+                else:
+                    color_style = "color: white;" if self.current_theme == Theme.DARK else "color: black;"
+                    html = f"<html><head/><body><p><span style='font-size:16pt; {color_style}'>{current}</span><span style='font-size:10pt; color:#aaaaaa;'>/{total}</span></p></body></html>"
+                    self.lbl_page_num.setText(html)
 
                 if prev_current is not None and prev_current != current:
                     direction = -1 if current < prev_current else 1
@@ -1113,7 +1120,7 @@ class PageNavWidget(QWidget):
 
             if was_last_page != is_last_page:
                 if is_last_page:
-                    self.btn_next.setIcon(get_icon("Minimaze.svg", self.current_theme))
+                    self.btn_next.setIcon(get_icon("Minimize.svg", self.current_theme))
                 else:
                     if self.orientation == Qt.Orientation.Vertical:
                         self.btn_next.setIcon(get_icon("Next.svg", self.current_theme, rotation=90))
@@ -1183,7 +1190,7 @@ class ToolBarWidget(QWidget):
         self.btn_timer = self.create_action_btn("timer.svg")
         self.btn_timer.clicked.connect(self.request_timer.emit)
 
-        self.btn_exit = self.create_action_btn("Minimaze.svg")
+        self.btn_exit = self.create_action_btn("Minimize.svg")
         self.btn_exit.clicked.connect(self.request_exit.emit)
 
         self.sep1 = QWidget(self.container)
@@ -1346,7 +1353,7 @@ class ToolBarWidget(QWidget):
             (self.btn_clear, "Clear.svg"),
             (self.btn_spotlight, "Select.svg"),
             (self.btn_timer, "timer.svg"),
-            (self.btn_exit, "Minimaze.svg")
+            (self.btn_exit, "Minimize.svg")
         ]:
             icon = get_icon(icon_name, theme)
             btn.setIcon(icon)

@@ -19,14 +19,16 @@ class VersionManager(QObject):
     update_error = pyqtSignal(str)
     update_complete = pyqtSignal()
     update_check_finished = pyqtSignal()
+    update_check_started = pyqtSignal()
 
     def __init__(self, config_path="config/version.json", repo_owner="Haraguse", repo_name="Kazuha"):
         super().__init__()
-        self.config_path = os.path.abspath(config_path)
+        self.config_path = config_path
         self.repo_owner = repo_owner
         self.repo_name = repo_name
         self.current_version_info = self.load_version_info()
         self.latest_release_info = None
+        self._is_checking = False
 
     def load_version_info(self):
         if not os.path.exists(self.config_path):
@@ -56,46 +58,118 @@ class VersionManager(QObject):
             print(f"Error saving version info: {e}")
 
     def check_for_updates(self):
-        threading.Thread(target=self._check_for_updates_thread, daemon=True).start()
+        if self._is_checking:
+            return
+        
+        # If we already have the latest release info cached, emit it immediately
+        # This prevents "empty" logs when opening settings if check was already done
+        if self.latest_release_info:
+            print("Using cached release info")
+            self._handle_release_data(self.latest_release_info)
+            return
+
+        self._is_checking = True
+        self.update_check_started.emit()
+        
+        thread = threading.Thread(target=self._check_for_updates_thread, daemon=True)
+        thread.start()
 
     def _check_for_updates_thread(self):
         try:
+            # First, check latest release for version comparison
             url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
             headers = {'Accept': 'application/vnd.github.v3+json'}
             
+            latest_release = None
+            
+            # Try GitHub API
             max_retries = 2
             for attempt in range(max_retries):
                 try:
                     response = requests.get(url, headers=headers, timeout=10)
                     if response.status_code == 200:
-                        self._handle_release_data(response.json())
-                        return
+                        latest_release = response.json()
+                        break
                 except Exception:
                     pass
                 time.sleep(1)
 
-            mirrors = ["api.bgithub.xyz", "api.github-api.com"]
-            for mirror in mirrors:
-                try:
-                    mirror_url = url.replace("api.github.com", mirror)
-                    response = requests.get(mirror_url, headers=headers, timeout=10)
-                    if response.status_code == 200:
-                        self._handle_release_data(response.json())
-                        return
-                except Exception:
-                    continue
+            # Try mirrors if GitHub API fails
+            if not latest_release:
+                mirrors = ["api.bgithub.xyz", "api.github-api.com"]
+                for mirror in mirrors:
+                    try:
+                        mirror_url = url.replace("api.github.com", mirror)
+                        response = requests.get(mirror_url, headers=headers, timeout=10)
+                        if response.status_code == 200:
+                            latest_release = response.json()
+                            break
+                    except Exception:
+                        continue
+            
+            # Fallback to Atom Feed if API fails completely
+            if not latest_release:
+                self._check_updates_via_feed()
+                return
 
-            self._check_updates_via_feed()
+            # Now handle the version comparison
+            # We want to show the changelog of the *current* version if we are up-to-date
+            # OR show the changelog of the *latest* version if there is an update
+            
+            self._handle_release_data(latest_release)
+
         finally:
+            self._is_checking = False
             try:
                 self.update_check_finished.emit()
             except Exception:
                 pass
 
+    def _get_release_by_tag(self, tag_name):
+        # Helper to fetch specific tag release info
+        url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/tags/{tag_name}"
+        headers = {'Accept': 'application/vnd.github.v3+json'}
+        
+        # Try direct GitHub API first
+        try:
+            print(f"Fetching tag: {url}")
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                return response.json()
+        except Exception as e:
+            print(f"Direct fetch failed: {e}")
+
+        # Try mirrors
+        mirrors = ["api.bgithub.xyz", "api.github-api.com"]
+        for mirror in mirrors:
+            try:
+                mirror_url = url.replace("api.github.com", mirror)
+                print(f"Fetching tag via mirror: {mirror_url}")
+                response = requests.get(mirror_url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    return response.json()
+            except Exception as e:
+                print(f"Mirror {mirror} fetch failed: {e}")
+                continue
+                
+        return None
+
     def _handle_release_data(self, release_data):
         try:
+            if not release_data:
+                print("Release data is empty")
+                return
+
             name = release_data.get('name', '')
             tag_name = release_data.get('tag_name', '')
+            body = release_data.get('body', '')
+            
+            # Ensure body is string
+            if not isinstance(body, str):
+                body = str(body) if body is not None else ""
+            
+            print(f"Handling release: {name} ({tag_name})")
+            print(f"Body length: {len(body)}")
             
             remote_code = None
             match = re.search(r'（(\d+)）', name) or re.search(r'（(\d+)）', tag_name)
@@ -108,18 +182,33 @@ class VersionManager(QObject):
             
             local_version_info = self.current_version_info or {}
             local_code = int(local_version_info.get('versionCode', '0'))
+            local_tag = local_version_info.get('versionName', '')
             
+            # If we found a valid remote code and it's newer, show that release
             if remote_code is not None and remote_code > local_code:
                 self.latest_release_info = release_data
                 self.update_available.emit({
-                    'version': release_data.get('tag_name', 'v0.0.0'),
+                    'version': tag_name,
                     'versionCode': remote_code,
                     'name': name,
-                    'body': release_data.get('body', ''),
+                    'body': body,
                     'assets': release_data.get('assets', [])
                 })
             else:
                 print(f"No new version. Remote: {remote_code}, Local: {local_code}")
+                
+                # User requested to see the LATEST release log even if up-to-date
+                # Simplify logic: Just show the latest release body.
+                # Do NOT try to fetch specific tag which might fail.
+                
+                # IMPORTANT: Pass local_code as versionCode to indicate NO update
+                self.update_available.emit({
+                    'version': tag_name, # Show latest version tag name (e.g. v1.0.5)
+                    'versionCode': local_code, # Use LOCAL code to tell UI "we are on this version"
+                    'name': name,
+                    'body': body, # Show latest body
+                    'assets': []
+                })
         except Exception as e:
             print(f"Handle release data error: {e}")
 

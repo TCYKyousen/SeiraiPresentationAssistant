@@ -39,6 +39,11 @@ from .ppt_client import PPTWorker
 from .ppt_core import PPTState
 from .version_manager import VersionManager
 from .sound_manager import SoundManager
+try:
+    from windows_toasts import WindowsToaster, ToastText2, ToastButton, ToastActivatedEventArgs
+    HAS_WINDOWS_TOASTS = True
+except ImportError:
+    HAS_WINDOWS_TOASTS = False
 
 
 def get_app_base_dir():
@@ -46,7 +51,7 @@ def get_app_base_dir():
 
 
 def tr(text: str) -> str:
-    return QCoreApplication.translate("BusinessLogic", text)
+    return text
 
 def log(msg):
     try:
@@ -73,7 +78,9 @@ class Config(QConfig):
     enableStartUp = ConfigItem("General", "EnableStartUp", False)
     enableSystemNotification = ConfigItem("General", "EnableSystemNotification", True)
     enableGlobalSound = ConfigItem("General", "EnableGlobalSound", True)
+
     enableGlobalAnimation = ConfigItem("General", "EnableGlobalAnimation", True)
+    checkUpdateOnStart = ConfigItem("General", "CheckUpdateOnStart", True)
     timerPosition = OptionsConfigItem(
         "General",
         "TimerPosition",
@@ -99,13 +106,6 @@ class Config(QConfig):
         OptionsValidator(
             ["BottomSides", "MiddleSides"]
         ),
-        None,
-    )
-    language = OptionsConfigItem(
-        "General",
-        "Language",
-        "Simplified Chinese",
-        OptionsValidator(["Simplified Chinese", "Traditional Chinese", "English", "Japanese", "Tibetan"]),
         None,
     )
     clockFontWeight = OptionsConfigItem(
@@ -175,8 +175,13 @@ class SlideExportThread(QThread):
         pythoncom.CoUninitialize()
 
 class BusinessLogicController(QWidget):
+    request_show_settings = pyqtSignal()
+    request_show_update = pyqtSignal()
+
     def __init__(self):
         super().__init__()
+        self.request_show_settings.connect(self.show_settings)
+        self.request_show_update.connect(self.show_update_interface)
         self._com_initialized = False
         try:
             pythoncom.CoInitialize()
@@ -208,11 +213,17 @@ class BusinessLogicController(QWidget):
         
         base_dir = get_app_base_dir()
         version_config_path = base_dir / "config" / "version.json"
+        if not version_config_path.exists():
+            version_config_path = base_dir / "version.json"
         self.version_manager = VersionManager(config_path=str(version_config_path), repo_owner="Haraguse", repo_name="Kazuha")
         self.version_manager.update_available.connect(self.on_update_available)
         self.version_manager.update_error.connect(lambda e: self.show_warning(None, tr("更新错误: {e}").format(e=e)))
+
         self.version_manager.update_check_finished.connect(self.on_update_check_finished)
         
+        if cfg.checkUpdateOnStart.value:
+            QTimer.singleShot(2000, self.check_for_updates)
+
         sound_dir = base_dir / "resources" / "sound_effects"
         self.sound_manager = SoundManager(str(sound_dir))
         
@@ -395,33 +406,12 @@ class BusinessLogicController(QWidget):
     def set_clock_position(self, pos):
         self.adjust_positions()
 
-    def set_language(self, language):
-        if cfg.language.value != language:
-            cfg.set(cfg.language, language)
-            cfg.save()
-        self.show_warning(None, tr("语言设置将在重启后生效"))
-
-    def set_language_zh(self, checked=False):
-        self.set_language("Simplified Chinese")
-        if hasattr(self, "language_zh_action"):
-            self.language_zh_action.setChecked(True)
-        if hasattr(self, "language_en_action"):
-            self.language_en_action.setChecked(False)
-
-    def set_language_en(self, checked=False):
-        self.set_language("English")
-        if hasattr(self, "language_zh_action"):
-            self.language_zh_action.setChecked(False)
-        if hasattr(self, "language_en_action"):
-            self.language_en_action.setChecked(True)
-
     def soft_restart(self):
         cfg.save()
-        from main import reload_translator
         app = QApplication.instance()
         if app is None:
             return
-        reload_translator()
+        
         prev_visible = getattr(self, "widgets_visible", False)
         settings_visible = False
         if hasattr(self, "settings_window") and self.settings_window and self.settings_window.isVisible():
@@ -547,8 +537,13 @@ class BusinessLogicController(QWidget):
             self.settings_window = SettingsWindow()
             self.settings_window.configChanged.connect(self.on_settings_changed)
             self.settings_window.checkUpdateClicked.connect(self.check_for_updates)
+            self.settings_window.startUpdateClicked.connect(self.start_update_download)
             if hasattr(self.settings_window, 'set_theme'):
                 self.settings_window.set_theme(self.theme_mode)
+                
+            # Trigger update check immediately when settings window is created
+            # This ensures logs are fetched as soon as possible
+            QTimer.singleShot(500, self.check_for_updates)
         
         screen = QApplication.primaryScreen().geometry()
         w = self.settings_window.width()
@@ -559,6 +554,20 @@ class BusinessLogicController(QWidget):
         
         self.settings_window.show()
         self.settings_window.activateWindow()
+
+    def show_update_interface(self):
+        self.show_settings()
+        if hasattr(self, "settings_window") and self.settings_window:
+            if hasattr(self, "_pending_update_info") and self._pending_update_info:
+                info = self._pending_update_info
+                try:
+                    self.settings_window.set_update_info(info.get("version"), info.get("body"))
+                except Exception:
+                    pass
+            try:
+                self.settings_window.switch_to_update_page()
+            except Exception:
+                pass
         
     def on_settings_changed(self):
         self.toggle_autorun(cfg.enableStartUp.value)
@@ -605,32 +614,91 @@ class BusinessLogicController(QWidget):
     def check_for_updates(self):
         self.version_manager.check_for_updates()
 
+    def _on_toast_activated(self, activatedEventArgs):
+        if activatedEventArgs.arguments == 'view_details':
+            self.request_show_update.emit()
+
     def on_update_available(self, info):
+        self._pending_update_info = info
+        
+        notification_shown = False
+        
+        # Only show notification if it is truly a NEW version (remote > local)
+        local_v_code = int(self.version_manager.current_version_info.get("versionCode", 0))
+        remote_v_code = int(info.get("versionCode", 0))
+        
+        # Strict check: must be strictly greater
+        is_new_version = remote_v_code > local_v_code
+        
+        if is_new_version:
+            if cfg.enableSystemNotification.value and HAS_WINDOWS_TOASTS:
+                try:
+                    current_v = self.version_manager.current_version_info.get("versionName", "Unknown")
+                    new_v = info.get("version", "Unknown")
+                    
+                    toaster = WindowsToaster('Kazuha')
+                    newToast = ToastText2()
+                    newToast.SetHeadline(tr("发现新版本"))
+                    newToast.SetBody(f"{current_v}->{new_v}")
+                    
+                    button = ToastButton(tr("点击此处以查看详细信息"), 'view_details')
+                    newToast.AddAction(button)
+                    
+                    newToast.on_activated = self._on_toast_activated
+                    toaster.show_toast(newToast)
+                    notification_shown = True
+                except Exception as e:
+                    print(f"Toast error: {e}")
+            
+            if not notification_shown:
+                self.show_settings()
+        
+        # Always update UI with info (even if it's just changelog for current version)
         if hasattr(self, "settings_window") and self.settings_window:
             if hasattr(self.settings_window, "set_update_info"):
                 try:
-                    self.settings_window.set_update_info(info.get("version"), info.get("body"))
+                    # Pass is_latest flag explicitly based on VersionCode comparison
+                    # This avoids string parsing issues in UI
+                    self.settings_window.set_update_info(
+                        info.get("version"), 
+                        info.get("body"),
+                        is_latest=(not is_new_version)
+                    )
+                except Exception:
+                    # Fallback for old signature if needed (though we just updated it)
+                     self.settings_window.set_update_info(info.get("version"), info.get("body"))
+
+            if hasattr(self.settings_window, "switch_to_update_page"):
+                try:
+                    if not notification_shown and is_new_version:
+                         self.settings_window.switch_to_update_page()
                 except Exception:
                     pass
 
-        from ui.settings_window import UpdateDialog
-        w = UpdateDialog(info, self.get_parent_for_dialog())
+    def start_update_download(self):
+        info = getattr(self, "_pending_update_info", None)
+        if not info:
+             info = self.version_manager.current_version_info
         
-        self.version_manager.update_progress.connect(w.set_progress)
-        self.version_manager.update_error.connect(lambda e: self.show_error(None, e))
-        self.version_manager.update_complete.connect(w.accept)
+        if not info or 'assets' not in info:
+             return
 
-        if w.exec():
-            asset_url = None
-            for asset in info['assets']:
-                if asset['name'].endswith('.exe'):
-                    asset_url = asset['browser_download_url']
-                    break
-            
-            if asset_url:
-                self.version_manager.download_and_install(asset_url)
-            else:
-                self.show_warning(None, tr("未找到可执行的更新文件"))
+        asset_url = None
+        for asset in info['assets']:
+            if asset['name'].endswith('.exe'):
+                asset_url = asset['browser_download_url']
+                break
+        
+        if asset_url:
+            self.version_manager.update_progress.connect(self.on_download_progress)
+            self.version_manager.download_and_install(asset_url)
+        else:
+            self.show_warning(None, tr("未找到可执行的更新文件"))
+
+    def on_download_progress(self, val):
+        if hasattr(self, "settings_window") and self.settings_window:
+             if hasattr(self.settings_window, "set_download_progress"):
+                 self.settings_window.set_download_progress(val)
 
     def on_update_check_finished(self):
         if hasattr(self, "settings_window") and self.settings_window:
@@ -640,12 +708,19 @@ class BusinessLogicController(QWidget):
                 except Exception:
                     pass
 
+
     def show_about_dialog(self):
         version_info = self.version_manager.current_version_info
         v_name = version_info.get('versionName', 'Unknown')
         
         self.play_sound("WindowPop")
         w = MessageBox(tr("关于 PPT助手"), tr("当前版本: {version}\n\n一个专注于演示辅助的工具。\n\nDesigned by Seirai.").format(version=v_name), self.get_parent_for_dialog())
+        w.exec()
+
+    def show_warning(self, parent, text):
+        w = MessageBox(tr("提示"), text, parent if parent else None)
+        w.yesButton.setText(tr("确定"))
+        w.cancelButton.hide()
         w.exec()
 
     def get_parent_for_dialog(self):
@@ -943,6 +1018,164 @@ class BusinessLogicController(QWidget):
             winreg.CloseKey(key)
         except Exception as e:
             print(f"Error setting autorun: {e}")
+
+    def check_state(self):
+        if hasattr(self, "ppt_worker") and self.ppt_worker:
+            self.ppt_worker.request_state()
+
+    def on_state_updated(self, state):
+        self.last_state = state
+        
+        if state.is_running:
+            if not self.widgets_visible:
+                self.show_widgets(animate=cfg.enableGlobalAnimation.value)
+            
+            # Update navigation widgets
+            if self.nav_left:
+                self.nav_left.update_page(state.slide_index, state.slide_count, state.presentation_path)
+            if self.nav_right:
+                self.nav_right.update_page(state.slide_index, state.slide_count, state.presentation_path)
+            
+            # Update toolbar
+            if self.toolbar:
+                self.toolbar.set_pointer_mode(state.pointer_type)
+                
+            self.ensure_topmost()
+        else:
+            if self.widgets_visible:
+                self.hide_widgets(animate=cfg.enableGlobalAnimation.value)
+                
+    def show_widgets(self, animate=True):
+        self.widgets_visible = True
+        
+        if self.toolbar:
+            self.toolbar.show()
+            
+        nav_pos = cfg.navPosition.value
+        if nav_pos == "BottomSides":
+            if self.nav_left: self.nav_left.show()
+            if self.nav_right: self.nav_right.show()
+        elif nav_pos == "MiddleSides":
+            if self.nav_left: self.nav_left.show()
+            if self.nav_right: self.nav_right.show()
+            
+        if cfg.enableClock.value and self.clock_widget and not self.conflicting_process_running:
+            self.clock_widget.show()
+            
+        self.adjust_positions()
+
+    def hide_widgets(self, animate=True):
+        self.widgets_visible = False
+        
+        if self.toolbar:
+            self.toolbar.hide()
+        if self.nav_left:
+            self.nav_left.hide()
+        if self.nav_right:
+            self.nav_right.hide()
+        if self.clock_widget:
+            self.clock_widget.hide()
+        if self.spotlight:
+            self.spotlight.hide()
+        if self.annotation_widget:
+            self.annotation_widget.hide()
+        if self.timer_window:
+            self.timer_window.hide()
+
+    def adjust_positions(self):
+        screen = QApplication.primaryScreen().geometry()
+        
+        # Toolbar (Top Center)
+        if self.toolbar:
+            w = self.toolbar.width()
+            h = self.toolbar.height()
+            x = screen.left() + (screen.width() - w) // 2
+            y = screen.top() + cfg.screenPaddingTop.value
+            self.toolbar.move(x, y)
+            
+        # Navigation
+        nav_pos = cfg.navPosition.value
+        padding_h = cfg.screenPaddingLeft.value
+        padding_v = cfg.screenPaddingBottom.value
+        
+        if self.nav_left and self.nav_right:
+            if nav_pos == "BottomSides":
+                w = self.nav_left.width()
+                h = self.nav_left.height()
+                y = screen.top() + screen.height() - h - padding_v
+                self.nav_left.move(screen.left() + padding_h, y)
+                self.nav_right.move(screen.left() + screen.width() - w - padding_h, y)
+            elif nav_pos == "MiddleSides":
+                w = self.nav_left.width()
+                h = self.nav_left.height()
+                y = screen.top() + (screen.height() - h) // 2
+                self.nav_left.move(screen.left() + padding_h, y)
+                self.nav_right.move(screen.left() + screen.width() - w - padding_h, y)
+
+        # Clock
+        if self.clock_widget:
+            clock_pos = cfg.clockPosition.value
+            w = self.clock_widget.width()
+            h = self.clock_widget.height()
+            padding = 20
+            
+            if clock_pos == "TopLeft":
+                x = screen.left() + padding
+                y = screen.top() + padding
+            elif clock_pos == "TopRight":
+                x = screen.left() + screen.width() - w - padding
+                y = screen.top() + padding
+            elif clock_pos == "BottomLeft":
+                x = screen.left() + padding
+                y = screen.top() + screen.height() - h - padding
+            elif clock_pos == "BottomRight":
+                x = screen.left() + screen.width() - w - padding
+                y = screen.top() + screen.height() - h - padding
+            
+            self.clock_widget.move(x, y)
+
+    def prev_page(self):
+        if self.ppt_worker:
+            self.ppt_worker.prev_slide()
+            
+    def next_page(self):
+        if self.ppt_worker:
+            self.ppt_worker.next_slide()
+            
+    def jump_to_slide(self, index):
+        if self.ppt_worker:
+            self.ppt_worker.goto_slide(index)
+            
+    def toggle_spotlight(self):
+        if not self.spotlight:
+            self.spotlight = SpotlightOverlay()
+            self.spotlight.set_theme(self.theme_mode)
+        
+        if self.spotlight.isVisible():
+            self.spotlight.hide()
+        else:
+            self.spotlight.showFullScreen()
+            
+    def exit_application(self):
+        if hasattr(self, "ppt_worker") and self.ppt_worker:
+            self.ppt_worker.stop()
+        QApplication.quit()
+        
+    def change_pointer_mode(self, mode):
+        if self.ppt_worker:
+            self.ppt_worker.set_pointer_type(mode)
+            
+    def change_pen_color(self, color):
+        if self.ppt_worker:
+            self.ppt_worker.set_pen_color(color)
+            
+    def clear_ink(self):
+        if self.ppt_worker:
+            self.ppt_worker.erase_ink()
+            
+    def exit_slideshow(self):
+        if self.ppt_worker:
+            self.ppt_worker.exit_show()
 
     def ensure_topmost(self):
         try:

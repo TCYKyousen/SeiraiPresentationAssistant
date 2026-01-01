@@ -106,6 +106,8 @@ class AboutPage(ScrollArea):
         code_name = ""
         try:
             v_path = get_app_base_dir() / "config" / "version.json"
+            if not v_path.exists():
+                v_path = get_app_base_dir() / "version.json"
             if v_path.exists():
                 with open(v_path, "r", encoding="utf-8") as f:
                     v_data = json.load(f)
