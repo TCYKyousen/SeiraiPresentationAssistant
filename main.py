@@ -11,6 +11,7 @@ from qfluentwidgets import SplashScreen
 
 from controllers.business_logic import BusinessLogicController, cfg, get_app_base_dir
 from ui.widgets import ToolBarWidget, PageNavWidget, SpotlightOverlay, ClockWidget
+from ui.overlay_window import OverlayWindow
 from crash_handler import CrashAwareApplication, CrashHandler
 
 def tr(text):
@@ -40,6 +41,14 @@ def log_message(msg):
 def main():
     log_path = setup_logging()
     
+    # Redirect stdout and stderr to capture startup crashes
+    try:
+        base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(sys.argv[0])))
+        sys.stdout = open(os.path.join(base_dir, "stdout.log"), "w", encoding="utf-8", buffering=1)
+        sys.stderr = open(os.path.join(base_dir, "stderr.log"), "w", encoding="utf-8", buffering=1)
+    except:
+        pass
+
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseDesktopOpenGL)
     QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
@@ -54,6 +63,7 @@ def main():
         crash_handler = CrashHandler(log_path=log_path)
         crash_handler.install()
         app = CrashAwareApplication(sys.argv, crash_handler)
+        # app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
 
         app.setApplicationName("Kazuha")
@@ -82,12 +92,13 @@ def main():
         nav_pos = cfg.navPosition.value
         orientation = Qt.Orientation.Vertical if nav_pos == "MiddleSides" else Qt.Orientation.Horizontal
         
-        controller.toolbar = ToolBarWidget()
-        controller.nav_left = PageNavWidget(is_right=False, orientation=orientation)
-        controller.nav_right = PageNavWidget(is_right=True, orientation=orientation)
-        controller.clock_widget = ClockWidget()
+        controller.overlay = OverlayWindow()
+        controller.toolbar = ToolBarWidget(parent=controller.overlay)
+        controller.nav_left = PageNavWidget(is_right=False, orientation=orientation, parent=controller.overlay)
+        controller.nav_right = PageNavWidget(is_right=True, orientation=orientation, parent=controller.overlay)
+        controller.clock_widget = ClockWidget(parent=controller.overlay)
         controller.clock_widget.apply_settings(cfg)
-        controller.spotlight = SpotlightOverlay()
+        controller.spotlight = SpotlightOverlay(parent=controller.overlay)
         
         log_message("Setting up connections...")
         controller.setup_connections()
@@ -96,10 +107,15 @@ def main():
         log_message("Showing Controller...")
         controller.show()
         if splash is not None:
-            splash.finish()
+            try:
+                splash.finish()
+            except Exception as e:
+                log_message(f"Splash finish error: {e}")
         
         log_message("Entering Event Loop...")
-        sys.exit(app.exec())
+        ret = app.exec()
+        log_message(f"Event Loop exited with code: {ret}")
+        sys.exit(ret)
     except Exception as e:
         log_message(f"CRITICAL ERROR: {str(e)}\n{traceback.format_exc()}")
         try:

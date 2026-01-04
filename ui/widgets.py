@@ -261,7 +261,8 @@ class SlidePreviewCard(QFrame):
 class LoadingOverlay(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        if not parent:
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setGeometry(QApplication.primaryScreen().geometry())
         
@@ -385,7 +386,8 @@ class SlideSelectorFlyout(QWidget):
 class AnnotationWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        if not parent:
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setGeometry(QApplication.primaryScreen().geometry())
         
@@ -646,11 +648,15 @@ class AnnotationWidget(QWidget):
 class SpotlightOverlay(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        if not parent:
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        screen = QGuiApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
-        self.setGeometry(screen.geometry())
+        if parent:
+             self.setGeometry(parent.rect())
+        else:
+             screen = QGuiApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
+             self.setGeometry(screen.geometry())
         
         self.selection_rect = QRect()
         self.is_selecting = False
@@ -1077,39 +1083,40 @@ class PageNavWidget(QWidget):
             prev_total = getattr(self, "last_total_value", None)
 
             if prev_current == current and prev_total == total:
-                return
+                # return
+                pass
 
-                if self.orientation == Qt.Orientation.Vertical:
-                    self.lbl_page_num.blockSignals(True)
-                    color_style = "color: white;" if self.current_theme == Theme.DARK else "color: black;"
-                    html = (
-                        "<html><head/><body>"
-                        "<div align='center' style='margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;'>"
-                        f"<span style='font-size:12pt; font-weight:600; {color_style}'>{current}</span>"
-                        f"<span style='font-size:10pt; color:#aaaaaa;'>/{total}</span>"
-                        "</div></body></html>"
-                    )
-                    self.lbl_page_num.setText(html)
-                    self.lbl_page_num.blockSignals(False)
-                else:
-                    color_style = "color: white;" if self.current_theme == Theme.DARK else "color: black;"
-                    html = f"<html><head/><body><p><span style='font-size:16pt; {color_style}'>{current}</span><span style='font-size:10pt; color:#aaaaaa;'>/{total}</span></p></body></html>"
-                    self.lbl_page_num.setText(html)
+            if self.orientation == Qt.Orientation.Vertical:
+                self.lbl_page_num.blockSignals(True)
+                color_style = "color: white;" if self.current_theme == Theme.DARK else "color: black;"
+                html = (
+                    "<html><head/><body>"
+                    "<div align='center' style='margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;'>"
+                    f"<span style='font-size:12pt; font-weight:600; {color_style}'>{current}</span>"
+                    f"<span style='font-size:10pt; color:#aaaaaa;'>/{total}</span>"
+                    "</div></body></html>"
+                )
+                self.lbl_page_num.setText(html)
+                self.lbl_page_num.blockSignals(False)
+            else:
+                color_style = "color: white;" if self.current_theme == Theme.DARK else "color: black;"
+                html = f"<html><head/><body><p><span style='font-size:16pt; {color_style}'>{current}</span><span style='font-size:10pt; color:#aaaaaa;'>/{total}</span></p></body></html>"
+                self.lbl_page_num.setText(html)
 
-                if prev_current is not None and prev_current != current:
-                    direction = -1 if current < prev_current else 1
-                    base_pos = self.lbl_page_num.pos()
-                    if not hasattr(self, "page_anim") or self.page_anim is None:
-                        self.page_anim = QPropertyAnimation(self.lbl_page_num, b"pos", self)
-                        self.page_anim.setDuration(150)
-                        self.page_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
-                    self.page_anim.stop()
-                    offset = 6
-                    start_pos = base_pos + QPoint(0, offset * direction)
-                    self.lbl_page_num.move(start_pos)
-                    self.page_anim.setStartValue(start_pos)
-                    self.page_anim.setEndValue(base_pos)
-                    self.page_anim.start()
+            if prev_current is not None and prev_current != current:
+                direction = -1 if current < prev_current else 1
+                base_pos = self.lbl_page_num.pos()
+                if not hasattr(self, "page_anim") or self.page_anim is None:
+                    self.page_anim = QPropertyAnimation(self.lbl_page_num, b"pos", self)
+                    self.page_anim.setDuration(150)
+                    self.page_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+                self.page_anim.stop()
+                offset = 6
+                start_pos = base_pos + QPoint(0, offset * direction)
+                self.lbl_page_num.move(start_pos)
+                self.page_anim.setStartValue(start_pos)
+                self.page_anim.setEndValue(base_pos)
+                self.page_anim.start()
 
             self.last_page_value = current
             self.last_total_value = total
@@ -1143,8 +1150,8 @@ class ToolBarWidget(QWidget):
     request_exit = pyqtSignal()
     request_timer = pyqtSignal()
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.app_theme = Theme.DARK
         self.indicator = None
         self.was_checked = False
@@ -1824,7 +1831,8 @@ class TimerWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_theme = Theme.DARK
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        if not parent:
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.resize(460, 360)
         
@@ -1944,10 +1952,16 @@ class TimerWindow(QWidget):
         layout.addStretch()
 
     def on_completed_back(self):
-        self.reset_down()
-        self.stack.setCurrentWidget(self.down_page)
         if hasattr(self, 'shake_anim'):
             self.shake_anim.stop()
+        
+        # Restore position if saved
+        if hasattr(self, 'saved_pos') and self.saved_pos:
+            self.move(self.saved_pos)
+            self.saved_pos = None
+            
+        self.reset_down()
+        self.stack.setCurrentWidget(self.down_page)
         self.timer_reset.emit()
 
     def setup_down_page(self):
@@ -2278,6 +2292,7 @@ class TimerWindow(QWidget):
         
         self.down_label.hide()
         self.input_widget.show()
+        self.stack.setCurrentWidget(self.down_page)
         self.emit_state()
         self.timer_reset.emit()
 

@@ -35,14 +35,20 @@ from qfluentwidgets import (
     FluentIcon as FIF
 )
 from ui.widgets import AnnotationWidget, TimerWindow, ToolBarWidget, PageNavWidget, SpotlightOverlay, ClockWidget
+from ui.overlay_window import OverlayWindow
 from .ppt_client import PPTWorker
 from .ppt_core import PPTState
 from .version_manager import VersionManager
 from .sound_manager import SoundManager
 try:
-    from windows_toasts import WindowsToaster, ToastText2, ToastButton, ToastActivatedEventArgs
-    HAS_WINDOWS_TOASTS = True
-except ImportError:
+    import importlib.util
+    _spec = importlib.util.find_spec("windows_toasts")
+    if _spec is not None:
+        from windows_toasts import WindowsToaster, ToastText2, ToastButton, ToastActivatedEventArgs
+        HAS_WINDOWS_TOASTS = True
+    else:
+        HAS_WINDOWS_TOASTS = False
+except Exception:
     HAS_WINDOWS_TOASTS = False
 
 
@@ -130,6 +136,16 @@ class Config(QConfig):
         "Normal",
         OptionsValidator(
             ["Small", "Normal", "Large"]
+        ),
+        None,
+    )
+    
+    language = OptionsConfigItem(
+        "General",
+        "Language",
+        "Simplified Chinese",
+        OptionsValidator(
+            ["Simplified Chinese", "Traditional Chinese", "English", "Japanese", "Tibetan"]
         ),
         None,
     )
@@ -232,6 +248,7 @@ class BusinessLogicController(QWidget):
         self.annotation_widget: Optional[AnnotationWidget] = None
         self.timer_window = None
         self.loading_overlay = None
+        self.overlay: Optional[OverlayWindow] = None
         
         self.toolbar: Optional[ToolBarWidget] = None
         self.nav_left: Optional[PageNavWidget] = None
@@ -249,7 +266,18 @@ class BusinessLogicController(QWidget):
 
         self.process_check_timer = QTimer(self)
         self.process_check_timer.timeout.connect(self.check_conflicting_processes)
-        self.process_check_timer.start(3000)
+        # self.process_check_timer.start(3000)
+        
+        cfg.navPosition.valueChanged.connect(self.recreate_nav_widgets)
+        cfg.timerPosition.valueChanged.connect(self.set_timer_position_live)
+        cfg.clockPosition.valueChanged.connect(self.set_clock_position)
+        cfg.screenPaddingTop.valueChanged.connect(self.adjust_positions)
+        cfg.screenPaddingBottom.valueChanged.connect(self.adjust_positions)
+        cfg.screenPaddingLeft.valueChanged.connect(self.adjust_positions)
+        cfg.screenPaddingRight.valueChanged.connect(self.adjust_positions)
+        cfg.enableClock.valueChanged.connect(self.show_widgets)
+        cfg.enableGlobalAnimation.valueChanged.connect(lambda v: self.set_animation(v))
+        cfg.enableStartUp.valueChanged.connect(lambda v: self.set_start_up(v))
 
         try:
             is_auto = self.is_autorun()
@@ -260,12 +288,20 @@ class BusinessLogicController(QWidget):
             cfg.save()
 
     def check_conflicting_processes(self):
+        running = False
         try:
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            output = subprocess.check_output('tasklist', startupinfo=startupinfo).decode('gbk', errors='ignore').lower()
-            running = ('classisland' in output) or ('classwidgets' in output)
+            for proc in psutil.process_iter(['name']):
+                try:
+                    pname = proc.info.get('name', '').lower()
+                    if 'classisland' in pname or 'classwidgets' in pname:
+                        running = True
+                        break
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+        except Exception:
+            pass
 
+        try:
             if running:
                 if self.clock_widget and self.clock_widget.isVisible():
                     self.clock_widget.hide()
@@ -388,10 +424,12 @@ class BusinessLogicController(QWidget):
             cfg.set(cfg.navPosition, pos)
             cfg.save()
             
+            self.recreate_nav_widgets()
+            
         if self.widgets_visible:
             self.show_widgets(animate=cfg.enableGlobalAnimation.value)
         elif changed and hasattr(self, "tray_icon"):
-            self.tray_show_message("Kazuha", tr("翻页组件位置设置已保存，将在下一次放映时生效。"), QSystemTrayIcon.MessageIcon.Information, 2000)
+            self.tray_show_message("Kazuha", tr("翻页组件位置设置已保存。"), QSystemTrayIcon.MessageIcon.Information, 2000)
 
         if pos == "BottomSides":
             self.nav_pos_bottom_action.setChecked(True)
@@ -399,9 +437,52 @@ class BusinessLogicController(QWidget):
         elif pos == "MiddleSides":
             self.nav_pos_bottom_action.setChecked(False)
             self.nav_pos_middle_action.setChecked(True)
+            
+    def recreate_nav_widgets(self):
+        if self.nav_left:
+            self.nav_left.close()
+            self.nav_left.deleteLater()
+        if self.nav_right:
+            self.nav_right.close()
+            self.nav_right.deleteLater()
+            
+        nav_pos = cfg.navPosition.value
+        orientation = Qt.Orientation.Vertical if nav_pos == "MiddleSides" else Qt.Orientation.Horizontal
+        
+        from ui.widgets import PageNavWidget
+        # Ensure overlay exists
+        if not self.overlay:
+             self.overlay = OverlayWindow()
+             
+        self.nav_left = PageNavWidget(is_right=False, orientation=orientation, parent=self.overlay)
+        self.nav_right = PageNavWidget(is_right=True, orientation=orientation, parent=self.overlay)
+        
+        if hasattr(self, "last_state") and self.last_state:
+             if self.nav_left:
+                 self.nav_left.update_page(self.last_state.slide_index, self.last_state.slide_count, self.last_state.presentation_path)
+             if self.nav_right:
+                 self.nav_right.update_page(self.last_state.slide_index, self.last_state.slide_count, self.last_state.presentation_path)
+        
+        # Connect signals
+        self.nav_left.prev_clicked.connect(self.prev_page)
+        self.nav_left.next_clicked.connect(self.next_page)
+        self.nav_left.request_slide_jump.connect(self.jump_to_slide)
+        
+        self.nav_right.prev_clicked.connect(self.prev_page)
+        self.nav_right.next_clicked.connect(self.next_page)
+        self.nav_right.request_slide_jump.connect(self.jump_to_slide)
+        
+        self.update_widgets_theme()
+        self.adjust_positions()
 
     def set_timer_position(self, pos):
+        # This is for tray menu actions, which update config, triggering set_timer_position_live via signal
         pass
+
+    def set_timer_position_live(self, pos):
+        if self.timer_window and self.timer_window.isVisible():
+            self.toggle_timer_window() # Hide
+            self.toggle_timer_window() # Show (will recalculate pos)
 
     def set_clock_position(self, pos):
         self.adjust_positions()
@@ -426,6 +507,7 @@ class BusinessLogicController(QWidget):
             ("spotlight", getattr(self, "spotlight", None)),
             ("timer_window", getattr(self, "timer_window", None)),
             ("annotation_widget", getattr(self, "annotation_widget", None)),
+            ("overlay", getattr(self, "overlay", None)),
         ]
         for name, w in windows:
             if w:
@@ -447,12 +529,14 @@ class BusinessLogicController(QWidget):
         from ui.widgets import ToolBarWidget, PageNavWidget, SpotlightOverlay, ClockWidget
         nav_pos = cfg.navPosition.value
         orientation = Qt.Orientation.Vertical if nav_pos == "MiddleSides" else Qt.Orientation.Horizontal
-        self.toolbar = ToolBarWidget()
-        self.nav_left = PageNavWidget(is_right=False, orientation=orientation)
-        self.nav_right = PageNavWidget(is_right=True, orientation=orientation)
-        self.clock_widget = ClockWidget()
+        
+        self.overlay = OverlayWindow()
+        self.toolbar = ToolBarWidget(parent=self.overlay)
+        self.nav_left = PageNavWidget(is_right=False, orientation=orientation, parent=self.overlay)
+        self.nav_right = PageNavWidget(is_right=True, orientation=orientation, parent=self.overlay)
+        self.clock_widget = ClockWidget(parent=self.overlay)
         self.clock_widget.apply_settings(cfg)
-        self.spotlight = SpotlightOverlay()
+        self.spotlight = SpotlightOverlay(parent=self.overlay)
         self.setup_connections()
         self.setup_tray()
         self.update_widgets_theme()
@@ -521,10 +605,14 @@ class BusinessLogicController(QWidget):
         tray_menu = SystemTrayMenu(parent=self)
         
         action_settings = Action(FIF.SETTING, tr("界面和功能设置"), triggered=self.show_settings)
+        action_spotlight = Action(FIF.SEARCH, tr("聚光灯"), triggered=self.toggle_spotlight)
+        action_timer = Action(FIF.DATE_TIME, tr("倒计时"), triggered=self.toggle_timer_window)
         action_exit = Action(FIF.POWER_BUTTON, tr("退出 Kazuha"), triggered=self.exit_application)
         
         tray_menu.addActions([
             action_settings,
+            action_spotlight,
+            action_timer,
             action_exit
         ])
         
@@ -842,7 +930,9 @@ class BusinessLogicController(QWidget):
     
     def toggle_timer_window(self):
         if not self.timer_window:
-            self.timer_window = TimerWindow()
+            if not self.overlay:
+                self.overlay = OverlayWindow()
+            self.timer_window = TimerWindow(parent=self.overlay)
             if hasattr(self.timer_window, 'set_theme'):
                 self.timer_window.set_theme(self.theme_mode)
             if self.clock_widget:
@@ -912,12 +1002,12 @@ class BusinessLogicController(QWidget):
             
             if not self.loading_overlay:
                 from ui.widgets import LoadingOverlay
-                self.mask_overlay = QWidget()
-                self.mask_overlay.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
+                if not self.overlay:
+                    self.overlay = OverlayWindow()
+                self.mask_overlay = QWidget(parent=self.overlay)
                 self.mask_overlay.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
                 self.mask_overlay.setStyleSheet("background-color: rgba(0, 0, 0, 180);")
-                screen = QApplication.primaryScreen().geometry()
-                self.mask_overlay.setGeometry(screen)
+                self.mask_overlay.setGeometry(self.overlay.rect())
                 self.mask_overlay.show()
                 self.timer_window.raise_()
         else:
@@ -941,14 +1031,17 @@ class BusinessLogicController(QWidget):
 
     def toggle_annotation_mode(self):
         if not self.annotation_widget:
-            self.annotation_widget = AnnotationWidget()
+            if not self.overlay:
+                self.overlay = OverlayWindow()
+            self.annotation_widget = AnnotationWidget(parent=self.overlay)
             if hasattr(self.annotation_widget, 'set_theme'):
                 self.annotation_widget.set_theme(self.theme_mode)
         
         if self.annotation_widget.isVisible():
             self.annotation_widget.hide()
         else:
-            self.annotation_widget.showFullScreen()
+            self.annotation_widget.setGeometry(self.overlay.rect())
+            self.annotation_widget.show()
     
     def check_presentation_processes(self):
         presentation_detected = False
@@ -1025,12 +1118,16 @@ class BusinessLogicController(QWidget):
 
     def on_state_updated(self, state):
         self.last_state = state
-        
-        if state.is_running:
+
+        is_fullscreen = getattr(state, 'is_fullscreen', False)
+        effective_running = bool(getattr(state, "is_running", False))
+        if not effective_running and self.check_presentation_processes():
+            effective_running = True
+
+        if effective_running:
             if not self.widgets_visible:
                 self.show_widgets(animate=cfg.enableGlobalAnimation.value)
             
-            # Update navigation widgets
             if self.nav_left:
                 self.nav_left.update_page(state.slide_index, state.slide_count, state.presentation_path)
             if self.nav_right:
@@ -1047,6 +1144,10 @@ class BusinessLogicController(QWidget):
                 
     def show_widgets(self, animate=True):
         self.widgets_visible = True
+        
+        if self.overlay:
+            self.overlay.show()
+            self.overlay.update_geometry()
         
         if self.toolbar:
             self.toolbar.show()
@@ -1067,14 +1168,10 @@ class BusinessLogicController(QWidget):
     def hide_widgets(self, animate=True):
         self.widgets_visible = False
         
-        if self.toolbar:
-            self.toolbar.hide()
-        if self.nav_left:
-            self.nav_left.hide()
-        if self.nav_right:
-            self.nav_right.hide()
-        if self.clock_widget:
-            self.clock_widget.hide()
+        if self.overlay:
+            self.overlay.hide()
+            
+        # Children are hidden automatically if parent is hidden, but keeping logic clean
         if self.spotlight:
             self.spotlight.hide()
         if self.annotation_widget:
@@ -1083,54 +1180,71 @@ class BusinessLogicController(QWidget):
             self.timer_window.hide()
 
     def adjust_positions(self):
-        screen = QApplication.primaryScreen().geometry()
+        if not self.overlay:
+            return
+
+        # Update overlay geometry to match PPT window or screen
+        if self.last_state and self.last_state.rect and self.last_state.rect[2] > 0:
+            left, top, right, bottom = self.last_state.rect
+            w = right - left
+            h = bottom - top
+            self.overlay.setGeometry(left, top, w, h)
+        else:
+            screen = QApplication.primaryScreen().geometry()
+            self.overlay.setGeometry(screen)
+            
+        overlay_rect = self.overlay.rect() # Local coordinates (0, 0, w, h)
         
-        # Toolbar (Top Center)
+        # Helper for margins
+        top_m = cfg.screenPaddingTop.value
+        bottom_m = cfg.screenPaddingBottom.value
+        left_m = cfg.screenPaddingLeft.value
+        right_m = cfg.screenPaddingRight.value
+        
+        # Toolbar (Bottom Center)
         if self.toolbar:
             w = self.toolbar.width()
             h = self.toolbar.height()
-            x = screen.left() + (screen.width() - w) // 2
-            y = screen.top() + cfg.screenPaddingTop.value
+            x = (overlay_rect.width() - w) // 2
+            y = overlay_rect.height() - h - bottom_m
             self.toolbar.move(x, y)
             
         # Navigation
         nav_pos = cfg.navPosition.value
-        padding_h = cfg.screenPaddingLeft.value
-        padding_v = cfg.screenPaddingBottom.value
         
         if self.nav_left and self.nav_right:
             if nav_pos == "BottomSides":
                 w = self.nav_left.width()
                 h = self.nav_left.height()
-                y = screen.top() + screen.height() - h - padding_v
-                self.nav_left.move(screen.left() + padding_h, y)
-                self.nav_right.move(screen.left() + screen.width() - w - padding_h, y)
+                y = overlay_rect.height() - h - bottom_m
+                self.nav_left.move(left_m, y)
+                self.nav_right.move(overlay_rect.width() - w - right_m, y)
             elif nav_pos == "MiddleSides":
                 w = self.nav_left.width()
                 h = self.nav_left.height()
-                y = screen.top() + (screen.height() - h) // 2
-                self.nav_left.move(screen.left() + padding_h, y)
-                self.nav_right.move(screen.left() + screen.width() - w - padding_h, y)
+                y = (overlay_rect.height() - h) // 2
+                self.nav_left.move(left_m, y)
+                self.nav_right.move(overlay_rect.width() - w - right_m, y)
 
         # Clock
         if self.clock_widget:
             clock_pos = cfg.clockPosition.value
             w = self.clock_widget.width()
             h = self.clock_widget.height()
-            padding = 20
             
+            # Use configured margins for clock as well
             if clock_pos == "TopLeft":
-                x = screen.left() + padding
-                y = screen.top() + padding
+                x = left_m
+                y = top_m
             elif clock_pos == "TopRight":
-                x = screen.left() + screen.width() - w - padding
-                y = screen.top() + padding
+                x = overlay_rect.width() - w - right_m
+                y = top_m
             elif clock_pos == "BottomLeft":
-                x = screen.left() + padding
-                y = screen.top() + screen.height() - h - padding
+                x = left_m
+                y = overlay_rect.height() - h - bottom_m
             elif clock_pos == "BottomRight":
-                x = screen.left() + screen.width() - w - padding
-                y = screen.top() + screen.height() - h - padding
+                x = overlay_rect.width() - w - right_m
+                y = overlay_rect.height() - h - bottom_m
             
             self.clock_widget.move(x, y)
 
@@ -1148,13 +1262,17 @@ class BusinessLogicController(QWidget):
             
     def toggle_spotlight(self):
         if not self.spotlight:
-            self.spotlight = SpotlightOverlay()
-            self.spotlight.set_theme(self.theme_mode)
+            if not self.overlay:
+                self.overlay = OverlayWindow()
+            self.spotlight = SpotlightOverlay(parent=self.overlay)
+            if hasattr(self.spotlight, 'set_theme'):
+                self.spotlight.set_theme(self.theme_mode)
         
         if self.spotlight.isVisible():
             self.spotlight.hide()
         else:
-            self.spotlight.showFullScreen()
+            self.spotlight.setGeometry(self.overlay.rect())
+            self.spotlight.show()
             
     def exit_application(self):
         if hasattr(self, "ppt_worker") and self.ppt_worker:
@@ -1180,15 +1298,9 @@ class BusinessLogicController(QWidget):
     def ensure_topmost(self):
         try:
             flags = win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE
-            widgets = [
-                self.toolbar, 
-                self.nav_left, 
-                self.nav_right, 
-                self.clock_widget
-            ]
-            for w in widgets:
-                if w and w.isVisible():
-                    hwnd = int(w.winId())
-                    win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, flags)
+            
+            if self.overlay and self.overlay.isVisible():
+                hwnd = int(self.overlay.winId())
+                win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, flags)
         except Exception:
             pass

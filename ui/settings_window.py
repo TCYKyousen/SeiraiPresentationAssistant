@@ -12,7 +12,7 @@ from qfluentwidgets import (
     SwitchSettingCard, OptionsSettingCard, PushSettingCard,
     PrimaryPushSettingCard, SettingCard, PrimaryPushButton, PushButton,
     SmoothScrollArea, ExpandLayout, Theme, setTheme, setThemeColor,
-    SplitFluentWindow, NavigationItemPosition, isDarkTheme,
+    FluentWindow, NavigationItemPosition, isDarkTheme,
     LargeTitleLabel, TitleLabel, BodyLabel, CaptionLabel, IndeterminateProgressRing,
     InfoBar, InfoBarPosition, MessageBoxBase, SubtitleLabel, ProgressBar,
     SegmentedWidget, Pivot, FluentIcon as FIF
@@ -21,6 +21,10 @@ from ui.custom_settings import SchematicOptionsSettingCard, ScreenPaddingSetting
 from ui.crash_dialog import CrashDialog, trigger_crash
 from ui.visual_settings import ClockSettingCard
 from ui.about_page import AboutPage
+
+
+def tr(text: str):
+    return QCoreApplication.translate("SettingsWindow", text)
 
 
 class UpdateDialog(MessageBoxBase):
@@ -133,7 +137,7 @@ def _create_page(parent: QWidget):
     page = QWidget(parent)
     page.setStyleSheet("background-color: transparent;")
     layout = QVBoxLayout(page)
-    layout.setContentsMargins(24, 24, 24, 24)
+    layout.setContentsMargins(24, 10, 24, 24)
     layout.setSpacing(0)
 
     scroll = SmoothScrollArea(page)
@@ -205,476 +209,10 @@ class UpdateLogCard(SettingCard):
         self.currentLogLabel.setText(current)
 
 
-class SettingsWindow(SplitFluentWindow):
-    pass
-from ui.visual_settings import ClockSettingCard
-from ui.about_page import AboutPage
-
-
-class UpdateDialog(MessageBoxBase):
-    def __init__(self, version_info, parent=None):
-        super().__init__(parent)
-        self.version_info = version_info
-        
-        self.titleLabel = SubtitleLabel(tr("更新"), self)
-        self.resize(900, 640)
-        
-        self.statusWidget = QWidget(self)
-        self.statusLayout = QHBoxLayout(self.statusWidget)
-        self.statusLayout.setContentsMargins(0, 0, 0, 0)
-        self.statusLayout.setSpacing(16)
-        
-        self.iconLabel = QLabel(self)
-        self.iconLabel.setFixedSize(64, 64)
-        icon_pixmap = FIF.SYNC.icon().pixmap(QSize(64, 64))
-        self.iconLabel.setPixmap(icon_pixmap)
-        self.generalInterface, generalContent, generalLayout = _create_page(self)
-        self.generalInterface.setObjectName("settings-general")
-
-        self.personalInterface, personalContent, personalLayout = _create_page(self)
-        self.personalInterface.setObjectName("settings-personal")
-
-        self.clockInterface, clockContent, clockLayout = _create_page(self)
-        self.clockInterface.setObjectName("settings-clock")
-        self.clockLayout = clockLayout
-        self.clockConflictInfoBar = None
-
-        self.clockPageTitle = LargeTitleLabel(tr("桌面悬浮时钟组件"), clockContent)
-        _apply_title_style(self.clockPageTitle)
-        clockLayout.addWidget(self.clockPageTitle)
-
-        self.clockHeader = TitleLabel(tr("显示内容与样式"), clockContent)
-        _apply_body_strong_style(self.clockHeader)
-        clockLayout.addWidget(self.clockHeader)
-
-        self.clockEnableCard = SwitchSettingCard(
-            FIF.DATE_TIME,
-            tr("显示悬浮时钟"),
-            tr("在屏幕上显示一个可自定义的悬浮时钟窗口"),
-            configItem=cfg.enableClock,
-            parent=clockContent
-        )
-
-        self.clockPosCard = OptionsSettingCard(
-            cfg.clockPosition,
-            FIF.HISTORY,
-            tr("时钟位置"),
-            tr("调整桌面悬浮时钟在屏幕四角的显示位置"),
-            texts=[tr("左上角"), tr("右上角"), tr("左下角"), tr("右下角")],
-            parent=clockContent
-        )
-
-        self.clockSettingCard = ClockSettingCard(
-            FIF.DATE_TIME,
-            tr("时钟样式"),
-            tr("自定义悬浮时钟显示的内容、字体和粗细等外观"),
-            parent=clockContent
-        )
-
-        clockLayout.addWidget(self.clockEnableCard)
-        clockLayout.addWidget(self.clockPosCard)
-        clockLayout.addWidget(self.clockSettingCard)
-
-        self._update_clock_settings_for_cicw()
-
-        self.debugInterface, debugContent, debugLayout = _create_page(self)
-        self.debugInterface.setObjectName("settings-debug")
-        
-        self.dangerHeader = TitleLabel(tr("危险功能（仅限测试）"), debugContent)
-        _apply_body_strong_style(self.dangerHeader)
-        debugLayout.addWidget(self.dangerHeader)
-        self.crashCard = PushSettingCard(
-            tr("触发"),
-            FIF.DELETE,
-            tr("崩溃测试"),
-            tr("仅用于开发调试环境，请勿在正式课堂或演示时点击"),
-            parent=debugContent
-        )
-        debugLayout.addWidget(self.crashCard)
-
-        self.updateStatusLabel.setStyleSheet("font-size: 16px; font-weight: bold;")
-        
-        self.updateInterface, updateContent, updateLayout = self._create_update_interface()
-
-        version = "Unknown"
-        try:
-            base_dir = get_app_base_dir()
-            v_path = base_dir / "config" / "version.json"
-            with open(v_path, "r", encoding="utf-8") as f:
-                info = json.load(f)
-                version = info.get("versionName", "Unknown")
-        except:
-            pass
-
-        self.currentVersion = version
-        if hasattr(self, "titleBar"):
-            version_text = version
-            if version_text and version_text != "Unknown":
-                version_text = f"v{version_text}"
-                self.titleVersionLabel = CaptionLabel(version_text, self.titleBar)
-                self.titleVersionLabel.setObjectName("titleVersionLabel")
-                self.titleVersionLabel.setStyleSheet("padding: 0 8px;")
-                layout = self.titleBar.hBoxLayout
-                layout.insertWidget(layout.count() - 1, self.titleVersionLabel)
-
-        now_str = datetime.datetime.now().strftime("%H:%M")
-        self.lastCheckLabel = CaptionLabel(tr("上次检查时间: 今天, {time}").format(time=now_str), self)
-        self.lastCheckLabel.setStyleSheet("color: gray;")
-        
-        self.textLayout.addWidget(self.updateStatusLabel)
-        self.textLayout.addWidget(self.lastCheckLabel)
-        self.textLayout.addStretch(1)
-        
-        self.actionButton = PrimaryPushButton(tr("立即更新"), self)
-        self.actionButton.setFixedWidth(120)
-        self.actionButton.clicked.connect(self.accept)
-        
-        self.crashCard.clicked.connect(self.show_crash_dialog)
-        self.statusLayout.addLayout(self.textLayout)
-        self.statusLayout.addStretch(1)
-        self.statusLayout.addWidget(self.actionButton)
-        
-        self.pivot = Pivot(self)
-        self.pivot.setStyleSheet("""
-            Pivot { background-color: transparent; }
-            PivotItem { font-size: 14px; padding: 10px 0; margin-right: 20px; }
-        """)
-        
-        self.logWidget = QWidget()
-        self.logLayout = QVBoxLayout(self.logWidget)
-        self.logLayout.setContentsMargins(0, 10, 0, 0)
-        self.logEdit = BodyLabel(version_info.get('body', ''), self)
-        self.logEdit.setWordWrap(True)
-        self.logEdit.setStyleSheet("color: gray; font-size: 13px; line-height: 1.5;")
-        self.logLayout.addWidget(self.logEdit)
-
-    def _create_update_interface(self):
-        page, content, layout = _create_page(self)
-        page.setObjectName("settings-update")
-        
-        title = LargeTitleLabel(tr("更新"), content)
-        _apply_title_style(title)
-        layout.addWidget(title)
-        
-        statusWidget = QWidget(content)
-        statusLayout = QHBoxLayout(statusWidget)
-        statusLayout.setContentsMargins(0, 0, 0, 0)
-        statusLayout.setSpacing(20)
-        
-        self.updateStatusIcon = QLabel(statusWidget)
-        self.updateStatusIcon.setFixedSize(64, 64)
-        self.updateStatusIcon.setPixmap(FIF.COMPLETED.icon().pixmap(QSize(64, 64)))
-        
-        textLayout = QVBoxLayout()
-        textLayout.setSpacing(4)
-        self.updateStatusTitle = BodyLabel(tr("你使用的是最新版本"), statusWidget)
-        self.updateStatusTitle.setStyleSheet("font-size: 18px; font-weight: bold;")
-        
-        now_str = datetime.datetime.now().strftime("%H:%M")
-        self.updateLastCheckLabel = CaptionLabel(tr("上次检查时间: 今天, {time}").format(time=now_str), statusWidget)
-        self.updateLastCheckLabel.setStyleSheet("color: gray;")
-        
-        textLayout.addWidget(self.updateStatusTitle)
-        textLayout.addWidget(self.updateLastCheckLabel)
-        textLayout.addStretch(1)
-        
-        self.checkUpdateButton = PushButton(tr("检查更新"), statusWidget)
-        self.checkUpdateButton.setFixedWidth(120)
-        self.checkUpdateButton.clicked.connect(self._on_check_update_clicked)
-        
-        statusLayout.addWidget(self.updateStatusIcon)
-        statusLayout.addLayout(textLayout)
-        statusLayout.addStretch(1)
-        statusLayout.addWidget(self.checkUpdateButton)
-        
-        layout.addWidget(statusWidget)
-        
-        self.logWidget = QWidget(content)
-        logLayout = QVBoxLayout(self.logWidget)
-        logLayout.setContentsMargins(0, 10, 0, 0)
-        
-        self.latestReleaseLogLabel = BodyLabel(tr("暂无更新日志信息"), self.logWidget)
-        self.latestReleaseLogLabel.setWordWrap(True)
-        self.latestReleaseLogLabel.setStyleSheet("color: gray; font-size: 13px; line-height: 1.5;")
-        
-        logLayout.addWidget(self.latestReleaseLogLabel)
-        logLayout.addStretch(1)
-        
-        layout.addWidget(self.logWidget)
-        
-        self.updateLoadingWidget = QWidget(content)
-        loadingLayout = QHBoxLayout(self.updateLoadingWidget)
-        loadingLayout.setContentsMargins(0, 12, 0, 0)
-        loadingLayout.setSpacing(8)
-        self.updateRing = IndeterminateProgressRing(self.updateLoadingWidget)
-        self.updateRing.setFixedSize(20, 20)
-        self.updateRing.setStrokeWidth(3)
-        self.updateLoadingLabel = BodyLabel(tr("正在从网络检查更新..."), self.updateLoadingWidget)
-        loadingLayout.addWidget(self.updateRing)
-        loadingLayout.addWidget(self.updateLoadingLabel)
-        loadingLayout.addStretch()
-        self.updateLoadingWidget.hide()
-        layout.addWidget(self.updateLoadingWidget)
-        
-        self.updateProgressBar = ProgressBar(content)
-        self.updateProgressBar.hide()
-        layout.addWidget(self.updateProgressBar)
-        
-        self.updateProgressLabel = CaptionLabel("", content)
-        self.updateProgressLabel.hide()
-        layout.addWidget(self.updateProgressLabel)
-
-        return page, content, layout
-
-    def set_update_info(self, latest_version, latest_log):
-        v = latest_version or tr("未知")
-        self._latest_version_info = {"version": latest_version, "body": latest_log}
-        
-        if latest_version and self.currentVersion and latest_version != self.currentVersion:
-             self.updateStatusTitle.setText(tr("有可用更新: {version}").format(version=v))
-             self.updateStatusIcon.setPixmap(FIF.SYNC.icon().pixmap(QSize(64, 64)))
-             self.checkUpdateButton.setText(tr("立即下载"))
-             self.checkUpdateButton.setProperty("is_update_ready", True)
-        else:
-             self.updateStatusTitle.setText(tr("你使用的是最新版本"))
-             self.updateStatusIcon.setPixmap(FIF.COMPLETED.icon().pixmap(QSize(64, 64)))
-             self.checkUpdateButton.setText(tr("检查更新"))
-             self.checkUpdateButton.setProperty("is_update_ready", False)
-
-        text = latest_log.strip() if latest_log else tr("无更新日志")
-        if self.currentVersion and latest_version and self.currentVersion == latest_version:
-             self.latestReleaseLogLabel.setText(tr("当前版本更新日志：\n{text}").format(text=text))
-        else:
-             self.latestReleaseLogLabel.setText(tr("最新 Release 版本更新日志：\n{text}").format(text=text))
-             
-        if hasattr(self, "updateLoadingWidget"):
-            self.updateLoadingWidget.hide()
-            
-    def _on_check_update_clicked(self):
-        if self.checkUpdateButton.property("is_update_ready"):
-            self._start_update_download()
-        else:
-            self._on_update_card_clicked()
-            
-    def _start_update_download(self):
-        try:
-            from controllers.business_logic import BusinessLogicController
-            app = QApplication.instance()
-            controller = None
-            if app:
-                for w in app.topLevelWidgets():
-                    if isinstance(w, BusinessLogicController):
-                        controller = w
-                        break
-            
-            if controller:
-                # Assuming controller has access to the info dict passed in on_update_available
-                # But here we only have version and body stored. 
-                # We need to access the version manager or store the full info.
-                # Let's rely on version_manager's latest_release_info if available or
-                # we need to re-fetch/store it.
-                # Actually, BusinessLogicController stores version_manager.
-                
-                info = controller.version_manager.latest_release_info
-                if info:
-                    asset_url = None
-                    for asset in info.get('assets', []):
-                        if asset['name'].endswith('.exe'):
-                            asset_url = asset['browser_download_url']
-                            break
-                    
-                    if asset_url:
-                        self.checkUpdateButton.setEnabled(False)
-                        self.updateProgressBar.show()
-                        self.updateProgressLabel.show()
-                        self.updateProgressLabel.setText(tr("准备下载..."))
-                        
-                        controller.version_manager.update_progress.connect(self._on_update_progress)
-                        controller.version_manager.update_error.connect(self._on_update_error)
-                        controller.version_manager.update_complete.connect(self._on_update_complete)
-                        
-                        controller.start_download_update(asset_url)
-                    else:
-                        pass # Should show warning
-        except Exception:
-            pass
-
-    def _on_update_progress(self, val):
-        self.updateProgressBar.setValue(val)
-        self.updateProgressLabel.setText(tr("正在下载: {0}%").format(val))
-        self.settingsWidget.hide()
-    def _on_update_error(self, err):
-        self.updateProgressLabel.setText(tr("更新失败: {0}").format(err))
-        self.checkUpdateButton.setEnabled(True)
-        
-    def _on_update_complete(self):
-        self.updateProgressLabel.setText(tr("下载完成，准备安装..."))
-        self.cancelButton.setText(tr("以后再说"))
-        
-        self.widget.setMinimumWidth(600)
-        self.widget.setMinimumHeight(500)
-
-    def show_tab(self, index):
-        if index == 0:
-            self.logWidget.show()
-            self.settingsWidget.hide()
-        else:
-            self.logWidget.hide()
-            self.settingsWidget.show()
-
-    def set_progress(self, val):
-        self.progressBar.show()
-        self.statusLabel.show()
-        self.progressBar.setValue(val)
-        self.statusLabel.setText(tr("正在下载: {0}%").format(val))
-        self.actionButton.setEnabled(False)
-
-
-def tr(text: str) -> str:
-    return QCoreApplication.translate("SettingsWindow", text)
-
-
-def _create_page(parent: QWidget):
-    page = QWidget(parent)
-    page.setStyleSheet("background-color: transparent;")
-    layout = QVBoxLayout(page)
-    layout.setContentsMargins(24, 24, 24, 24)
-    layout.setSpacing(0)
-
-    scroll = SmoothScrollArea(page)
-    scroll.setObjectName("scrollInterface")
-    scroll.setStyleSheet("SmoothScrollArea { background-color: transparent; border: none; }")
-
-    content = QWidget()
-    content.setStyleSheet("background-color: transparent;")
-    content.setObjectName("scrollWidget")
-    expand_layout = ExpandLayout(content)
-
-    scroll.setWidget(content)
-    scroll.setWidgetResizable(True)
-
-    layout.addWidget(scroll)
-    return page, content, expand_layout
-
-
-def _apply_title_style(label: QLabel):
-    f = label.font()
-    f.setPointSize(22)
-    f.setWeight(QFont.Weight.Bold)
-    label.setFont(f)
-
-
-def _apply_body_strong_style(label: QLabel):
-    f = label.font()
-    f.setPointSize(12)
-    f.setWeight(QFont.Weight.Normal)
-    label.setFont(f)
-
-
-class VersionInfoCard(SettingCard):
-    def __init__(self, icon, title, parent=None):
-        super().__init__(icon, title, "", parent)
-        box = QVBoxLayout()
-        box.setContentsMargins(0, 0, 0, 0)
-        box.setSpacing(4)
-        self.latestLabel = BodyLabel(tr("最新可用 Release 版本：尚未执行检查"), self)
-        self.currentLabel = BodyLabel(tr("当前正在运行的版本：未知"), self)
-        self.latestLabel.setWordWrap(True)
-        self.currentLabel.setWordWrap(True)
-        box.addWidget(self.latestLabel)
-        box.addWidget(self.currentLabel)
-        self.hBoxLayout.addLayout(box, 1)
-
-    def set_versions(self, latest, current):
-        self.latestLabel.setText(latest)
-        self.currentLabel.setText(current)
-
-
-    def show_crash_dialog(self):
-        w = CrashDialog(self)
-        if w.exec():
-            settings = w.get_settings()
-            if settings['countdown']:
-                QTimer.singleShot(3000, lambda: trigger_crash(settings))
-            else:
-                trigger_crash(settings)
-    
-    def _update_clock_settings_for_cicw(self):
-        running = False
-        try:
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            output = subprocess.check_output('tasklist', startupinfo=startupinfo).decode('gbk', errors='ignore').lower()
-            running = ('classisland' in output) or ('classwidgets' in output)
-        except Exception:
-            running = False
-        
-        widgets = [
-            getattr(self, "clockEnableCard", None),
-            getattr(self, "clockPosCard", None),
-            getattr(self, "clockSettingCard", None),
-        ]
-        for w in widgets:
-            if w is not None:
-                w.setEnabled(not running)
-        
-        if running:
-            if not self.clockConflictInfoBar:
-                bar = InfoBar.warning(
-                    title=tr("检测到 ClassIsland/Class Widgets 正在运行"),
-                    content=tr("ClassIsland/Class Widgets 的部分功能与本应用的时钟组件存在重叠，且另一部分功能甚至可以超出时钟组件所能做到的范围。\n为避免冲突，当前时钟组件已被临时禁用。"),
-                    orient=Qt.Orientation.Horizontal,
-                    isClosable=False,
-                    position=InfoBarPosition.BOTTOM,
-                    duration=-1,
-                    parent=self.clockInterface
-                )
-                for label in bar.findChildren(QLabel):
-                    label.setWordWrap(True)
-                self.clockConflictInfoBar = bar
-                bar.show()
-            else:
-                self.clockConflictInfoBar.show()
-        else:
-            if self.clockConflictInfoBar:
-                self.clockConflictInfoBar.hide()
-                
-class UpdateLogCard(SettingCard):
-    def __init__(self, icon, title, parent=None):
-
-    def _on_update_card_clicked(self):
-        if hasattr(self, "latestReleaseVersionLabel"):
-            self.latestReleaseVersionLabel.setText(tr("最新可用 Release 版本：正在检查..."))
-        if hasattr(self, "updateLoadingWidget"):
-            self.updateLoadingWidget.show()
-        self.checkUpdateClicked.emit()
-
-    def _auto_check_update(self):
-        self._on_update_card_clicked()
-
-    def stop_update_loading(self):
-        if hasattr(self, "updateLoadingWidget"):
-            self.updateLoadingWidget.hide()
-        super().__init__(icon, title, "", parent)
-        box = QVBoxLayout()
-        box.setContentsMargins(0, 0, 0, 0)
-        box.setSpacing(4)
-        self.latestLogLabel = BodyLabel(tr("最新 Release 版本更新日志：尚未加载"), self)
-        self.currentLogLabel = BodyLabel(tr("当前版本对应的更新日志：尚未加载"), self)
-        self.latestLogLabel.setWordWrap(True)
-        self.currentLogLabel.setWordWrap(True)
-        box.addWidget(self.latestLogLabel)
-        box.addWidget(self.currentLogLabel)
-        self.hBoxLayout.addLayout(box, 1)
-
-    def set_logs(self, latest, current):
-        self.latestLogLabel.setText(latest)
-        self.currentLogLabel.setText(current)
-
-
-class SettingsWindow(MSFluentWindow):
+class SettingsWindow(FluentWindow):
     configChanged = pyqtSignal()
     checkUpdateClicked = pyqtSignal()
+    startUpdateClicked = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -696,9 +234,89 @@ class SettingsWindow(MSFluentWindow):
 
         self.generalInterface, generalContent, generalLayout = _create_page(self)
         self.generalInterface.setObjectName("settings-general")
+        
+        self.generalPageTitle = LargeTitleLabel(tr("常规"), generalContent)
+        _apply_title_style(self.generalPageTitle)
+        generalLayout.addWidget(self.generalPageTitle)
+
+        self.startupCard = SwitchSettingCard(
+            FIF.INFO,
+            tr("开机自启动"),
+            tr("在 Windows 登录时自动启动应用"),
+            configItem=cfg.enableStartUp,
+            parent=generalContent
+        )
+        self.notificationCard = SwitchSettingCard(
+            FIF.FEEDBACK,
+            tr("系统通知"),
+            tr("允许应用向系统发送状态通知"),
+            configItem=cfg.enableSystemNotification,
+            parent=generalContent
+        )
+        self.soundCard = SwitchSettingCard(
+            FIF.MUSIC,
+            tr("全局音效"),
+            tr("在操作时播放交互音效"),
+            configItem=cfg.enableGlobalSound,
+            parent=generalContent
+        )
+        self.animationCard = SwitchSettingCard(
+            FIF.MOVE,
+            tr("全局动画"),
+            tr("启用界面过渡和状态切换动画"),
+            configItem=cfg.enableGlobalAnimation,
+            parent=generalContent
+        )
+        self.languageCard = OptionsSettingCard(
+            cfg.language,
+            FIF.LANGUAGE,
+            tr("界面语言"),
+            tr("设置应用界面的显示语言（需要重启）"),
+            texts=[tr("简体中文"), tr("繁體中文"), tr("English"), tr("日本語"), tr("Bod-yig")],
+            parent=generalContent
+        )
+        
+        generalLayout.addWidget(self.startupCard)
+        generalLayout.addWidget(self.notificationCard)
+        generalLayout.addWidget(self.soundCard)
+        generalLayout.addWidget(self.animationCard)
+        generalLayout.addWidget(self.languageCard)
 
         self.personalInterface, personalContent, personalLayout = _create_page(self)
         self.personalInterface.setObjectName("settings-personal")
+        
+        self.personalPageTitle = LargeTitleLabel(tr("个性化"), personalContent)
+        _apply_title_style(self.personalPageTitle)
+        personalLayout.addWidget(self.personalPageTitle)
+        
+        self.themeCard = OptionsSettingCard(
+            cfg.themeMode,
+            FIF.BRUSH,
+            tr("应用主题"),
+            tr("切换应用的主题颜色模式"),
+            texts=[tr("浅色"), tr("深色"), tr("跟随系统")],
+            parent=personalContent
+        )
+        self.navPosCard = OptionsSettingCard(
+            cfg.navPosition,
+            FIF.MENU,
+            tr("导航栏位置"),
+            tr("调整侧边栏导航项目的显示位置"),
+            texts=[tr("底部两侧"), tr("居中两侧")],
+            parent=personalContent
+        )
+        self.paddingCard = OptionsSettingCard(
+            cfg.screenPadding,
+            FIF.LAYOUT,
+            tr("屏幕边距"),
+            tr("调整应用窗口与屏幕边缘的间距"),
+            texts=[tr("较小"), tr("正常"), tr("较大")],
+            parent=personalContent
+        )
+        
+        personalLayout.addWidget(self.themeCard)
+        personalLayout.addWidget(self.navPosCard)
+        personalLayout.addWidget(self.paddingCard)
 
         self.clockInterface, clockContent, clockLayout = _create_page(self)
         self.clockInterface.setObjectName("settings-clock")
@@ -861,11 +479,7 @@ class SettingsWindow(MSFluentWindow):
             PivotItem { font-size: 14px; padding: 10px 0; margin-right: 20px; }
         """)
         
-        stackedWidget = QWidget(content)
-        stackedLayout = QVBoxLayout(stackedWidget)
-        stackedLayout.setContentsMargins(0, 10, 0, 0)
-        
-        logWidget = QWidget()
+        logWidget = QWidget(content)
         logLayout = QVBoxLayout(logWidget)
         logLayout.setContentsMargins(0, 0, 0, 0)
         
@@ -876,7 +490,7 @@ class SettingsWindow(MSFluentWindow):
         logLayout.addWidget(self.latestReleaseLogLabel)
         logLayout.addStretch(1)
         
-        settingsWidget = QWidget()
+        settingsWidget = QWidget(content)
         settingsLayout = QVBoxLayout(settingsWidget)
         settingsLayout.setContentsMargins(0, 0, 0, 0)
         
@@ -892,15 +506,15 @@ class SettingsWindow(MSFluentWindow):
         settingsLayout.addWidget(self.autoCheckCard)
         settingsLayout.addStretch(1)
         
+        layout.addWidget(pivot)
+        layout.addWidget(logWidget)
+        layout.addWidget(settingsWidget)
+        
         logWidget.show()
         settingsWidget.hide()
         
         pivot.addItem("logs", tr("更新日志"), lambda: [logWidget.show(), settingsWidget.hide()])
         pivot.addItem("settings", tr("更新设置"), lambda: [logWidget.hide(), settingsWidget.show()])
-        
-        layout.addWidget(pivot)
-        layout.addWidget(logWidget)
-        layout.addWidget(settingsWidget)
         
         self.updateLoadingWidget = QWidget(content)
         loadingLayout = QHBoxLayout(self.updateLoadingWidget)

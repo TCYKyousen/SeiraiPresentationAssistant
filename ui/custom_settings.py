@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout
-from PySide6.QtCore import Qt, QRectF, QPropertyAnimation, QEasingCurve, Property, QCoreApplication
-from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout
+from PyQt6.QtCore import Qt, QRectF, QPropertyAnimation, QEasingCurve, pyqtProperty as Property, QCoreApplication
+from PyQt6.QtGui import QPainter, QColor, QPen, QPainterPath
 from qfluentwidgets import OptionsSettingCard, Theme, isDarkTheme, themeColor, SettingCard, PushButton, BodyLabel, SpinBox, SwitchButton
 
 
@@ -543,7 +543,7 @@ class ScreenPaddingSettingCard(SettingCard):
         class PaddingConfigDialog(MessageBoxBase):
             def __init__(self, parent=None):
                 super().__init__(parent)
-                title_label = SubtitleLabel(tr("组件屏幕边距"), self)
+                title_label = SubtitleLabel(tr("屏幕边距 (Margin) 设置"), self)
                 self.viewLayout.addWidget(title_label)
                 container = QWidget(self)
                 c_layout = QVBoxLayout(container)
@@ -557,10 +557,10 @@ class ScreenPaddingSettingCard(SettingCard):
                 controls = QGridLayout()
                 controls.setHorizontalSpacing(12)
                 controls.setVerticalSpacing(8)
-                top_label = BodyLabel(tr("上边距"), container)
-                bottom_label = BodyLabel(tr("下边距"), container)
-                left_label = BodyLabel(tr("左边距"), container)
-                right_label = BodyLabel(tr("右边距"), container)
+                top_label = BodyLabel(tr("Top Margin"), container)
+                bottom_label = BodyLabel(tr("Bottom Margin"), container)
+                left_label = BodyLabel(tr("Left Margin"), container)
+                right_label = BodyLabel(tr("Right Margin"), container)
                 self.spin_top = SpinBox(container)
                 self.spin_bottom = SpinBox(container)
                 self.spin_left = SpinBox(container)

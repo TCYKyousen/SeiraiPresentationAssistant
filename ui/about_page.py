@@ -1,8 +1,8 @@
 import os
 import json
-from PySide6.QtCore import Qt, QCoreApplication, QRect
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
-from PySide6.QtGui import QPixmap, QPainter, QColor, QLinearGradient
+from PyQt6.QtCore import Qt, QCoreApplication, QRect
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QLinearGradient
 from qfluentwidgets import (ScrollArea, LargeTitleLabel, BodyLabel, CaptionLabel, 
                             PrimaryPushSettingCard, SettingCard, FluentIcon as FIF,
                             TransparentPushButton, TitleLabel, isDarkTheme, ImageLabel,
@@ -94,7 +94,7 @@ class AboutPage(ScrollArea):
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         
-        self.view = QWidget(self)
+        self.view = QWidget()
         self.view.setObjectName("view")
         self.setWidget(self.view)
         
@@ -253,18 +253,10 @@ class AboutPage(ScrollArea):
         
         cfg.themeMode.valueChanged.connect(self._update_style)
 
+    def _update_style(self):
+        self.view.setStyleSheet("QWidget#view{background: transparent}")
+
     def _show_libs_dialog(self):
         w = ThirdPartyLibsDialog(self.window())
         w.exec()
 
-    def _update_style(self):
-        is_dark = isDarkTheme()
-        if is_dark:
-            self.view.setStyleSheet("#view { background-color: #202020; }")
-            self.contentWidget.setStyleSheet("background-color: #202020;")
-        else:
-            self.view.setStyleSheet("#view { background-color: #ffffff; }")
-            self.contentWidget.setStyleSheet("background-color: #ffffff;")
-
-        self.setWidget(self.view)
-        self.setWidgetResizable(True)

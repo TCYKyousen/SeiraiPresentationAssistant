@@ -50,7 +50,7 @@ class UpdateManagerWidget(CardWidget):
     
     def __init__(self, current_version, code_name="", build_date="", parent=None):
         super().__init__(parent)
-        self.setFixedHeight(380) # 固定高度使界面更统一
+        # self.setFixedHeight(380) # Removed fixed height to prevent truncation
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setSpacing(0)
@@ -359,8 +359,8 @@ class SettingsWindow(FluentWindow):
 
         self.paddingCard = ScreenPaddingSettingCard(
             FIF.FULL_SCREEN,
-            tr("Screen Padding"),
-            tr("Screen Padding Desc"),
+            tr("Screen Margin"),
+            tr("Screen Margin Desc"),
             parent=personalContent
         )
         

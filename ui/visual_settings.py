@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFrame
-from PySide6.QtCore import Qt, QTimer, QDateTime, QCoreApplication, QRectF
-from PySide6.QtGui import QFont, QRegion, QPainterPath
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFrame
+from PyQt6.QtCore import Qt, QTimer, QDateTime, QCoreApplication, QRectF
+from PyQt6.QtGui import QFont, QRegion, QPainterPath
 from qfluentwidgets import SettingCard, Theme, isDarkTheme, ComboBox, SwitchButton, PushButton, BodyLabel
 
 
@@ -159,7 +159,7 @@ class ClockSettingCard(SettingCard):
         self.configBtn = PushButton(tr("打开时钟详细设置"), self)
         self.configBtn.setFixedWidth(120)
         self.configBtn.clicked.connect(self._show_config_flyout)
-        self.hBoxLayout.addWidget(self.configBtn, 0, Qt.AlignmentFlag.AlignRight)
+        self.hBoxLayout.addWidget(self.configBtn)
         self.hBoxLayout.addSpacing(16)
 
     def _show_config_flyout(self):

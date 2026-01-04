@@ -21,6 +21,8 @@ class PPTState:
     has_ink: bool = False
     presentation_path: str = ""
     hwnd: int = 0
+    is_fullscreen: bool = False
+    rect: tuple = (0, 0, 0, 0)
 
 class PPTClient:
     def __init__(self):
@@ -63,10 +65,34 @@ class PPTClient:
             for i in range(1, count + 1):
                 try:
                     win = self.app.SlideShowWindows(i)
-                    hwnd = int(win.HWND)
+                    hwnd = 0
+                    
+                    # Method 1: Try direct property access (safest for Office)
+                    try:
+                        val = win.HWND
+                        # Check if it's a method/callable first!
+                        if callable(val):
+                            hwnd = int(val())
+                        else:
+                            hwnd = int(val)
+                    except:
+                        pass
+                        
+                    # Method 2: If Method 1 failed or returned 0, try getattr (sometimes for WPS)
+                    if hwnd == 0:
+                        try:
+                            # Use getattr to safely check if it exists
+                            hwnd_attr = getattr(win, "HWND", None)
+                            if callable(hwnd_attr):
+                                hwnd = int(hwnd_attr())
+                            elif hwnd_attr is not None:
+                                hwnd = int(hwnd_attr)
+                        except:
+                            pass
+
                     if hwnd > 0 and win32gui.IsWindow(hwnd) and win32gui.IsWindowVisible(hwnd):
                         return hwnd
-                except:
+                except Exception:
                     continue
         except Exception:
             self.app = None
@@ -261,11 +287,8 @@ def ppt_worker_process(cmd_queue, result_queue):
     worker_log("Worker process started (Core)")
     
     while True:
-        try:
-            task = cmd_queue.get(timeout=0.05)
-        except queue.Empty:
-            continue
-            
+        task = cmd_queue.get()
+        
         if task is None:
             worker_log("Exiting")
             break
@@ -292,11 +315,42 @@ def ppt_worker_process(cmd_queue, result_queue):
                 if view:
                     state_data['is_running'] = True
                     try:
-                        state_data['slide_index'] = view.Slide.SlideIndex
+                        # Check State/Slide first to avoid "No slide is currently in view" error
+                        try:
+                            # Accessing Slide object might fail if transition is happening
+                            current_slide = view.Slide
+                            state_data['slide_index'] = current_slide.SlideIndex
+                        except Exception:
+                            # If we can't get the slide, just ignore this update cycle
+                            state_data['slide_index'] = 0
+                            
                         state_data['slide_count'] = client.get_slide_count()
                         state_data['pointer_type'] = view.PointerType
                         state_data['has_ink'] = client.has_ink()
-                        state_data['hwnd'] = client.get_slideshow_window_hwnd()
+                        
+                        hwnd = client.get_slideshow_window_hwnd()
+                        state_data['hwnd'] = hwnd
+                        
+                        if hwnd:
+                            try:
+                                rect = win32gui.GetWindowRect(hwnd)
+                                state_data['rect'] = rect
+                                
+                                try:
+                                    win = client.app.SlideShowWindows(1)
+                                    state_data['is_fullscreen'] = win.IsFullScreen
+                                except:
+                                    w = rect[2] - rect[0]
+                                    h = rect[3] - rect[1]
+                                    scr_w = win32api.GetSystemMetrics(0)
+                                    scr_h = win32api.GetSystemMetrics(1)
+                                    state_data['is_fullscreen'] = (w >= scr_w and h >= scr_h)
+                            except:
+                                state_data['rect'] = (0, 0, 0, 0)
+                                state_data['is_fullscreen'] = False
+                        else:
+                            state_data['rect'] = (0, 0, 0, 0)
+                            state_data['is_fullscreen'] = False
                         
                         try:
                             if client.app and client.app.ActivePresentation:
@@ -304,7 +358,9 @@ def ppt_worker_process(cmd_queue, result_queue):
                         except:
                             pass
                     except Exception as e:
-                        worker_log(f"Error reading state: {e}")
+                        # Only log unexpected errors, filter out common transient ones
+                        if "No slide is currently in view" not in str(e):
+                            worker_log(f"Error reading state: {e}")
                         state_data['is_running'] = False
                 
                 result_queue.put(('state_update', state_data))

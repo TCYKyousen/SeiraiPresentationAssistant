@@ -198,9 +198,6 @@ class CrashHandler:
             if app is None:
                 app = QApplication(sys.argv[:1])
             
-            from main import install_translator
-            install_translator(app)
-            
             win = CrashWindow(crash, parent=None)
             handler = self
 

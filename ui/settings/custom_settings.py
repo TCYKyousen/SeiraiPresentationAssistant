@@ -532,7 +532,7 @@ class ScreenPaddingSettingCard(SettingCard):
         class PaddingConfigDialog(MessageBoxBase):
             def __init__(self, parent=None):
                 super().__init__(parent)
-                title_label = QLabel("组件屏幕边距", self)
+                title_label = QLabel("组件屏幕边距 (Margin)", self)
                 title_label.setStyleSheet("font-size: 18px; font-weight: bold; font-family: 'Bahnschrift', 'Segoe UI', 'Microsoft YaHei';")
                 self.viewLayout.addWidget(title_label)
                 container = QWidget(self)

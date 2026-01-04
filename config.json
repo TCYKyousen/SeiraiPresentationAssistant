@@ -1,11 +1,6 @@
 {
-    "Clock": {
-        "FontWeight": "Bold",
-        "ShowDate": false,
-        "ShowLunar": false,
-        "ShowSeconds": false
-    },
     "General": {
+        "CheckUpdateOnStart": true,
         "ClockPosition": "TopRight",
         "EnableClock": true,
         "EnableGlobalAnimation": true,
@@ -16,6 +11,12 @@
         "NavPosition": "MiddleSides",
         "TimerPosition": "Center"
     },
+    "Clock": {
+        "FontWeight": "Bold",
+        "ShowDate": true,
+        "ShowLunar": false,
+        "ShowSeconds": true
+    },
     "QFluentWidgets": {
         "FontFamilies": [
             "Segoe UI",
@@ -25,7 +26,7 @@
         "ThemeColor": "#ff009faa"
     },
     "Layout": {
-        "ScreenPadding": "Normal",
+        "ScreenPadding": "Small",
         "ScreenPaddingBottom": 20,
         "ScreenPaddingLeft": 20,
         "ScreenPaddingLock": true,
