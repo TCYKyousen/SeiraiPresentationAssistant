@@ -72,6 +72,120 @@ class Api:
     def get_version(self):
         return self.version
 
+    def _get_settings_path(self):
+        settings_path = os.environ.get("SETTINGS_PATH")
+        if not settings_path:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            settings_path = os.path.join(base_dir, "settings.json")
+        return settings_path
+
+    def get_quick_launch_apps(self):
+        settings_path = self._get_settings_path()
+        data = {}
+        try:
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                    except JSONDecodeError:
+                        data = {}
+            else:
+                data = self.settings or {}
+        except Exception:
+            data = self.settings or {}
+
+        toolbar = data.get("Toolbar") or {}
+        apps = toolbar.get("QuickLaunchApps") or []
+        if not isinstance(apps, list):
+            apps = []
+        self.settings = data
+        return apps
+
+    def add_quick_launch_app(self):
+        if not self._window:
+            return self.get_quick_launch_apps()
+
+        try:
+            result = self._window.create_file_dialog(
+                webview.OPEN_DIALOG,
+                file_types=["Executable Files (*.exe)", "All Files (*.*)"],
+            )
+        except Exception:
+            return self.get_quick_launch_apps()
+
+        if not result:
+            return self.get_quick_launch_apps()
+
+        file_path = result[0]
+        if not file_path:
+            return self.get_quick_launch_apps()
+
+        name = os.path.splitext(os.path.basename(file_path))[0]
+
+        settings_path = self._get_settings_path()
+        data = {}
+        try:
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                    except JSONDecodeError:
+                        data = {}
+            toolbar = data.get("Toolbar") or {}
+            apps = toolbar.get("QuickLaunchApps") or []
+            if not isinstance(apps, list):
+                apps = []
+
+            if any(app.get("path") == file_path for app in apps):
+                self.settings = data
+                return apps
+
+            apps.append(
+                {
+                    "name": name,
+                    "path": file_path,
+                    "icon": "",
+                }
+            )
+
+            toolbar["QuickLaunchApps"] = apps
+            data["Toolbar"] = toolbar
+
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+
+            self.settings = data
+            return apps
+        except Exception:
+            return self.get_quick_launch_apps()
+
+    def remove_quick_launch_app(self, path):
+        settings_path = self._get_settings_path()
+        data = {}
+        try:
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                    except JSONDecodeError:
+                        data = {}
+            toolbar = data.get("Toolbar") or {}
+            apps = toolbar.get("QuickLaunchApps") or []
+            if not isinstance(apps, list):
+                apps = []
+
+            apps = [app for app in apps if app.get("path") != path]
+            toolbar["QuickLaunchApps"] = apps
+            data["Toolbar"] = toolbar
+
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+
+            self.settings = data
+            return apps
+        except Exception:
+            return self.get_quick_launch_apps()
+
     def save_setting(self, category, key, value):
         settings_path = os.environ.get("SETTINGS_PATH")
         if not settings_path:
@@ -140,12 +254,16 @@ class Api:
     def on_confirm(self):
         print("DIALOG_CONFIRMED")
         sys.stdout.flush()
-        self._window.destroy()
+        if self._window:
+            self._window.destroy()
+        sys.exit(0)
 
     def on_cancel(self):
         print("DIALOG_CANCELLED")
         sys.stdout.flush()
-        self._window.destroy()
+        if self._window:
+            self._window.destroy()
+        sys.exit(0)
 
     def get_assets_path(self):
         return os.environ.get("ASSETS_PATH", "")
@@ -227,7 +345,7 @@ def main():
         if not os.path.exists(storage_path):
             try: os.makedirs(storage_path)
             except: pass
-        webview.start(apply_win11_aesthetics, window, gui='edgechromium', storage_path=storage_path)
+        webview.start(apply_win11_aesthetics, (window,), gui='edgechromium', storage_path=storage_path)
         return
 
     if len(sys.argv) < 5:
@@ -308,7 +426,7 @@ def main():
         try: os.makedirs(storage_path)
         except: pass
     
-    webview.start(apply_win11_aesthetics, window, gui='edgechromium', debug=False, storage_path=storage_path)
+    webview.start(apply_win11_aesthetics, (window,), gui='edgechromium', debug=False, storage_path=storage_path)
 
 if __name__ == "__main__":
     main()

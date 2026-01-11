@@ -176,7 +176,7 @@
     .group-title {
       padding: 0 0 16px;
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-primary);
     }
 
@@ -208,7 +208,7 @@
     .item-label {
       font-size: 15px;
       color: var(--text-primary);
-      font-weight: normal;
+      font-weight: 500;
     }
 
     .item-desc {
@@ -260,6 +260,272 @@
 
     .version-expander-links a:hover {
       text-decoration: underline;
+    }
+
+    .toolbar-preview-wrapper {
+      margin-top: 12px;
+    }
+
+    .toolbar-preview-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .toolbar-preview-bar {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      gap: 4px;
+      border-radius: 999px;
+      background: rgba(28, 28, 30, 0.82);
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      min-height: 52px;
+    }
+
+    .toolbar-preview-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      min-width: 38px;
+      height: 38px;
+      border-radius: 19px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toolbar-preview-btn-capsule {
+      min-width: 68px;
+      height: 40px;
+      border-radius: 20px;
+      padding: 0 10px;
+      flex-direction: row;
+      gap: 6px;
+    }
+
+    .toolbar-preview-btn-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .toolbar-preview-btn-capsule .toolbar-preview-btn-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .toolbar-preview-btn-icon::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background-color: #FFFFFF;
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+}
+
+    .toolbar-preview-btn-capsule .toolbar-preview-btn-icon::before {
+      width: 10px;
+      height: 10px;
+    }
+
+    .toolbar-preview-btn-icon.icon-select::before { mask-image: url('../../../icons/Mouse.svg'); -webkit-mask-image: url('../../../icons/Mouse.svg'); }
+    .toolbar-preview-btn-icon.icon-pen::before { mask-image: url('../../../icons/Pen.svg'); -webkit-mask-image: url('../../../icons/Pen.svg'); }
+    .toolbar-preview-btn-icon.icon-eraser::before { mask-image: url('../../../icons/Eraser.svg'); -webkit-mask-image: url('../../../icons/Eraser.svg'); }
+    .toolbar-preview-btn-icon.icon-undo::before { mask-image: url('../../../icons/Previous.svg'); -webkit-mask-image: url('../../../icons/Previous.svg'); }
+    .toolbar-preview-btn-icon.icon-redo::before { mask-image: url('../../../icons/Next.svg'); -webkit-mask-image: url('../../../icons/Next.svg'); }
+    .toolbar-preview-btn-icon.icon-exit { background: #FF453A !important; border-radius: 50% !important; }
+    .toolbar-preview-btn-icon.icon-exit::before { mask-image: url('../../../icons/Clear.svg'); -webkit-mask-image: url('../../../icons/Clear.svg'); background-color: #FFFFFF; }
+
+    .toolbar-preview-btn-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      font-family: var(--font-stack);
+      max-width: 70px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .toolbar-preview-separator {
+      width: 1px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 0 6px;
+      flex-shrink: 0;
+    }
+
+    .toolbar-app-list {
+      max-height: 320px;
+      overflow-y: auto;
+      border-radius: 14px;
+      border: 1px solid var(--divider);
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toolbar-app-row {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .toolbar-app-row:hover {
+      background: var(--item-hover);
+    }
+
+    .toolbar-app-row.selected {
+      background: var(--card-bg);
+      box-shadow: inset 4px 0 0 var(--accent-blue);
+    }
+
+    .toolbar-app-icon-placeholder {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-secondary);
+      font-size: 18px;
+      font-weight: 600;
+      border: 1px solid var(--divider);
+    }
+
+    .toolbar-app-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .toolbar-app-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toolbar-app-path {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.6;
+    }
+
+    .toolbar-btn {
+      padding: 8px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--divider);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+    }
+
+    .btn {
+      min-width: 88px;
+      height: 34px;
+      border-radius: 17px;
+      border: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--divider);
+    }
+
+    .btn-cancel:hover {
+      background: var(--item-hover);
+    }
+
+    .btn-confirm {
+      background: transparent;
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+    }
+
+    .btn-confirm:hover {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .toolbar-btn:hover:not(:disabled) {
+      background: var(--item-hover);
+      transform: translateY(-1px);
+    }
+
+    .toolbar-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .toolbar-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .toolbar-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .toolbar-empty-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .dev-watermark {
+      position: fixed;
+      right: 16px;
+      bottom: 12px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: right;
+      pointer-events: none;
+      line-height: 1.4;
+      white-space: pre-line;
+      z-index: 9999;
     }
 
     .slider-container {
@@ -475,7 +741,7 @@
   </style>
 </head>
 
-<body>
+  <body>
   <div class="layout">
     <div class="sidebar">
       <div class="sidebar-item active" data-section="general">
@@ -493,6 +759,14 @@
         </svg>
         <span data-i18n="nav.interaction">交互</span>
       </div>
+      <div class="sidebar-item" data-section="toolbar">
+        <svg class="sidebar-icon" viewBox="0 0 24 24">
+          <path d="M4 5h16v2H4z" />
+          <path d="M4 11h10v2H4z" />
+          <path d="M4 17h7v2H4z" />
+        </svg>
+        <span data-i18n="nav.toolbar">工具栏</span>
+      </div>
       <div class="sidebar-item" data-section="about">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" />
@@ -508,6 +782,8 @@
         <span data-i18n="nav.debug">调试</span>
       </div>
     </div>
+
+    <div id="dev-watermark" class="dev-watermark" style="display: none;"></div>
 
     <div class="content">
       <div class="page-title" id="section-title" data-i18n="section.general">通用</div>
@@ -584,6 +860,17 @@
             </div>
             <div class="switch" id="sw-Overlay-ShowStatusBar"></div>
           </div>
+        </div>
+      </div>
+
+      <div class="section" id="section-toolbar">
+        <div class="group-title" data-i18n="interaction.toolbar.preview.label">工具栏预览</div>
+        <div class="settings-group" style="padding: 32px; display: flex; justify-content: center; background: var(--bg-app); border: 1px dashed var(--divider); margin-bottom: 24px;">
+          <div id="toolbar-preview" class="toolbar-preview-bar"></div>
+        </div>
+
+        <div class="group-title" data-i18n="group.toolbar">工具栏</div>
+        <div class="settings-group">
           <div class="settings-item" onclick="toggleSwitch('Toolbar', 'ShowUndoRedo')">
             <div class="item-info">
               <span class="item-label" data-i18n="interaction.showUndoRedo.label">显示撤销/重做</span>
@@ -596,6 +883,16 @@
               <span class="item-desc" data-i18n="interaction.showToolbarText.desc">在工具栏图标下方显示功能名称</span>
             </div>
             <div class="switch" id="sw-Toolbar-ShowToolbarText"></div>
+          </div>
+        </div>
+
+        <div class="group-title" data-i18n="interaction.toolbar.customization.label">工具栏固定程序</div>
+        <div class="settings-group" style="background: transparent; border: none; padding: 0;">
+          <div id="toolbar-app-list" class="toolbar-app-list"></div>
+          
+          <div class="toolbar-actions" style="justify-content: flex-end;">
+            <button id="toolbar-remove-btn" class="btn btn-cancel disabled" type="button" onclick="removeSelectedToolbarApp()" data-i18n="interaction.toolbar.removeApp" disabled>删除软件</button>
+            <button id="toolbar-add-btn" class="btn btn-confirm" type="button" onclick="addToolbarApp()" data-i18n="interaction.toolbar.addApp">添加软件</button>
           </div>
         </div>
       </div>
@@ -679,14 +976,17 @@
         "nav.general": "通用",
         "nav.interaction": "交互",
         "nav.about": "关于",
+        "nav.toolbar": "工具栏",
         "nav.debug": "调试",
         "section.general": "通用",
         "section.interaction": "交互",
+        "section.toolbar": "工具栏",
         "section.about": "关于",
         "section.debug": "调试",
         "group.appearance": "外观",
         "group.general": "通用",
         "group.interaction": "交互",
+        "group.toolbar": "工具栏",
         "group.debugOptions": "调试选项",
         "appearance.mode.label": "外观模式",
         "appearance.mode.desc": "调整应用程序的显示主题",
@@ -708,8 +1008,22 @@
         "interaction.showStatusBar.label": "顶部状态栏",
         "interaction.showStatusBar.desc": "在悬浮窗顶部显示时间与状态",
         "interaction.showUndoRedo.label": "显示撤销/重做",
+        "interaction.showUndoRedo.undo": "撤销",
+        "interaction.showUndoRedo.redo": "重做",
         "interaction.showToolbarText.label": "工具栏文字",
         "interaction.showToolbarText.desc": "在工具栏图标下方显示功能名称",
+        "interaction.toolbar.customization.label": "工具栏固定程序",
+        "interaction.toolbar.customization.desc": "预览并管理工具栏上的快速启动软件",
+        "interaction.toolbar.preview.label": "工具栏预览",
+        "interaction.toolbar.addApp": "添加软件",
+        "interaction.toolbar.removeApp": "删除软件",
+        "interaction.toolbar.appList.label": "已经添加的软件",
+        "toolbar.select": "选择",
+        "toolbar.pen": "画笔",
+        "toolbar.eraser": "橡皮擦",
+        "toolbar.undo": "撤销",
+        "toolbar.redo": "重做",
+        "toolbar.end_show": "结束放映",
         "about.version.label": "软件版本",
         "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可",
         "about.version.github": "GitHub 仓库地址",
@@ -724,14 +1038,17 @@
         "nav.general": "一般",
         "nav.interaction": "互動",
         "nav.about": "關於",
+        "nav.toolbar": "工具列",
         "nav.debug": "偵錯",
         "section.general": "一般",
         "section.interaction": "互動",
+        "section.toolbar": "工具列",
         "section.about": "關於",
         "section.debug": "偵錯",
         "group.appearance": "外觀",
         "group.general": "一般",
         "group.interaction": "互動",
+        "group.toolbar": "工具列",
         "group.debugOptions": "偵錯選項",
         "appearance.mode.label": "外觀模式",
         "appearance.mode.desc": "調整應用程式的顯示主題",
@@ -753,6 +1070,18 @@
         "interaction.showStatusBar.label": "頂部狀態列",
         "interaction.showStatusBar.desc": "在懸浮窗頂部顯示時間與狀態",
         "interaction.showUndoRedo.label": "顯示復原/重做",
+        "interaction.toolbar.customization.label": "工具列固定程序",
+        "interaction.toolbar.customization.desc": "管理工具列上的快速啟動軟體",
+        "interaction.toolbar.preview.label": "工具列預覽",
+        "interaction.toolbar.addApp": "新增軟體",
+        "interaction.toolbar.removeApp": "移除軟體",
+        "interaction.toolbar.appList.label": "已新增的軟體",
+        "toolbar.select": "選擇",
+        "toolbar.pen": "畫筆",
+        "toolbar.eraser": "橡皮擦",
+        "toolbar.undo": "復原",
+        "toolbar.redo": "重做",
+        "toolbar.end_show": "結束放映",
         "about.version.label": "軟體版本",
         "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本程式依據 GNU General Public License 3 授權",
         "about.version.github": "GitHub 儲存庫",
@@ -767,14 +1096,17 @@
         "nav.general": "一般",
         "nav.interaction": "インタラクション",
         "nav.about": "情報",
+        "nav.toolbar": "ツールバー",
         "nav.debug": "デバッグ",
         "section.general": "一般",
         "section.interaction": "インタラクション",
+        "section.toolbar": "ツールバー",
         "section.about": "情報",
         "section.debug": "デバッグ",
         "group.appearance": "外観",
         "group.general": "一般",
         "group.interaction": "インタラクション",
+        "group.toolbar": "ツールバー",
         "group.debugOptions": "デバッグオプション",
         "appearance.mode.label": "テーマモード",
         "appearance.mode.desc": "アプリの表示テーマを切り替えます",
@@ -796,6 +1128,18 @@
         "interaction.showStatusBar.label": "上部ステータスバー",
         "interaction.showStatusBar.desc": "オーバーレイ上部に時間と状態を表示します",
         "interaction.showUndoRedo.label": "元に戻す/やり直しを表示",
+        "interaction.toolbar.customization.label": "ツールバー固定プログラム",
+        "interaction.toolbar.customization.desc": "ツールバーのクイック起動アプリを管理します",
+        "interaction.toolbar.preview.label": "ツールバープレビュー",
+        "interaction.toolbar.addApp": "アプリを追加",
+        "interaction.toolbar.removeApp": "アプリを削除",
+        "interaction.toolbar.appList.label": "追加済みアプリ",
+        "toolbar.select": "選択",
+        "toolbar.pen": "ペン",
+        "toolbar.eraser": "消しゴム",
+        "toolbar.undo": "元に戻す",
+        "toolbar.redo": "やり直し",
+        "toolbar.end_show": "スライドショー終了",
         "about.version.label": "ソフトウェアバージョン",
         "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本プログラムは GNU General Public License 3 に基づきライセンスされています",
         "about.version.github": "GitHub リポジトリ",
@@ -810,14 +1154,17 @@
         "nav.general": "General",
         "nav.interaction": "Interaction",
         "nav.about": "About",
+        "nav.toolbar": "Toolbar",
         "nav.debug": "Debug",
         "section.general": "General",
         "section.interaction": "Interaction",
+        "section.toolbar": "Toolbar",
         "section.about": "About",
         "section.debug": "Debug",
         "group.appearance": "Appearance",
         "group.general": "General",
         "group.interaction": "Interaction",
+        "group.toolbar": "Toolbar",
         "group.debugOptions": "Debug options",
         "appearance.mode.label": "Theme mode",
         "appearance.mode.desc": "Adjust the display theme of the application",
@@ -837,7 +1184,19 @@
         "interaction.autoHandleInk.desc": "Automatically handle \"keep ink\" prompt when slideshow ends",
         "interaction.showStatusBar.label": "Top status bar",
         "interaction.showStatusBar.desc": "Show time and status at top of overlay",
-        "interaction.showUndoRedo.label": "Show undo/redo",
+        "interaction.showUndoRedo.label": "Show Undo/Redo",
+        "interaction.toolbar.customization.label": "Toolbar fixed program",
+        "interaction.toolbar.customization.desc": "Manage quick launch applications on the toolbar",
+        "interaction.toolbar.preview.label": "Toolbar preview",
+        "interaction.toolbar.addApp": "Add application",
+        "interaction.toolbar.removeApp": "Remove application",
+        "interaction.toolbar.appList.label": "Added applications",
+        "toolbar.select": "Select",
+        "toolbar.pen": "Pen",
+        "toolbar.eraser": "Eraser",
+        "toolbar.undo": "Undo",
+        "toolbar.redo": "Redo",
+        "toolbar.end_show": "End slideshow",
         "about.version.label": "Software version",
         "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ Licensed under the GNU General Public License 3",
         "about.version.github": "GitHub repository",
@@ -850,6 +1209,9 @@
         "general.language.warning": "The currently selected language is not Simplified Chinese. For the best experience, it is recommended to use Simplified Chinese. Other languages may have incomplete translations or layout issues."
       }
     };
+
+    let toolbarApps = [];
+    let selectedToolbarAppPaths = [];
 
     let currentLanguage = "zh-CN";
 
@@ -926,7 +1288,10 @@
           if (title) {
             const textKey = "section." + key;
             const text = getText(textKey);
-            if (text) title.textContent = text;
+            if (text) {
+              title.textContent = text;
+              title.setAttribute("data-i18n", textKey);
+            }
             title.style.display = key === "about" ? "none" : "block";
           }
         });
@@ -945,7 +1310,7 @@
       General: { RunAtStartup: false, AutoShowOverlay: true, Language: "zh-CN" },
       PPT: { AutoHandleInk: true },
       Overlay: { ShowStatusBar: true },
-      Toolbar: { ShowUndoRedo: false },
+      Toolbar: { ShowUndoRedo: false, ShowToolbarText: true },
       Appearance: { ThemeMode: "Light" }
     };
 
@@ -981,6 +1346,7 @@
       setSwitch("PPT", "AutoHandleInk");
       setSwitch("Overlay", "ShowStatusBar");
       setSwitch("Toolbar", "ShowUndoRedo");
+      setSwitch("Toolbar", "ShowToolbarText");
 
       const lang = settings.General && settings.General.Language;
       if (lang) currentLanguage = lang;
@@ -1001,6 +1367,8 @@
       const accent = isDark ? "#E1EBFF" : "#3275F5";
       document.documentElement.style.setProperty("--accent-blue", accent);
 
+      renderToolbarPreview();
+
       if (window.pywebview && window.pywebview.api && window.pywebview.api.get_version) {
         window.pywebview.api.get_version().then(v => {
           if (!v) return;
@@ -1011,10 +1379,22 @@
           if (el) {
             el.textContent = `Version ${version} (${codeName}) Build ${build}`;
           }
+
+          const wm = document.getElementById("dev-watermark");
+          if (wm && version) {
+            const parts = String(version).trim().split(".");
+            if (parts.length >= 2 && parts[parts.length - 1] === "1") {
+              wm.textContent = `开发中版本/技术预览版本\n不保证最终品质 （${version}）`;
+              wm.style.display = "block";
+            } else {
+              wm.style.display = "none";
+            }
+          }
         }).catch(err => console.error("Failed to get version:", err));
       }
 
       applyI18n();
+      loadToolbarApps();
     }
 
     function setTheme(mode) {
@@ -1061,6 +1441,245 @@
       if (window.pywebview && window.pywebview.api.save_setting) {
         window.pywebview.api.save_setting(cat, key, newState);
       }
+
+      if (cat === "Toolbar") {
+        renderToolbarPreview();
+      }
+    }
+
+    function syncToolbarAppsToSettings() {
+      if (!settings.Toolbar) settings.Toolbar = {};
+      settings.Toolbar.QuickLaunchApps = toolbarApps;
+    }
+
+    function loadToolbarApps() {
+      const fallback = () => {
+        const apps = (settings.Toolbar && settings.Toolbar.QuickLaunchApps) || [];
+        toolbarApps = Array.isArray(apps) ? apps : [];
+        renderToolbarPreview();
+        renderToolbarAppList();
+      };
+
+      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_quick_launch_apps) {
+        fallback();
+        return;
+      }
+
+      window.pywebview.api.get_quick_launch_apps().then(res => {
+        toolbarApps = Array.isArray(res) ? res : [];
+        syncToolbarAppsToSettings();
+        renderToolbarPreview();
+        renderToolbarAppList();
+      }).catch(err => {
+        console.error("Failed to get quick launch apps:", err);
+        fallback();
+      });
+    }
+
+    function renderToolbarPreview() {
+      const preview = document.getElementById("toolbar-preview");
+      if (!preview) return;
+      preview.innerHTML = "";
+
+      const showText = !!(settings.Toolbar && settings.Toolbar.ShowToolbarText);
+      
+      const createBtn = (labelKey, fallback, iconName, isExit = false) => {
+        const btn = document.createElement("div");
+        btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
+
+        const icon = document.createElement("div");
+        icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
+        
+        btn.appendChild(icon);
+
+        if (showText) {
+          const label = document.createElement("div");
+          label.className = "toolbar-preview-btn-label";
+          label.textContent = getText(labelKey) || fallback;
+          btn.appendChild(label);
+        }
+        return btn;
+      };
+
+      const createSeparator = () => {
+        const sep = document.createElement("div");
+        sep.className = "toolbar-preview-separator";
+        return sep;
+      };
+
+      preview.appendChild(createBtn("toolbar.select", "选择", "select"));
+      preview.appendChild(createBtn("toolbar.pen", "画笔", "pen"));
+      preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser"));
+
+      const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
+      if (showUndoRedo) {
+        preview.appendChild(createSeparator());
+        preview.appendChild(createBtn("toolbar.undo", "撤销", "undo"));
+        preview.appendChild(createBtn("toolbar.redo", "重做", "redo"));
+      }
+
+      if (toolbarApps && toolbarApps.length > 0) {
+        preview.appendChild(createSeparator());
+        toolbarApps.forEach(app => {
+          const btn = document.createElement("div");
+          btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
+          const icon = document.createElement("div");
+          icon.className = "toolbar-preview-btn-icon";
+          
+          const firstChar = (app.name || "?").charAt(0).toUpperCase();
+          icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
+          
+          btn.appendChild(icon);
+          if (showText) {
+            const label = document.createElement("div");
+            label.className = "toolbar-preview-btn-label";
+            label.textContent = app.name || "App";
+            btn.appendChild(label);
+          }
+          preview.appendChild(btn);
+        });
+      }
+
+      preview.appendChild(createSeparator());
+      preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", true));
+    }
+
+    function renderToolbarAppList() {
+      const list = document.getElementById("toolbar-app-list");
+      if (!list) return;
+      list.innerHTML = "";
+
+      if (!toolbarApps || toolbarApps.length === 0) {
+        list.innerHTML = `
+          <div style="padding: 48px 32px; text-align: center; color: var(--text-secondary); background: var(--bg-surface); border-radius: 14px; border: 1px solid var(--divider);">
+            <div style="font-size: 40px; margin-bottom: 16px; opacity: 0.3;">📦</div>
+            <div style="font-weight: 500;" data-i18n="toolbar.appList.empty">暂未添加任何软件</div>
+            <div style="font-size: 12px; margin-top: 8px; opacity: 0.6;">点击下方按钮添加常用工具</div>
+          </div>
+        `;
+        selectedToolbarAppPaths = [];
+        updateToolbarRemoveButtonState();
+        return;
+      }
+
+      toolbarApps.forEach(app => {
+        const row = document.createElement("div");
+        const isSelected = selectedToolbarAppPaths.includes(app.path);
+        row.className = "toolbar-app-row" + (isSelected ? " selected" : "");
+        row.dataset.path = app.path || "";
+        
+        row.addEventListener("click", (e) => {
+          if (e.detail === 1) {
+            toggleSelectedToolbarApp(app.path || "");
+          } else if (e.detail === 2) {
+            deselectToolbarApp(app.path || "");
+          }
+        });
+        
+        const firstChar = (app.name || "?").charAt(0).toUpperCase();
+        
+        row.innerHTML = `
+          <div class="toolbar-app-icon-placeholder">${firstChar}</div>
+          <div class="toolbar-app-info">
+            <div class="toolbar-app-name">${app.name || "Unknown App"}</div>
+            <div class="toolbar-app-path">${app.path || "No Path"}</div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      updateToolbarRemoveButtonState();
+    }
+
+    function toggleSelectedToolbarApp(path) {
+      if (!path) return;
+      const index = selectedToolbarAppPaths.indexOf(path);
+      if (index > -1) {
+        selectedToolbarAppPaths.splice(index, 1);
+      } else {
+        selectedToolbarAppPaths.push(path);
+      }
+      refreshSelectionUI();
+    }
+
+    function deselectToolbarApp(path) {
+      if (!path) return;
+      const index = selectedToolbarAppPaths.indexOf(path);
+      if (index > -1) {
+        selectedToolbarAppPaths.splice(index, 1);
+      }
+      refreshSelectionUI();
+    }
+
+    function refreshSelectionUI() {
+      const list = document.getElementById("toolbar-app-list");
+      if (!list) return;
+      const rows = list.querySelectorAll(".toolbar-app-row");
+      rows.forEach(row => {
+        const path = row.dataset.path;
+        row.classList.toggle("selected", selectedToolbarAppPaths.includes(path));
+      });
+      updateToolbarRemoveButtonState();
+    }
+
+    function updateToolbarRemoveButtonState() {
+      const btn = document.getElementById("toolbar-remove-btn");
+      if (!btn) return;
+      const enabled = selectedToolbarAppPaths.length > 0;
+      btn.disabled = !enabled;
+      if (enabled) btn.classList.remove("disabled");
+      else btn.classList.add("disabled");
+    }
+
+    function addToolbarApp() {
+      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.add_quick_launch_app) {
+        return;
+      }
+      window.pywebview.api.add_quick_launch_app().then(res => {
+        if (Array.isArray(res)) {
+          toolbarApps = res;
+          syncToolbarAppsToSettings();
+          if (toolbarApps.length > 0) {
+            const last = toolbarApps[toolbarApps.length - 1];
+            if (last && last.path && !selectedToolbarAppPaths.includes(last.path)) {
+              selectedToolbarAppPaths.push(last.path);
+            }
+          }
+          renderToolbarPreview();
+          renderToolbarAppList();
+        } else {
+          loadToolbarApps();
+        }
+      }).catch(err => {
+        console.error("Failed to add quick launch app:", err);
+      });
+    }
+
+    function removeSelectedToolbarApp() {
+      if (selectedToolbarAppPaths.length === 0) return;
+      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.remove_quick_launch_app) {
+        return;
+      }
+      
+      const removeOneByOne = async () => {
+        const pathsToRemove = [...selectedToolbarAppPaths];
+        for (const path of pathsToRemove) {
+          try {
+            const res = await window.pywebview.api.remove_quick_launch_app(path);
+            if (Array.isArray(res)) {
+              toolbarApps = res;
+              syncToolbarAppsToSettings();
+            }
+          } catch (err) {
+            console.error(`Failed to remove app at ${path}:`, err);
+          }
+        }
+        selectedToolbarAppPaths = [];
+        renderToolbarPreview();
+        renderToolbarAppList();
+      };
+
+      removeOneByOne();
     }
 
     function triggerTestCrash() {

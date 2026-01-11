@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QApplication, QLabel, QPushButton, QSwipeGesture, QGestureEvent, QGridLayout, QStyleOption, QStyle
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QApplication, QLabel, QPushButton, QSwipeGesture, QGestureEvent, QGridLayout, QStyleOption, QStyle, QGraphicsDropShadowEffect
 from PySide6.QtCore import Qt, Signal, QSize, QPoint, QEvent, QTimer, QTime
-from PySide6.QtGui import QColor, QIcon, QPainter, QBrush, QPen, QPixmap, QGuiApplication
+from PySide6.QtGui import QColor, QIcon, QPainter, QBrush, QPen, QPixmap, QGuiApplication, QFont
 from PySide6.QtSvg import QSvgRenderer
 import os
 import importlib.util
@@ -87,6 +87,28 @@ _TRANSLATIONS = {
         "toolbar.standard_colors": "Standard Colors",
     },
 }
+
+
+def _get_app_version():
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        version_path = os.path.join(root_dir, "version.json")
+        if not os.path.exists(version_path):
+            return ""
+        with open(version_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return str(data.get("version", "")).strip()
+    except Exception:
+        return ""
+
+
+def _is_dev_preview_version(version: str) -> bool:
+    if not version:
+        return False
+    parts = str(version).strip().split(".")
+    if len(parts) < 2:
+        return False
+    return parts[-1] == "1"
 
 
 def _t(key: str) -> str:
@@ -394,16 +416,18 @@ class PenColorPopup(QFrame):
 class CustomToolButton(QFrame):
     clicked = Signal()
 
-    def __init__(self, icon_name, tooltip, parent=None, is_exit=False, tool_name=None, text=""):
+    def __init__(self, icon_name, tooltip, parent=None, is_exit=False, tool_name=None, text="", pixmap=None):
         super().__init__(parent)
         self.is_exit = is_exit
         self.tool_name = tool_name
         self.icon_name = icon_name
         self.text = text
+        self.pixmap = pixmap
         self.is_active = False
         
         self.setCursor(Qt.PointingHandCursor)
         self.setToolTip(tooltip)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
         
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(4, 4, 4, 4)
@@ -432,6 +456,12 @@ class CustomToolButton(QFrame):
         self.update_style(False)
         self.set_icon_color(False)
 
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setOffset(0, 4)
+        self.setGraphicsEffect(shadow)
+
     def update_size(self):
         show_text = cfg.showToolbarText.value and bool(self.text)
         if show_text:
@@ -448,6 +478,13 @@ class CustomToolButton(QFrame):
         self.set_icon_color(False)
 
     def set_icon_color(self, is_light):
+        s = self.icon_size
+        if self.pixmap:
+            scaled_pixmap = self.pixmap.scaled(s, s, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.icon_label.setPixmap(scaled_pixmap)
+            self.icon_label.setFixedSize(s, s)
+            return
+
         icon_path = os.path.join(ICON_DIR, self.icon_name)
         if not os.path.exists(icon_path):
             return
@@ -702,7 +739,6 @@ class OverlayWindow(QWidget):
         self.setAttribute(Qt.WA_NoSystemBackground, True)
         self.setAttribute(Qt.WA_PaintOnScreen, False)
         
-        # Set taskbar icon
         icon_path = os.path.join(ICON_DIR, "overlayicon.png")
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
@@ -712,6 +748,20 @@ class OverlayWindow(QWidget):
         self.plugins = []
         self.monitor = None
         self.slide_preview = None
+        self._dev_watermark = None
+        version = _get_app_version()
+        if _is_dev_preview_version(version):
+            label = QLabel(self)
+            label.setText(f"开发中版本/技术预览版本\n不保证最终品质 （{version}）")
+            font = QFont()
+            font.setPixelSize(11)
+            label.setFont(font)
+            label.setAlignment(Qt.AlignRight | Qt.AlignBottom)
+            label.setStyleSheet(
+                "color: rgba(255, 255, 255, 120);"
+            )
+            label.resize(340, 36)
+            self._dev_watermark = label
         self.load_plugins()
         self.init_ui()
         self.update_layout()
@@ -878,6 +928,10 @@ class OverlayWindow(QWidget):
             except Exception as e:
                 print(f"Error terminating plugin {plugin.get_name()}: {e}")
 
+    def update_toolbar(self):
+        if hasattr(self, 'toolbar') and self.toolbar:
+            self.toolbar.refresh_dynamic_tools()
+
     def update_layout(self):
         # Prevent crash during initialization
         if not hasattr(self, "toolbar") or self.toolbar is None:
@@ -913,6 +967,12 @@ class OverlayWindow(QWidget):
             self.status_bar.setFixedWidth(w)
             self.status_bar.move(0, 0)
 
+        if self._dev_watermark:
+            self._dev_watermark.adjustSize()
+            wm_w = self._dev_watermark.width()
+            wm_h = self._dev_watermark.height()
+            self._dev_watermark.move(w - wm_w - 16, h - wm_h - 12)
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.update_layout()
@@ -942,10 +1002,17 @@ class ToolbarWidget(QFrame):
         self.current_tool = "select"
         self.pen_popup = None
         self._is_light = False
-        
+        self._dynamic_widgets = []
+
         self.indicator = QFrame(self)
         self.indicator.setObjectName("Indicator")
         self.indicator.hide()
+        
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setOffset(0, 4)
+        self.setGraphicsEffect(shadow)
         
         self.init_ui()
         self.update_layout_style()
@@ -1060,6 +1127,7 @@ class ToolbarWidget(QFrame):
         self.layout.setSizeConstraint(QHBoxLayout.SetFixedSize)
         self.layout.setAlignment(Qt.AlignCenter)
 
+        # Base Tools
         self.btn_select = CustomToolButton("Mouse.svg", _t("toolbar.select"), self, tool_name="select", text=_t("toolbar.select"))
         self.btn_select.clicked.connect(lambda: self._on_tool_changed("select", self.select_clicked))
         self.layout.addWidget(self.btn_select)
@@ -1067,14 +1135,6 @@ class ToolbarWidget(QFrame):
         self.btn_pen = CustomToolButton("Pen.svg", _t("toolbar.pen"), self, tool_name="pen", text=_t("toolbar.pen"))
         self.btn_pen.clicked.connect(self._on_pen_button_clicked)
         self.layout.addWidget(self.btn_pen)
-
-        self._pen_colors = [
-            (255, 255, 255),
-            (255, 0, 0),
-            (0, 255, 0),
-            (0, 0, 255),
-            (255, 255, 0),
-        ]
 
         self.btn_eraser = CustomToolButton("Eraser.svg", _t("toolbar.eraser"), self, tool_name="eraser", text=_t("toolbar.eraser"))
         self.btn_eraser.clicked.connect(lambda: self._on_tool_changed("eraser", self.eraser_clicked))
@@ -1098,24 +1158,14 @@ class ToolbarWidget(QFrame):
         self.line1.setVisible(cfg.showUndoRedo.value)
         cfg.showUndoRedo.valueChanged.connect(self._on_undo_redo_visibility_changed)
 
-        # Plugins or other buttons
-        toolbar_plugins = []
-        for plugin in self.plugins:
-            plugin_type = "toolbar"
-            if hasattr(plugin, "get_type"):
-                plugin_type = plugin.get_type()
-            if plugin_type == "toolbar":
-                toolbar_plugins.append(plugin)
+        # Plugins and Dynamic Content
+        self.dynamic_container = QWidget(self)
+        self.dynamic_layout = QHBoxLayout(self.dynamic_container)
+        self.dynamic_layout.setContentsMargins(0, 0, 0, 0)
+        self.dynamic_layout.setSpacing(4)
+        self.layout.addWidget(self.dynamic_container)
         
-        if toolbar_plugins:
-            self.line2 = QFrame()
-            self.line2.setFrameShape(QFrame.VLine)
-            self.line2.setFixedHeight(24)
-            self.layout.addWidget(self.line2)
-            for plugin in toolbar_plugins:
-                btn = CustomToolButton(plugin.get_icon() or "More.svg", plugin.get_name(), self, text=plugin.get_name())
-                btn.clicked.connect(plugin.execute)
-                self.layout.addWidget(btn)
+        self.refresh_dynamic_tools()
 
         self.line3 = QFrame()
         self.line3.setFrameShape(QFrame.VLine)
@@ -1126,8 +1176,62 @@ class ToolbarWidget(QFrame):
         self.btn_end.clicked.connect(self.end_clicked.emit)
         self.layout.addWidget(self.btn_end)
         
-        # Ensure indicator is at the correct position initially
         QTimer.singleShot(0, self._update_indicator_now)
+
+    def refresh_dynamic_tools(self):
+        while self.dynamic_layout.count():
+            item = self.dynamic_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        toolbar_plugins = []
+        app_launcher = None
+        for plugin in self.plugins:
+            plugin_type = "toolbar"
+            if hasattr(plugin, "get_type"):
+                plugin_type = plugin.get_type()
+
+            name = ""
+            if hasattr(plugin, "get_name"):
+                name = plugin.get_name()
+
+            if isinstance(name, str) and ("应用启动器" in name or "App Launcher" in name):
+                app_launcher = plugin
+                continue
+
+            if isinstance(plugin_type, str) and plugin_type.startswith("toolbar"):
+                toolbar_plugins.append(plugin)
+
+        if toolbar_plugins:
+            line = QFrame()
+            line.setFrameShape(QFrame.VLine)
+            line.setFixedHeight(24)
+            self.dynamic_layout.addWidget(line)
+            for plugin in toolbar_plugins:
+                btn = CustomToolButton(plugin.get_icon() or "More.svg", plugin.get_name(), self, text=plugin.get_name())
+                btn.clicked.connect(plugin.execute)
+                self.dynamic_layout.addWidget(btn)
+
+        # 2. Add Quick Launch Apps
+        apps = cfg.quickLaunchApps.value
+        if apps:
+            line = QFrame()
+            line.setFrameShape(QFrame.VLine)
+            line.setFixedHeight(24)
+            self.dynamic_layout.addWidget(line)
+            for app in apps:
+                app_path = app['path']
+                pixmap = None
+                if app_launcher:
+                    pixmap = app_launcher.get_app_icon(app_path)
+                
+                btn = CustomToolButton("More.svg", app['name'], self, text=app['name'], pixmap=pixmap)
+                btn.clicked.connect(lambda checked=False, p=app_path: app_launcher.execute_app(p) if app_launcher else None)
+                self.dynamic_layout.addWidget(btn)
+
+        self.adjustSize()
+        if hasattr(self.parent(), 'update_layout'):
+            self.parent().update_layout()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -1267,3 +1371,9 @@ class PageFlipWidget(QFrame):
                 color: {hint_fg};
             }}
         """)
+
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(15)
+        shadow.setColor(QColor(0, 0, 0, 60))
+        shadow.setOffset(0, 2)
+        self.setGraphicsEffect(shadow)

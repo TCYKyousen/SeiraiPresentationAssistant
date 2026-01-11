@@ -12,6 +12,7 @@ from PySide6.QtGui import QFontDatabase, QFont, QColor, QIcon
 from ppt_assistant.core.ppt_monitor import PPTMonitor
 from ppt_assistant.ui.overlay import OverlayWindow
 from plugins.builtins.settings.plugin import SettingsPlugin
+from plugins.builtins.timer.plugin import TimerPlugin
 from ppt_assistant.ui.tray import SystemTray
 from ppt_assistant.core.config import cfg, SETTINGS_PATH, reload_cfg, _apply_theme_and_color
 
@@ -81,6 +82,15 @@ def _load_version_info():
     return version, code_name, code_name_cn
 
 
+def _is_dev_preview_version(version: str) -> bool:
+    if not version:
+        return False
+    parts = str(version).strip().split(".")
+    if len(parts) < 2:
+        return False
+    return parts[-1] == "1"
+
+
 class StartupSplash(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -100,6 +110,20 @@ class StartupSplash(QWidget):
         self._progress_timer = QTimer(self)
         self._progress_timer.timeout.connect(self._advance_progress)
         self._progress_timer.start(30)
+
+        if _is_dev_preview_version(self._version_text):
+            self._dev_watermark = QLabel(self)
+            self._dev_watermark.setText(f"开发中版本/技术预览版本\n不保证最终品质 （{self._version_text}）")
+            font = QFont()
+            font.setPixelSize(11)
+            self._dev_watermark.setFont(font)
+            self._dev_watermark.setAlignment(Qt.AlignRight | Qt.AlignBottom)
+            self._dev_watermark.setStyleSheet(
+                "color: rgba(255, 255, 255, 100);"
+            )
+            self._dev_watermark.resize(320, 36)
+            self._dev_watermark.move(self.width() - self._dev_watermark.width() - 16,
+                                     self.height() - self._dev_watermark.height() - 12)
 
     def _build_ui(self):
         # Using absolute positioning based on QML study
@@ -412,6 +436,7 @@ class PPTAssistantApp:
         self.monitor = PPTMonitor()
         self.overlay = OverlayWindow()
         self.settings_plugin = SettingsPlugin()
+        self.timer_plugin = TimerPlugin()
         self.tray = SystemTray()
         self.overlay.set_monitor(self.monitor)
 
@@ -436,6 +461,7 @@ class PPTAssistantApp:
         self.overlay.request_pen_color.connect(self.monitor.set_pen_color)
 
         self.tray.show_settings.connect(self.settings_plugin.execute)
+        self.tray.show_timer.connect(self.timer_plugin.execute)
         self.tray.restart_app.connect(self.restart)
         self.tray.exit_app.connect(self.app.quit)
 

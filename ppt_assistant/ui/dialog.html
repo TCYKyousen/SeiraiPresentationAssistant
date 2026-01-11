@@ -187,6 +187,19 @@
       filter: brightness(0.9);
     }
 
+    .dev-watermark {
+      position: fixed;
+      right: 16px;
+      bottom: 12px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: right;
+      pointer-events: none;
+      line-height: 1.4;
+      white-space: pre-line;
+      z-index: 9999;
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
@@ -218,6 +231,8 @@
       </div>
     </div>
   </div>
+
+  <div id="dev-watermark" class="dev-watermark" style="display: none;"></div>
 
   <script>
     const titleEl = document.getElementById('title');
@@ -378,12 +393,43 @@
     function onConfirm() {
       if (window.pywebview && window.pywebview.api) {
         window.pywebview.api.on_confirm();
+      } else {
+        window.close();
       }
     }
 
     function onCancel() {
+      if (errorEl.style.display !== 'none') {
+        const text = errorEl.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = btnCancel.innerText;
+          btnCancel.innerText = "已复制！";
+          btnCancel.style.color = "#4CAF50";
+          setTimeout(() => {
+            btnCancel.innerText = originalText;
+            btnCancel.style.color = "";
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy: ', err);
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            btnCancel.innerText = "已复制！";
+          } catch (e) {
+            btnCancel.innerText = "复制失败";
+          }
+          document.body.removeChild(textArea);
+        });
+        return;
+      }
+
       if (window.pywebview && window.pywebview.api) {
         window.pywebview.api.on_cancel();
+      } else {
+        window.close();
       }
     }
 
@@ -403,6 +449,23 @@
     window.addEventListener('pywebviewready', () => {
       if (window.pywebview && window.pywebview.api && window.pywebview.api.get_dialog_data) {
         window.pywebview.api.get_dialog_data().then(init);
+      }
+
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.get_version) {
+        window.pywebview.api.get_version().then(v => {
+          if (!v) return;
+          const version = v.version || "";
+          const wm = document.getElementById("dev-watermark");
+          if (wm && version) {
+            const parts = String(version).trim().split(".");
+            if (parts.length >= 2 && parts[parts.length - 1] === "1") {
+              wm.textContent = `开发中版本/技术预览版本\n不保证最终品质 （${version}）`;
+              wm.style.display = "block";
+            } else {
+              wm.style.display = "none";
+            }
+          }
+        }).catch(err => console.error("Failed to get version:", err));
       }
     });
   </script>

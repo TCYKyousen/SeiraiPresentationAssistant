@@ -36,6 +36,9 @@ class Config(QConfig):
 
     autoHandleInk = ConfigItem("PPT", "AutoHandleInk", True, BoolValidator())
 
+    # App Launcher Shortcuts: list of dicts [{"name": str, "path": str, "icon": str}]
+    quickLaunchApps = ConfigItem("Toolbar", "QuickLaunchApps", [], restart=False)
+
 
 cfg = Config()
 _root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

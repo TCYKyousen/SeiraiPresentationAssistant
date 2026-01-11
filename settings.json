@@ -20,7 +20,24 @@
     },
     "Toolbar": {
         "ShowUndoRedo": false,
-        "ShowToolbarText": false
+        "ShowToolbarText": true,
+        "QuickLaunchApps": [
+            {
+                "name": "SecRandom",
+                "path": "H:\\SecRandom-windows-v2.1.0-x64-dir\\SecRandom.exe",
+                "icon": ""
+            },
+            {
+                "name": "immersive-clock-3.12.0-x64-Portable",
+                "path": "H:\\immersive-clock-3.12.0-x64-Portable.exe",
+                "icon": ""
+            },
+            {
+                "name": "皇后大道東",
+                "path": "H:\\Musics\\皇后大道東.mp3",
+                "icon": ""
+            }
+        ]
     },
     "Appearance": {
         "ThemeMode": "Auto"
