@@ -1,6 +1,7 @@
 {
     "QFluentWidgets": {
         "FontFamilies": [
+            "MiSans Latin",
             "Segoe UI",
             "Microsoft YaHei",
             "PingFang SC"

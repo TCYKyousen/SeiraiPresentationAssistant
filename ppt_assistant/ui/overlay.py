@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QApplication, QLabel, QPushButton, QSwipeGesture, QGestureEvent, QGridLayout, QStyleOption, QStyle, QGraphicsDropShadowEffect
 from PySide6.QtCore import Qt, Signal, QSize, QPoint, QEvent, QTimer, QTime
-from PySide6.QtGui import QColor, QIcon, QPainter, QBrush, QPen, QPixmap, QGuiApplication, QFont
+from PySide6.QtGui import QColor, QIcon, QPainter, QBrush, QPen, QPixmap, QGuiApplication, QFont, QPalette, QLinearGradient
 from PySide6.QtSvg import QSvgRenderer
 import os
 import importlib.util
@@ -278,8 +278,8 @@ class StatusBarWidget(QFrame):
             border = "rgba(0, 0, 0, 0.1)"
         else:
             fg = "#FFFFFF"
-            bg = "rgba(28, 28, 30, 0.78)"
-            border = "rgba(255, 255, 255, 0.12)"
+            bg = "rgba(28, 28, 30, 0.82)"
+            border = "rgba(255, 255, 255, 0.15)"
             
         self.setStyleSheet(
             f"""
@@ -289,7 +289,7 @@ class StatusBarWidget(QFrame):
             }}
             QLabel {{
                 color: {fg};
-                font-family: 'MiSans', 'SF Pro Text', 'HarmonyOS Sans SC', 'Microsoft YaHei';
+                font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 font-size: 12px;
             }}
             IconWidget {{
@@ -309,6 +309,110 @@ class ClickableLabel(QLabel):
                 pos = event.globalPos()
             self.clicked.emit(pos)
         super().mousePressEvent(event)
+
+class MarqueeLabel(QLabel):
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        self._offset = 0
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._update_offset)
+        self._timer.setInterval(30)
+        self._spacing = 40
+        self._should_scroll = False
+        self._text_width = 0
+        self._is_paused = False
+        self._pause_timer = QTimer(self)
+        self._pause_timer.setSingleShot(True)
+        self._pause_timer.timeout.connect(self._resume_scroll)
+
+    def setText(self, text):
+        super().setText(text)
+        self._update_scroll_state()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_scroll_state()
+
+    def _update_scroll_state(self):
+        font_metrics = self.fontMetrics()
+        self._text_width = font_metrics.horizontalAdvance(self.text())
+        if self._text_width > self.width() and self.width() > 0:
+            self._should_scroll = True
+            self._offset = 0
+            self._is_paused = False
+            if not self._timer.isActive():
+                self._timer.start()
+        else:
+            self._should_scroll = False
+            self._timer.stop()
+            self._offset = 0
+            self.update()
+
+    def _update_offset(self):
+        if not self._should_scroll or self._is_paused:
+            return
+        
+        self._offset += 1
+        if self._offset >= self._text_width + self._spacing:
+            self._offset = 0
+            self._is_paused = True
+            self._pause_timer.start(2000) # Pause for 2 seconds
+        
+        self.update()
+
+    def _resume_scroll(self):
+        self._is_paused = False
+
+    def paintEvent(self, event):
+        if not self._should_scroll:
+            super().paintEvent(event)
+            return
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.TextAntialiasing)
+        
+        rect = self.rect()
+        dpr = self.devicePixelRatioF()
+        
+        # Create a linear gradient mask for the fade effect
+        gradient = QLinearGradient(0, 0, rect.width(), 0)
+        gradient.setColorAt(0, Qt.transparent)
+        gradient.setColorAt(0.15, Qt.black)
+        gradient.setColorAt(0.85, Qt.black)
+        gradient.setColorAt(1, Qt.transparent)
+        
+        # Draw everything into a temporary pixmap with High DPI support
+        pixmap = QPixmap(rect.size() * dpr)
+        pixmap.setDevicePixelRatio(dpr)
+        pixmap.fill(Qt.transparent)
+        
+        p = QPainter(pixmap)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.TextAntialiasing)
+        
+        # Get color from palette
+        color = self.palette().color(QPalette.WindowText)
+        p.setPen(color)
+        p.setFont(self.font())
+        
+        y = (rect.height() + self.fontMetrics().ascent() - self.fontMetrics().descent()) // 2
+        
+        x = -self._offset
+        p.drawText(x, y, self.text())
+        if self._text_width > 0:
+            p.drawText(x + self._text_width + self._spacing, y, self.text())
+        p.end()
+        
+        # Apply the gradient mask
+        mask_painter = QPainter(pixmap)
+        mask_painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+        mask_painter.fillRect(pixmap.rect(), gradient)
+        mask_painter.end()
+        
+        # Draw the final result
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
 
 class PenColorPopup(QFrame):
     color_selected = Signal(int, int, int)
@@ -350,7 +454,7 @@ class PenColorPopup(QFrame):
             }}
             QLabel {{
                 color: {fg};
-                font-family: 'MiSans', 'HarmonyOS Sans SC', 'Microsoft YaHei';
+                font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 font-size: 11px;
                 font-weight: 500;
                 background: transparent;
@@ -418,6 +522,7 @@ class CustomToolButton(QFrame):
 
     def __init__(self, icon_name, tooltip, parent=None, is_exit=False, tool_name=None, text="", pixmap=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self.is_exit = is_exit
         self.tool_name = tool_name
         self.icon_name = icon_name
@@ -429,22 +534,22 @@ class CustomToolButton(QFrame):
         self.setToolTip(tooltip)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         
-        self.layout = QVBoxLayout(self)
+        self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(4, 4, 4, 4)
-        self.layout.setSpacing(2)
+        self.layout.setSpacing(6)
         self.layout.setAlignment(Qt.AlignCenter)
         
         self.icon_label = QLabel(self)
         self.icon_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.icon_label)
         
-        self.text_label = QLabel(text, self)
+        self.text_label = MarqueeLabel(text, self)
         self.text_label.setAlignment(Qt.AlignCenter)
         self.text_label.setStyleSheet("""
             QLabel {
-                font-size: 9px;
-                font-weight: 400;
-                font-family: 'MiSans', 'HarmonyOS Sans SC', 'Microsoft YaHei';
+                font-size: 8px;
+                font-weight: 300;
+                font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 color: rgba(255, 255, 255, 0.6);
                 background: transparent;
             }
@@ -465,16 +570,17 @@ class CustomToolButton(QFrame):
     def update_size(self):
         show_text = cfg.showToolbarText.value and bool(self.text)
         if show_text:
-            # Oval button (Capsule)
-            # We want it to be a bit wider for text but not too tall
-            self.setFixedSize(62, 38)
-            self.icon_size = 14
-        else:
-            # Circular button
-            self.setFixedSize(34, 34)
+            # Match HTML: .toolbar-preview-btn-capsule { min-width: 68px; height: 40px; }
+            # Increased width to 92 for horizontal layout and marquee room
+            self.setFixedSize(92, 38)
             self.icon_size = 18
+            self.layout.setContentsMargins(12, 4, 12, 4)
+        else:
+            # Match HTML: .toolbar-preview-btn { min-width: 38px; height: 38px; }
+            self.setFixedSize(38, 38)
+            self.icon_size = 20
+            self.layout.setContentsMargins(4, 4, 4, 4)
         
-        # Ensure icon is updated
         self.set_icon_color(False)
 
     def set_icon_color(self, is_light):
@@ -494,8 +600,6 @@ class CustomToolButton(QFrame):
         if not renderer.isValid():
             return
             
-        # Proportional scaling
-        s = self.icon_size
         device_size = s * 2
         pixmap = QPixmap(device_size, device_size)
         pixmap.fill(Qt.transparent)
@@ -504,6 +608,13 @@ class CustomToolButton(QFrame):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
         
+        # Special handling for exit icon in HTML preview
+        if self.is_exit:
+            # .icon-exit { background: #FF453A !important; border-radius: 50% !important; }
+            painter.setBrush(QColor("#FF453A"))
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(pixmap.rect())
+            
         renderer.render(painter)
         
         painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
@@ -522,14 +633,10 @@ class CustomToolButton(QFrame):
             bg = "rgba(255, 255, 255, 0.15)"
             hover_bg = "rgba(255, 255, 255, 0.2)"
             fg_alpha = 1.0
-        elif self.is_exit:
-            bg = "rgba(255, 69, 58, 0.2)" # Apple Red
-            hover_bg = "rgba(255, 69, 58, 0.35)"
-            fg_alpha = 1.0
         else:
             bg = "transparent"
             hover_bg = "rgba(255, 255, 255, 0.08)"
-            fg_alpha = 0.8
+            fg_alpha = 0.9
         
         radius = self.height() // 2
             
@@ -544,25 +651,39 @@ class CustomToolButton(QFrame):
             }}
         """)
         
+        # Match HTML: .toolbar-preview-btn-capsule .toolbar-preview-btn-icon { background: rgba(255, 255, 255, 0.1); }
+        if show_text:
+            self.icon_label.setStyleSheet("background: transparent; border-radius: 0; padding: 0;")
+        else:
+            self.icon_label.setStyleSheet("background: transparent; border-radius: 0; padding: 0;")
+        
         # Update text style
         self.text_label.setStyleSheet(f"""
             QLabel {{
-                font-size: 8.5px;
+                font-size: 11px;
                 font-weight: 400;
-                font-family: 'MiSans', 'SF Pro Text', 'HarmonyOS Sans SC', 'Microsoft YaHei';
+                font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 color: rgba(255, 255, 255, {fg_alpha});
                 background: transparent;
-                margin-top: -1px;
             }}
         """)
+        
+        # Sync palette for MarqueeLabel's custom painting
+        palette = self.text_label.palette()
+        palette.setColor(QPalette.WindowText, QColor(255, 255, 255, int(255 * fg_alpha)))
+        self.text_label.setPalette(palette)
+        
         self.text_label.setVisible(show_text)
         
         if show_text:
-            self.layout.setContentsMargins(0, 4, 0, 4)
-            self.layout.setSpacing(1)
+            self.layout.setContentsMargins(10, 0, 12, 0)
+            self.layout.setSpacing(6)
+            # Constrain text width to trigger marquee if needed
+            self.text_label.setFixedWidth(46)
         else:
             self.layout.setContentsMargins(0, 0, 0, 0)
             self.layout.setSpacing(0)
+            self.text_label.setFixedWidth(0) # Hide effectively if needed, though setVisible handles it
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -595,7 +716,7 @@ class SlidePreviewPopup(FluentWidget):
             }}
             QLabel {{
                 color: {fg};
-                font-family: 'MiSans VF','MiSans','Segoe UI';
+                font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
             }}
         """)
         self.card_container = QWidget(self)
@@ -956,6 +1077,11 @@ class OverlayWindow(QWidget):
         flipper_w = 140
         self.left_flipper.setFixedSize(flipper_w, tb_h)
         self.right_flipper.setFixedSize(flipper_w, tb_h)
+        # Re-trigger style update to ensure radius is correct
+        self.left_flipper.h_val = tb_h
+        self.right_flipper.h_val = tb_h
+        self.left_flipper.update_style(getattr(self, "_is_light", False))
+        self.right_flipper.update_style(getattr(self, "_is_light", False))
 
         y_pos = h - tb_h - 14 
         
@@ -1025,9 +1151,9 @@ class ToolbarWidget(QFrame):
     def update_layout_style(self):
         show_text = cfg.showToolbarText.value
         
-        # Apple Style: Semi-transparent dark background with glass effect
-        bg = "rgba(28, 28, 30, 0.78)" 
-        border = "rgba(255, 255, 255, 0.12)"
+        # Match HTML: .toolbar-preview-bar { background: rgba(28, 28, 30, 0.82); border: 0.5px solid rgba(255, 255, 255, 0.15); }
+        bg = "rgba(28, 28, 30, 0.82)" 
+        border = "rgba(255, 255, 255, 0.15)"
         line_color = "rgba(255, 255, 255, 0.15)"
 
         self.setStyleSheet(f"""
@@ -1050,10 +1176,18 @@ class ToolbarWidget(QFrame):
         # Force layout recalculation and update radius
         self.layout.activate()
         hint = self.layout.sizeHint()
+        # Match HTML: .toolbar-preview-bar { border-radius: 999px; }
         radius = hint.height() // 2
         
         self.setStyleSheet(self.styleSheet() + f"\nToolbarWidget {{ border-radius: {radius}px; }}")
         
+        # Match HTML: .toolbar-preview-bar { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); }
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(40)
+        shadow.setColor(QColor(0, 0, 0, 100))
+        shadow.setOffset(0, 12)
+        self.setGraphicsEffect(shadow)
+
         # Notify parent to update position
         p = self.parent()
         if p and hasattr(p, "update_layout"):
@@ -1061,6 +1195,7 @@ class ToolbarWidget(QFrame):
 
     def update_style(self, is_light=False):
         # Compatibility with old calls
+        self._is_light = is_light
         self.update_layout_style()
 
     def _on_undo_redo_visibility_changed(self, visible: bool):
@@ -1074,7 +1209,7 @@ class ToolbarWidget(QFrame):
 
     def _ensure_pen_popup(self):
         if self.pen_popup is None:
-            self.pen_popup = PenColorPopup(self.window(), self._pen_colors, self._is_light)
+            self.pen_popup = PenColorPopup(self.window(), is_light=self._is_light)
             self.pen_popup.color_selected.connect(self._on_pen_color_selected)
 
     def _position_pen_popup(self):
@@ -1122,7 +1257,8 @@ class ToolbarWidget(QFrame):
 
     def init_ui(self):
         self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(5, 5, 5, 5) 
+        # Match HTML: .toolbar-preview-bar { padding: 8px 12px; gap: 4px; }
+        self.layout.setContentsMargins(12, 8, 12, 8) 
         self.layout.setSpacing(4) 
         self.layout.setSizeConstraint(QHBoxLayout.SetFixedSize)
         self.layout.setAlignment(Qt.AlignCenter)
@@ -1242,12 +1378,13 @@ class PageFlipButton(QFrame):
 
     def __init__(self, icon_name, parent=None):
         super().__init__(parent)
-        self.setFixedSize(32, 32)
+        # Match CustomToolButton circular size
+        self.setFixedSize(38, 38)
         self.setCursor(Qt.PointingHandCursor)
         self.setStyleSheet("""
             QFrame {
                 background-color: transparent;
-                border-radius: 16px;
+                border-radius: 19px;
             }
             QFrame:hover {
                 background-color: rgba(255, 255, 255, 0.08);
@@ -1260,14 +1397,15 @@ class PageFlipButton(QFrame):
         layout.setAlignment(Qt.AlignCenter)
         
         self.icon_label = QLabel(self)
-        self.icon_label.setFixedSize(16, 16)
+        # Match CustomToolButton circular icon size
+        self.icon_label.setFixedSize(20, 20)
         self.icon_label.setAlignment(Qt.AlignCenter)
         
         icon_path = os.path.join(ICON_DIR, icon_name)
         if os.path.exists(icon_path):
             renderer = QSvgRenderer(icon_path)
             if renderer.isValid():
-                pixmap = QPixmap(32, 32)
+                pixmap = QPixmap(40, 40)
                 pixmap.fill(Qt.transparent)
                 painter = QPainter(pixmap)
                 painter.setRenderHint(QPainter.Antialiasing)
@@ -1275,7 +1413,7 @@ class PageFlipButton(QFrame):
                 painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
                 painter.fillRect(pixmap.rect(), QColor(255, 255, 255))
                 painter.end()
-                self.icon_label.setPixmap(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                self.icon_label.setPixmap(pixmap.scaled(20, 20, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
         layout.addWidget(self.icon_label)
 
@@ -1289,7 +1427,7 @@ class PageFlipWidget(QFrame):
     clicked_next = Signal()
     page_clicked = Signal(QPoint)
 
-    def __init__(self, side="Left", parent=None, height=42):
+    def __init__(self, side="Left", parent=None, height=56):
         super().__init__(parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.side = side
@@ -1299,18 +1437,18 @@ class PageFlipWidget(QFrame):
         self.setFixedSize(140, self.h_val)
         
         self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(5, 5, 5, 5)
+        # Match ToolbarWidget margins
+        self.layout.setContentsMargins(12, 8, 12, 8)
         self.layout.setSpacing(4)
         self.layout.setAlignment(Qt.AlignCenter)
         
         self.btn_prev = PageFlipButton("Previous.svg", self)
         self.btn_prev.btn_clicked.connect(self.clicked_prev.emit)
         
-        # Page info container with optional hint
         self.page_container = QFrame(self)
         self.page_layout = QVBoxLayout(self.page_container)
         self.page_layout.setContentsMargins(0, 0, 0, 0)
-        self.page_layout.setSpacing(2)
+        self.page_layout.setSpacing(1) # Tighter spacing
         self.page_layout.setAlignment(Qt.AlignCenter)
         
         self.lbl_page = ClickableLabel("0/0", self.page_container)
@@ -1321,7 +1459,8 @@ class PageFlipWidget(QFrame):
         self.lbl_hint = QLabel(_t("toolbar.page"), self.page_container)
         self.lbl_hint.setAlignment(Qt.AlignCenter)
         self.lbl_hint.setObjectName("PageHint")
-        self.lbl_hint.setVisible(cfg.showToolbarText.value)
+        # Always visible as requested
+        self.lbl_hint.setVisible(True)
         
         self.page_layout.addWidget(self.lbl_page)
         self.page_layout.addWidget(self.lbl_hint)
@@ -1332,23 +1471,23 @@ class PageFlipWidget(QFrame):
         self.layout.addWidget(self.btn_prev)
         self.layout.addWidget(self.page_container)
         self.layout.addWidget(self.btn_next)
-        
-        cfg.showToolbarText.valueChanged.connect(self._on_show_text_changed)
 
     def _on_show_text_changed(self, show):
-        self.lbl_hint.setVisible(show)
-        self.update_style(False) # Refresh styles if needed
+        # Hint is now always visible, no need to toggle
+        pass
 
     def set_page_info(self, current, total):
         self.lbl_page.setText(f"{current}/{total}")
 
     def update_style(self, is_light=False):
-        # Apple Style
-        bg = "rgba(28, 28, 30, 0.78)"
-        border = "rgba(255, 255, 255, 0.12)"
+        # Match HTML toolbar preview design
+        self._is_light = is_light
+        bg = "rgba(28, 28, 30, 0.82)"
+        border = "rgba(255, 255, 255, 0.15)"
         fg = "white"
         hint_fg = "rgba(255, 255, 255, 0.6)"
         
+        # Calculate radius to ensure it's always a capsule (pill shape)
         radius = self.h_val // 2
         
         self.setStyleSheet(f"""
@@ -1359,9 +1498,9 @@ class PageFlipWidget(QFrame):
             }}
             QLabel {{
                 color: {fg};
-                font-family: 'MiSans', 'SF Pro Text', 'HarmonyOS Sans SC', 'Microsoft YaHei';
+                font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 font-size: 12px;
-                font-weight: 400;
+                font-weight: 600;
                 background: transparent;
                 border: none;
             }}
@@ -1372,8 +1511,9 @@ class PageFlipWidget(QFrame):
             }}
         """)
 
+        # Match HTML: .toolbar-preview-bar { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); }
         shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(15)
-        shadow.setColor(QColor(0, 0, 0, 60))
-        shadow.setOffset(0, 2)
+        shadow.setBlurRadius(40)
+        shadow.setColor(QColor(0, 0, 0, 100))
+        shadow.setOffset(0, 12)
         self.setGraphicsEffect(shadow)
