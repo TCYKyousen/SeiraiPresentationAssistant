@@ -4,6 +4,7 @@ import traceback
 import tempfile
 import subprocess
 import json
+import importlib
 
 from PySide6.QtWidgets import QApplication, QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit, QFrame, QGraphicsDropShadowEffect, QProgressBar
 from PySide6.QtCore import Qt, QTimer, Slot, QSize
@@ -486,10 +487,65 @@ class PPTAssistantApp:
             self._settings_mtime = mtime
             
             old_theme = cfg.themeMode.value
+            old_lang = _get_current_language()
+            old_toolbar_text = cfg.showToolbarText.value
+            old_status_bar = cfg.showStatusBar.value
+            old_undo_redo = cfg.showUndoRedo.value
+
             reload_cfg()
+            
+            new_lang = _get_current_language()
+            
+            # If language or critical layout changed, reload overlay
+            if (new_lang != old_lang or 
+                cfg.showToolbarText.value != old_toolbar_text or 
+                cfg.showStatusBar.value != old_status_bar or
+                cfg.showUndoRedo.value != old_undo_redo):
+                self._reload_overlay()
+            
             if cfg.themeMode.value != old_theme:
                 if hasattr(self, 'tray'):
                     self.tray._update_icon()
+
+    def _reload_overlay(self):
+        """Recreate the overlay window to apply language and layout changes."""
+        was_visible = self.overlay.isVisible()
+        
+        # Cleanup old overlay
+        self.overlay.hide()
+        self.overlay.deleteLater()
+        
+        # Import overlay again to refresh module-level LANGUAGE
+        import ppt_assistant.ui.overlay as overlay_mod
+        importlib.reload(overlay_mod)
+        from ppt_assistant.ui.overlay import OverlayWindow
+        
+        # Create new overlay
+        self.overlay = OverlayWindow()
+        self.overlay.set_monitor(self.monitor)
+        
+        # Re-connect signals
+        self.overlay.request_next.connect(self.monitor.go_next)
+        self.overlay.request_prev.connect(self.monitor.go_previous)
+        self.overlay.request_end.connect(self.monitor.end_show)
+        self.overlay.request_ptr_arrow.connect(lambda: self.monitor.set_pointer_type(1))
+        self.overlay.request_ptr_pen.connect(lambda: self.monitor.set_pointer_type(2))
+        self.overlay.request_ptr_eraser.connect(lambda: self.monitor.set_pointer_type(5))
+        self.overlay.request_pen_color.connect(self.monitor.set_pen_color)
+        
+        self.monitor.slide_changed.connect(self.overlay.update_page_info)
+        
+        if was_visible:
+            if self.monitor and self.monitor._running:
+                self.overlay.showFullScreen()
+            else:
+                self.overlay.show()
+            self.overlay.raise_()
+        
+        # Update current page info immediately
+        if self.monitor:
+            curr, total = self.monitor.get_page_info()
+            self.overlay.update_page_info(curr, total)
 
     def restart(self):
         self.cleanup()

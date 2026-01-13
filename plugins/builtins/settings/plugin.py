@@ -18,6 +18,17 @@ class SettingsPlugin(AssistantPlugin):
 
     def execute(self):
         if self.process and self.process.poll() is None:
+            if sys.platform == "win32":
+                try:
+                    import ctypes
+                    # Find window by title "Settings"
+                    hwnd = ctypes.windll.user32.FindWindowW(None, "Settings")
+                    if hwnd:
+                        # SW_RESTORE = 9
+                        ctypes.windll.user32.ShowWindow(hwnd, 9)
+                        ctypes.windll.user32.SetForegroundWindow(hwnd)
+                except:
+                    pass
             return
 
         base_dir = os.path.dirname(os.path.abspath(__file__))

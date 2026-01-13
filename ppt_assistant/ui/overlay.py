@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QApplication, QLabel, QPushButton, QSwipeGesture, QGestureEvent, QGridLayout, QStyleOption, QStyle, QGraphicsDropShadowEffect
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QApplication, QLabel, QPushButton, QSwipeGesture, QGestureEvent, QGridLayout, QStyleOption, QStyle, QGraphicsDropShadowEffect, QMenu
 from PySide6.QtCore import Qt, Signal, QSize, QPoint, QEvent, QTimer, QTime
-from PySide6.QtGui import QColor, QIcon, QPainter, QBrush, QPen, QPixmap, QGuiApplication, QFont, QPalette, QLinearGradient
+from PySide6.QtGui import QColor, QIcon, QPainter, QBrush, QPen, QPixmap, QGuiApplication, QFont, QPalette, QLinearGradient, QAction
 from PySide6.QtSvg import QSvgRenderer
 import os
 import importlib.util
@@ -155,15 +155,18 @@ class StatusBarWidget(QFrame):
         layout.setContentsMargins(12, 4, 12, 4)
         layout.setSpacing(8)
 
-        self.time_label = BodyLabel("", self)
+        self.time_label = QLabel("", self)
+        self.time_label.setObjectName("TimeLabel")
         layout.addWidget(self.time_label)
 
         self.center_widget = QWidget(self)
         center_layout = QHBoxLayout(self.center_widget)
         center_layout.setContentsMargins(0, 0, 0, 0)
         center_layout.setSpacing(6)
-        self.progress_value = BodyLabel("", self.center_widget)
-        self.progress_caption = BodyLabel(_t("status.media_length"), self.center_widget)
+        self.progress_value = QLabel("", self.center_widget)
+        self.progress_value.setObjectName("ProgressValue")
+        self.progress_caption = QLabel(_t("status.media_length"), self.center_widget)
+        self.progress_caption.setObjectName("ProgressCaption")
         self.progress_caption.hide()
         self.progress_value.hide()
         center_layout.addWidget(self.progress_value)
@@ -180,10 +183,6 @@ class StatusBarWidget(QFrame):
         self.volume_icon = IconWidget(FIF.VOLUME, self)
         self.volume_icon.setFixedSize(18, 18)
         layout.addWidget(self.volume_icon)
-
-        self.time_label.setStyleSheet("font-weight: 900;")
-        self.progress_value.setStyleSheet("font-weight: 900;")
-        self.progress_caption.setStyleSheet("font-size: 9px;")
 
     def _update_time(self):
         self.time_label.setText(QTime.currentTime().toString("HH:mm"))
@@ -291,6 +290,13 @@ class StatusBarWidget(QFrame):
                 color: {fg};
                 font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 font-size: 12px;
+                background: transparent;
+            }}
+            QLabel#TimeLabel, QLabel#ProgressValue {{
+                font-weight: 900;
+            }}
+            QLabel#ProgressCaption {{
+                font-size: 9px;
             }}
             IconWidget {{
                 color: {fg};
@@ -557,6 +563,9 @@ class CustomToolButton(QFrame):
         self.text_label.setVisible(bool(text) and cfg.showToolbarText.value)
         self.layout.addWidget(self.text_label)
         
+        # Connect context menu (placeholder for future use)
+        # self.customContextMenuRequested.connect(self._show_context_menu)
+        
         self.update_size()
         self.update_style(False)
         self.set_icon_color(False)
@@ -608,17 +617,17 @@ class CustomToolButton(QFrame):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
         
-        # Special handling for exit icon in HTML preview
         if self.is_exit:
-            # .icon-exit { background: #FF453A !important; border-radius: 50% !important; }
-            painter.setBrush(QColor("#FF453A"))
-            painter.setPen(Qt.NoPen)
-            painter.drawEllipse(pixmap.rect())
+            # Render icon with red color directly, no background circle
+            renderer.render(painter)
+            painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+            painter.fillRect(pixmap.rect(), QColor("#FF453A"))
+        else:
+            # Normal icon colorization
+            renderer.render(painter)
+            painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+            painter.fillRect(pixmap.rect(), color)
             
-        renderer.render(painter)
-        
-        painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
-        painter.fillRect(pixmap.rect(), color)
         painter.end()
         
         scaled_pixmap = pixmap.scaled(s, s, Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -629,13 +638,19 @@ class CustomToolButton(QFrame):
         self.is_active = is_active
         show_text = cfg.showToolbarText.value and bool(self.text)
         
+        # Hover colors based on theme
+        if is_light:
+            hover_bg = "rgba(0, 0, 0, 0.06)"
+            active_bg = "rgba(0, 0, 0, 0.12)"
+        else:
+            hover_bg = "rgba(255, 255, 255, 0.08)"
+            active_bg = "rgba(255, 255, 255, 0.15)"
+
         if is_active:
-            bg = "rgba(255, 255, 255, 0.15)"
-            hover_bg = "rgba(255, 255, 255, 0.2)"
+            bg = active_bg
             fg_alpha = 1.0
         else:
             bg = "transparent"
-            hover_bg = "rgba(255, 255, 255, 0.08)"
             fg_alpha = 0.9
         
         radius = self.height() // 2
@@ -1308,7 +1323,7 @@ class ToolbarWidget(QFrame):
         self.line3.setFixedHeight(24)
         self.layout.addWidget(self.line3)
 
-        self.btn_end = CustomToolButton("Minimaze.svg", _t("toolbar.end_show"), self, is_exit=True, text=_t("toolbar.end_show"))
+        self.btn_end = CustomToolButton("Minimize.svg", _t("toolbar.end_show"), self, is_exit=True, text=_t("toolbar.end_show"))
         self.btn_end.clicked.connect(self.end_clicked.emit)
         self.layout.addWidget(self.btn_end)
         
@@ -1331,7 +1346,7 @@ class ToolbarWidget(QFrame):
             if hasattr(plugin, "get_name"):
                 name = plugin.get_name()
 
-            if isinstance(name, str) and ("应用启动器" in name or "App Launcher" in name):
+            if isinstance(name, str) and ("工具栏固定项" in name or "应用启动器" in name or "App Launcher" in name):
                 app_launcher = plugin
                 continue
 
@@ -1434,42 +1449,39 @@ class PageFlipWidget(QFrame):
         self.h_val = height
         
         self.update_style()
-        self.setFixedSize(140, self.h_val)
+        self.setFixedSize(160, self.h_val)
         
         self.layout = QHBoxLayout(self)
-        # Match ToolbarWidget margins
-        self.layout.setContentsMargins(12, 8, 12, 8)
-        self.layout.setSpacing(4)
-        self.layout.setAlignment(Qt.AlignCenter)
+        self.layout.setContentsMargins(5, 0, 5, 0)
+        self.layout.setSpacing(0)
         
         self.btn_prev = PageFlipButton("Previous.svg", self)
         self.btn_prev.btn_clicked.connect(self.clicked_prev.emit)
         
+        self.btn_next = PageFlipButton("Next.svg", self)
+        self.btn_next.btn_clicked.connect(self.clicked_next.emit)
+        
+        # Center container that takes all remaining space
         self.page_container = QFrame(self)
         self.page_layout = QVBoxLayout(self.page_container)
         self.page_layout.setContentsMargins(0, 0, 0, 0)
-        self.page_layout.setSpacing(1) # Tighter spacing
+        self.page_layout.setSpacing(0)
         self.page_layout.setAlignment(Qt.AlignCenter)
         
         self.lbl_page = ClickableLabel("0/0", self.page_container)
-        self.lbl_page.setFixedWidth(52)
         self.lbl_page.setAlignment(Qt.AlignCenter)
         self.lbl_page.clicked.connect(self.page_clicked.emit)
         
         self.lbl_hint = QLabel(_t("toolbar.page"), self.page_container)
         self.lbl_hint.setAlignment(Qt.AlignCenter)
         self.lbl_hint.setObjectName("PageHint")
-        # Always visible as requested
         self.lbl_hint.setVisible(True)
         
         self.page_layout.addWidget(self.lbl_page)
         self.page_layout.addWidget(self.lbl_hint)
         
-        self.btn_next = PageFlipButton("Next.svg", self)
-        self.btn_next.btn_clicked.connect(self.clicked_next.emit)
-        
         self.layout.addWidget(self.btn_prev)
-        self.layout.addWidget(self.page_container)
+        self.layout.addWidget(self.page_container, 1) # Stretch factor 1
         self.layout.addWidget(self.btn_next)
 
     def _on_show_text_changed(self, show):
@@ -1477,7 +1489,9 @@ class PageFlipWidget(QFrame):
         pass
 
     def set_page_info(self, current, total):
-        self.lbl_page.setText(f"{current}/{total}")
+        hint_fg = "rgba(255, 255, 255, 0.6)" if not hasattr(self, "_is_light") or not self._is_light else "rgba(0, 0, 0, 0.5)"
+        self.lbl_page.setText(f'<span style="font-size: 16px; font-weight: 900;">{current}</span>'
+                              f'<span style="font-size: 10px; font-weight: 400; color: {hint_fg};">/{total}</span>')
 
     def update_style(self, is_light=False):
         # Match HTML toolbar preview design
@@ -1500,7 +1514,7 @@ class PageFlipWidget(QFrame):
                 color: {fg};
                 font-family: 'MiSans Latin', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
                 font-size: 12px;
-                font-weight: 600;
+                font-weight: 900;
                 background: transparent;
                 border: none;
             }}

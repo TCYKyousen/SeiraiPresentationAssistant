@@ -5,22 +5,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Settings</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
-      --bg-app: #F5F6F8;
-      --bg-surface: #FFFFFF;
-      --text-primary: #191919;
-      --text-secondary: #8C8C8C;
+      --bg-app: #f2f3f5;
+      --bg-surface: #ffffff;
+      --bg-color: #ffffff;
+      /* Legacy */
+      --sidebar-bg: #ffffff;
+      /* Legacy */
+      --border-color: #e5e7eb;
+      /* Legacy */
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
       --accent-blue: #3275F5;
-      --divider: rgba(0, 0, 0, 0.05);
-      --card-bg: rgba(0, 0, 0, 0.02);
-      --card-border: rgba(0, 0, 0, 0.01);
-      --item-hover: rgba(0, 0, 0, 0.03);
+      --divider: #e5e7eb;
+      --card-bg: #ffffff;
+      --card-border: #e5e7eb;
+      --item-hover: #f3f4f6;
       --shadow-color: rgba(0, 0, 0, 0.06);
-      --shadow-main: 0 4px 24px var(--shadow-color);
-      --logo-glow: rgba(255, 255, 255, 0.4);
-      --hyperos-g1: #e0e7ff;
-      --hyperos-g2: #fef3c7;
+      --shadow-main: 0 4px 12px var(--shadow-color);
+      --logo-glow: rgba(50, 117, 245, 0.1);
       --hyperos-g3: #fce7f3;
       --hyperos-g4: #d1fae5;
       --hyperos-g5: #ffffff;
@@ -55,7 +60,8 @@
       user-select: none;
     }
 
-    html, body {
+    html,
+    body {
       background: var(--bg-app);
       margin: 0;
       padding: 0;
@@ -77,6 +83,35 @@
       padding: 12px;
       gap: 12px;
       overflow: hidden;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .sidebar-mini {
+      width: 0;
+      opacity: 0;
+      background: var(--bg-surface);
+      border-radius: 16px;
+      border: 1px solid var(--divider);
+      box-shadow: var(--shadow-main);
+      display: flex;
+      flex-direction: column;
+      padding: 12px 0;
+      gap: 4px;
+      flex-shrink: 0;
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      transform: translateX(-20px);
+      pointer-events: none;
+      overflow: hidden;
+      margin-right: -12px;
+    }
+
+    .layout.three-island .sidebar-mini {
+      width: 72px;
+      opacity: 1;
+      padding: 12px 6px;
+      transform: translateX(0);
+      pointer-events: auto;
+      margin-right: 0;
     }
 
     .sidebar {
@@ -90,6 +125,110 @@
       border-radius: 16px;
       border: 1px solid var(--divider);
       box-shadow: var(--shadow-main);
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    @keyframes gradientFlow {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .about-header {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 0;
+      margin-bottom: 24px;
+      overflow: hidden;
+      /* Ensure it doesn't overlap text */
+    }
+
+    .hyperos-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 140%;
+      height: 140%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(120deg, var(--hyperos-g3), var(--hyperos-g4), var(--hyperos-g5));
+      background-size: 200% 200%;
+      animation: gradientFlow 8s ease infinite;
+      filter: blur(40px);
+      opacity: 0.8;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .about-logo-container {
+      position: relative;
+      z-index: 1;
+      width: 128px;
+      height: 128px;
+    }
+
+    .about-main-logo {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 10px 20px var(--shadow-color));
+    }
+
+    .layout.three-island .sidebar {
+      transform: none;
+    }
+
+    .sidebar-mini .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+      width: 100%;
+      height: 60px;
+      border-radius: 12px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      opacity: 0;
+    }
+
+    .layout.three-island .sidebar-mini .nav-item {
+      opacity: 1;
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1) 0.05s;
+    }
+
+    .sidebar-mini .nav-item:hover {
+      color: var(--text-primary);
+      background: var(--item-hover);
+    }
+
+    .sidebar-mini .nav-item.active {
+      color: var(--accent-blue);
+      background: var(--item-hover);
+    }
+
+    .sidebar-mini .nav-icon {
+      width: 24px;
+      height: 24px;
+      background-color: currentColor;
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+    }
+
+    .icon-back {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>');
     }
 
     .sidebar-item {
@@ -98,7 +237,7 @@
       color: var(--text-secondary);
       border-radius: 10px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
       display: flex;
       align-items: center;
       gap: 12px;
@@ -138,6 +277,16 @@
       opacity: 1;
     }
 
+    .sidebar-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .sidebar-item.disabled.active {
+      opacity: 1;
+    }
+
     .content {
       flex: 1;
       padding: 32px 48px;
@@ -146,6 +295,11 @@
       border-radius: 16px;
       border: 1px solid var(--divider);
       box-shadow: var(--shadow-main);
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .layout.three-island .content {
+      transform: none;
     }
 
     .page-title {
@@ -153,15 +307,32 @@
       font-weight: 600;
       margin-bottom: 24px;
       color: var(--text-primary);
+      transition: opacity 0.15s, transform 0.15s;
     }
 
     .section {
       display: none;
       margin-top: 0;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     .section.active {
       display: block;
+      animation: sectionFadeIn 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    @keyframes sectionFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .settings-group {
@@ -169,7 +340,7 @@
       border-radius: 12px;
       margin-bottom: 24px;
       overflow: hidden;
-      max-width: 1000px;
+      width: 100%;
       border: 1px solid var(--card-border);
     }
 
@@ -262,6 +433,314 @@
       text-decoration: underline;
     }
 
+    /* Update Section Styles */
+    .update-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .update-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 0;
+      margin-bottom: 24px;
+      background: transparent;
+      border: none;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .update-status-bar .status-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-blue);
+      flex-shrink: 0;
+    }
+
+    .update-status-bar .status-icon svg {
+      width: 42px;
+      height: 42px;
+    }
+
+    .header-actions .btn-primary {
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      transition: all 0.2s;
+    }
+
+    .header-actions .btn-primary:hover {
+      background: rgba(50, 117, 245, 0.1);
+      opacity: 1;
+    }
+
+    .header-actions .btn-secondary {
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      transition: all 0.2s;
+    }
+
+    .header-actions .btn-secondary:hover {
+      background: var(--item-hover);
+      border-color: var(--text-secondary);
+      opacity: 1;
+    }
+
+    .status-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .status-text {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    [data-theme='dark'] ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    [data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .last-check-time {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Pivot Styles */
+    .pivot-container {
+      display: flex;
+      gap: 24px;
+      border-bottom: 1px solid var(--divider);
+      margin-bottom: 8px;
+    }
+
+    .pivot-item {
+      padding: 8px 4px 12px 4px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .pivot-item:hover {
+      color: var(--text-primary);
+    }
+
+    .pivot-item.active {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    .pivot-item.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-blue);
+      border-radius: 1px;
+    }
+
+    .pivot-content {
+      display: none;
+    }
+
+    .pivot-content.active {
+      display: block;
+      animation: sectionFadeIn 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .update-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .update-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      background: var(--accent-blue);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .update-info h2 {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .update-info p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .changelog-card {
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+
+    .changelog-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .changelog-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+
+    .changelog-content h1,
+    .changelog-content h2,
+    .changelog-content h3 {
+      margin-top: 1.2em;
+      margin-bottom: 0.6em;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .changelog-content h1 {
+      font-size: 1.5em;
+    }
+
+    .changelog-content h2 {
+      font-size: 1.3em;
+    }
+
+    .changelog-content h3 {
+      font-size: 1.1em;
+    }
+
+    .changelog-content ul,
+    .changelog-content ol {
+      padding-left: 20px;
+      margin-bottom: 1em;
+    }
+
+    .changelog-content li {
+      margin-bottom: 0.25em;
+    }
+
+    .changelog-content code {
+      background: var(--item-hover);
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    .changelog-content pre {
+      background: var(--sidebar-bg);
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 1em;
+    }
+
+    .changelog-content p {
+      margin-bottom: 1em;
+    }
+
+    .changelog-content a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .changelog-content a:hover {
+      text-decoration: underline;
+    }
+
+    .update-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-secondary {
+      background: var(--item-hover);
+      color: var(--text-primary);
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover,
+    .btn-secondary:hover {
+      opacity: 0.9;
+    }
+
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .toolbar-preview-wrapper {
       margin-top: 12px;
     }
@@ -325,28 +804,51 @@
     }
 
     .toolbar-preview-btn-icon::before {
-  content: "";
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  background-color: #FFFFFF;
-  -webkit-mask-size: contain;
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-}
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background-color: #FFFFFF;
+      -webkit-mask-size: contain;
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+    }
 
     .toolbar-preview-btn-capsule .toolbar-preview-btn-icon::before {
       width: 10px;
       height: 10px;
     }
 
-    .toolbar-preview-btn-icon.icon-select::before { mask-image: url('../../../icons/Mouse.svg'); -webkit-mask-image: url('../../../icons/Mouse.svg'); }
-    .toolbar-preview-btn-icon.icon-pen::before { mask-image: url('../../../icons/Pen.svg'); -webkit-mask-image: url('../../../icons/Pen.svg'); }
-    .toolbar-preview-btn-icon.icon-eraser::before { mask-image: url('../../../icons/Eraser.svg'); -webkit-mask-image: url('../../../icons/Eraser.svg'); }
-    .toolbar-preview-btn-icon.icon-undo::before { mask-image: url('../../../icons/Previous.svg'); -webkit-mask-image: url('../../../icons/Previous.svg'); }
-    .toolbar-preview-btn-icon.icon-redo::before { mask-image: url('../../../icons/Next.svg'); -webkit-mask-image: url('../../../icons/Next.svg'); }
-    .toolbar-preview-btn-icon.icon-exit { background: #FF453A !important; border-radius: 50% !important; }
-    .toolbar-preview-btn-icon.icon-exit::before { mask-image: url('../../../icons/Clear.svg'); -webkit-mask-image: url('../../../icons/Clear.svg'); background-color: #FFFFFF; }
+    .toolbar-preview-btn-icon.icon-select::before {
+      mask-image: url('../../../icons/Mouse.svg');
+      -webkit-mask-image: url('../../../icons/Mouse.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-pen::before {
+      mask-image: url('../../../icons/Pen.svg');
+      -webkit-mask-image: url('../../../icons/Pen.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-eraser::before {
+      mask-image: url('../../../icons/Eraser.svg');
+      -webkit-mask-image: url('../../../icons/Eraser.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-undo::before {
+      mask-image: url('../../../icons/Previous.svg');
+      -webkit-mask-image: url('../../../icons/Previous.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-redo::before {
+      mask-image: url('../../../icons/Next.svg');
+      -webkit-mask-image: url('../../../icons/Next.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-exit::before {
+      mask-image: url('../../../icons/Minimize.svg');
+      -webkit-mask-image: url('../../../icons/Minimize.svg');
+      background-color: #FF453A;
+    }
 
     .toolbar-preview-btn-label {
       font-size: 11px;
@@ -409,6 +911,14 @@
       font-size: 18px;
       font-weight: 600;
       border: 1px solid var(--divider);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toolbar-app-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .toolbar-app-info {
@@ -435,6 +945,28 @@
       overflow: hidden;
       text-overflow: ellipsis;
       opacity: 0.6;
+    }
+
+    .toolbar-app-rename-btn {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--accent-blue);
+      background: transparent;
+      border: 1px solid var(--accent-blue);
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s ease;
+      margin-left: 8px;
+    }
+
+    .toolbar-app-row:hover .toolbar-app-rename-btn {
+      opacity: 1;
+    }
+
+    .toolbar-app-rename-btn:hover {
+      background: var(--accent-blue);
+      color: white;
     }
 
     .toolbar-btn {
@@ -650,10 +1182,10 @@
       width: 200%;
       height: 200%;
       background: radial-gradient(circle at 20% 20%, var(--hyperos-g1) 0%, transparent 40%),
-                  radial-gradient(circle at 80% 80%, var(--hyperos-g2) 0%, transparent 40%),
-                  radial-gradient(circle at 20% 80%, var(--hyperos-g3) 0%, transparent 40%),
-                  radial-gradient(circle at 80% 20%, var(--hyperos-g4) 0%, transparent 40%),
-                  radial-gradient(circle at 50% 50%, var(--hyperos-g5) 0%, transparent 50%);
+        radial-gradient(circle at 80% 80%, var(--hyperos-g2) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, var(--hyperos-g3) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, var(--hyperos-g4) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, var(--hyperos-g5) 0%, transparent 50%);
       filter: blur(60px);
       animation: hyperos-flow 25s infinite linear;
       z-index: 0;
@@ -673,9 +1205,17 @@
     }
 
     @keyframes hyperos-flow {
-      0% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(180deg) scale(1.1); }
-      100% { transform: rotate(360deg) scale(1); }
+      0% {
+        transform: rotate(0deg) scale(1);
+      }
+
+      50% {
+        transform: rotate(180deg) scale(1.1);
+      }
+
+      100% {
+        transform: rotate(360deg) scale(1);
+      }
     }
 
     .about-logo-container {
@@ -738,34 +1278,138 @@
       flex-shrink: 0;
       fill: currentColor;
     }
+
+    /* Toast Message Styling */
+    .toast-container {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(30, 30, 30, 0.88);
+      color: #FFFFFF;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 400;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+      z-index: 9999;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [data-theme="dark"] .toast-container {
+      background: rgba(45, 45, 45, 0.9);
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .toast-container.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-icon {
+      width: 16px;
+      height: 16px;
+      background-color: var(--accent-blue);
+      -webkit-mask: url('../../../icons/Settings.svg') no-repeat center/contain;
+      mask: url('../../../icons/Settings.svg') no-repeat center/contain;
+    }
+
+    /* Toolbar Preview Icons */
+    .toolbar-preview-btn-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toolbar-preview-btn-icon[class*="icon-"] {
+      background-color: var(--text-primary);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
+    }
+
+    .toolbar-app-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    .icon-select {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.6V2z"/></svg>');
+    }
+
+    .icon-pen {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>');
+    }
+
+    .icon-eraser {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.78-.78 2.05 0 2.83L5.17 20h-1v2h13v-2h-3l4.24-4.24c.78-.78.78-2.05 0-2.83l-4.24-4.24l-2.62-2.61l-.01-.01c-.39-.39-.9-.59-1.4-.59zM15.14 5l4.24 4.24l-4.24 4.24l-4.24-4.24L15.14 5zM4 16.14l4.24-4.24l4.24 4.24l-4.24 4.24L4 16.14z"/></svg>');
+    }
+
+    .icon-undo {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>');
+    }
+
+    .icon-redo {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>');
+    }
+
+    .icon-exit {
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>');
+    }
   </style>
 </head>
 
-  <body>
-  <div class="layout">
+<body>
+  <div id="toast-message" class="toast-container">
+    <div class="toast-icon"></div>
+    <div id="toast-text">已经存在打开的窗口！</div>
+  </div>
+  <div class="layout" id="layout">
+    <div class="sidebar-mini" id="sidebar-mini">
+      <div class="nav-item" onclick="hideUpdate()">
+        <div class="nav-icon icon-back"></div>
+        <span data-i18n="nav.back">返回</span>
+      </div>
+    </div>
     <div class="sidebar">
-      <div class="sidebar-item active" data-section="general">
+      <div class="sidebar-item active" data-section="main">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
           <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
           <path
             d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
         </svg>
-        <span data-i18n="nav.general">通用</span>
+        <span data-i18n="nav.main">主程序</span>
       </div>
-      <div class="sidebar-item" data-section="interaction">
+      <div class="sidebar-item" data-section="overlay">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
           <path
             d="M18 8a3 3 0 013 3 3 3 0 01-3 3h-1V8h1zM14 8h-4v6h4V8zM19 19H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2z" />
         </svg>
-        <span data-i18n="nav.interaction">交互</span>
+        <span data-i18n="nav.overlay">顶层窗口</span>
       </div>
-      <div class="sidebar-item" data-section="toolbar">
+      <div class="sidebar-item" data-section="plugins">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
           <path d="M4 5h16v2H4z" />
           <path d="M4 11h10v2H4z" />
           <path d="M4 17h7v2H4z" />
         </svg>
-        <span data-i18n="nav.toolbar">工具栏</span>
+        <span data-i18n="nav.plugins">插件</span>
       </div>
       <div class="sidebar-item" data-section="about">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
@@ -777,7 +1421,8 @@
       </div>
       <div class="sidebar-item" data-section="debug" id="nav-debug" style="display:none;">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
-          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/>
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z" />
         </svg>
         <span data-i18n="nav.debug">调试</span>
       </div>
@@ -786,9 +1431,9 @@
     <div id="dev-watermark" class="dev-watermark" style="display: none;"></div>
 
     <div class="content">
-      <div class="page-title" id="section-title" data-i18n="section.general">通用</div>
+      <div class="page-title" id="section-title" data-i18n="section.main">主程序</div>
 
-      <div class="section active" id="section-general">
+      <div class="section active" id="section-main">
         <div class="group-title" data-i18n="group.appearance">外观</div>
         <div class="settings-group">
           <div class="settings-item">
@@ -797,15 +1442,18 @@
               <span class="item-desc" data-i18n="appearance.mode.desc">调整应用程序的显示主题</span>
             </div>
             <div class="theme-select">
-              <div class="theme-option" id="theme-Light" onclick="setTheme('Light')" data-i18n="appearance.mode.light">浅色</div>
-              <div class="theme-option" id="theme-Dark" onclick="setTheme('Dark')" data-i18n="appearance.mode.dark">深色</div>
-              <div class="theme-option" id="theme-Auto" onclick="setTheme('Auto')" data-i18n="appearance.mode.auto">跟随系统</div>
+              <div class="theme-option" id="theme-Light" onclick="setTheme('Light')" data-i18n="appearance.mode.light">
+                浅色</div>
+              <div class="theme-option" id="theme-Dark" onclick="setTheme('Dark')" data-i18n="appearance.mode.dark">深色
+              </div>
+              <div class="theme-option" id="theme-Auto" onclick="setTheme('Auto')" data-i18n="appearance.mode.auto">跟随系统
+              </div>
             </div>
           </div>
-          
+
         </div>
 
-        <div class="group-title" data-i18n="group.general">通用</div>
+        <div class="group-title" data-i18n="group.main">主程序</div>
         <div class="settings-group">
           <div class="settings-item" onclick="toggleSwitch('General', 'RunAtStartup')">
             <div class="item-info">
@@ -827,15 +1475,19 @@
                 <span class="item-desc" data-i18n="general.language.desc">更改语言后需重启软件才能在所有界面生效</span>
               </div>
               <div class="theme-select">
-                <div class="theme-option language-option" data-lang="zh-CN" onclick="setLanguage('zh-CN')" data-i18n="language.zh-CN">简体中文</div>
-                <div class="theme-option language-option" data-lang="zh-TW" onclick="setLanguage('zh-TW')" data-i18n="language.zh-TW">繁體中文</div>
-                <div class="theme-option language-option" data-lang="ja-JP" onclick="setLanguage('ja-JP')" data-i18n="language.ja-JP">日本語</div>
-                <div class="theme-option language-option" data-lang="en-US" onclick="setLanguage('en-US')" data-i18n="language.en-US">English</div>
+                <div class="theme-option language-option" data-lang="zh-CN" onclick="setLanguage('zh-CN')"
+                  data-i18n="language.zh-CN">简体中文</div>
+                <div class="theme-option language-option" data-lang="zh-TW" onclick="setLanguage('zh-TW')"
+                  data-i18n="language.zh-TW">繁體中文</div>
+                <div class="theme-option language-option" data-lang="ja-JP" onclick="setLanguage('ja-JP')"
+                  data-i18n="language.ja-JP">日本語</div>
+                <div class="theme-option language-option" data-lang="en-US" onclick="setLanguage('en-US')"
+                  data-i18n="language.en-US">English</div>
               </div>
             </div>
             <div class="language-warning" id="language-warning" style="margin-top: 12px; margin-bottom: 4px;">
               <svg class="warning-icon" viewBox="0 0 24 24">
-                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
               </svg>
               <span data-i18n="general.language.warning">当前选择的语言不是简体中文。为了获得最佳体验，建议使用简体中文。其他语言可能存在翻译不全或排版错位的问题。</span>
             </div>
@@ -843,8 +1495,8 @@
         </div>
       </div>
 
-      <div class="section" id="section-interaction">
-        <div class="group-title" data-i18n="group.interaction">交互</div>
+      <div class="section" id="section-overlay">
+        <div class="group-title" data-i18n="group.overlay">顶层窗口</div>
         <div class="settings-group">
           <div class="settings-item" onclick="toggleSwitch('PPT', 'AutoHandleInk')">
             <div class="item-info">
@@ -863,13 +1515,14 @@
         </div>
       </div>
 
-      <div class="section" id="section-toolbar">
+      <div class="section" id="section-plugins">
         <div class="group-title" data-i18n="interaction.toolbar.preview.label">工具栏预览</div>
-        <div class="settings-group" style="padding: 32px; display: flex; justify-content: center; background: var(--bg-app); border: 1px dashed var(--divider); margin-bottom: 24px;">
+        <div class="settings-group"
+          style="padding: 32px; display: flex; justify-content: center; background: var(--bg-app); border: 1px dashed var(--divider); margin-bottom: 24px;">
           <div id="toolbar-preview" class="toolbar-preview-bar"></div>
         </div>
 
-        <div class="group-title" data-i18n="group.toolbar">工具栏</div>
+        <div class="group-title" data-i18n="group.plugins">插件</div>
         <div class="settings-group">
           <div class="settings-item" onclick="toggleSwitch('Toolbar', 'ShowUndoRedo')">
             <div class="item-info">
@@ -889,10 +1542,12 @@
         <div class="group-title" data-i18n="interaction.toolbar.customization.label">工具栏固定程序</div>
         <div class="settings-group" style="background: transparent; border: none; padding: 0;">
           <div id="toolbar-app-list" class="toolbar-app-list"></div>
-          
+
           <div class="toolbar-actions" style="justify-content: flex-end;">
-            <button id="toolbar-remove-btn" class="btn btn-cancel disabled" type="button" onclick="removeSelectedToolbarApp()" data-i18n="interaction.toolbar.removeApp" disabled>删除软件</button>
-            <button id="toolbar-add-btn" class="btn btn-confirm" type="button" onclick="addToolbarApp()" data-i18n="interaction.toolbar.addApp">添加软件</button>
+            <button id="toolbar-remove-btn" class="btn btn-cancel disabled" type="button"
+              data-i18n="interaction.toolbar.removeApp" disabled>删除软件</button>
+            <button id="toolbar-add-btn" class="btn btn-confirm" type="button"
+              data-i18n="interaction.toolbar.addApp">添加软件</button>
           </div>
         </div>
       </div>
@@ -902,7 +1557,8 @@
           <div class="hyperos-bg"></div>
           <div class="about-logo-container">
             <svg viewBox="0 0 808 808" fill="none" xmlns="http://www.w3.org/2000/svg" class="about-main-logo">
-              <path fill-rule="evenodd" d="M362.514 -1.98828C390.973 -2.04849 394.821 -1.9116 395.742 -0.801758C396.315 -0.110924 398.409 1.56091 400.395 2.91406C413.635 11.9337 423.888 26.9218 426.969 41.7588C427.42 43.9343 427.512 43.9688 431.167 43.3438C436.866 42.3701 449.885 42.8187 458.242 44.2764C471.665 46.619 479.911 49.242 492.178 55.0713C496.661 57.2021 500.617 58.9457 500.969 58.9463C501.32 58.9463 502.641 59.4501 503.906 60.0664C505.171 60.6828 509.626 61.7585 513.806 62.458C521.833 63.8016 527.955 63.4162 537.289 60.9785C548.36 58.0875 554.401 50.9036 555.487 39.3379C556.13 32.5001 557.277 32.8689 560.025 40.7969C565.314 56.0575 562.27 70.7209 551.62 81.2861C548.853 84.032 545.082 86.9908 543.242 87.8623C541.402 88.7335 539.893 89.6462 539.887 89.8906C539.882 90.1346 544.082 94.5913 549.22 99.7939C554.357 104.997 561.218 112.462 564.467 116.384C567.717 120.305 570.566 123.692 570.8 123.91C571.957 124.992 583.693 141.723 587.193 147.281C600.938 169.107 612.757 194.933 623.607 226.853C633.329 255.451 644.855 267.118 656.105 259.747C659.215 257.709 660.544 258.767 659.881 262.752C658.156 273.11 648.928 285.968 639.396 291.295C631.556 295.678 619.282 297.073 610.651 294.564C608.264 293.871 606.092 293.522 605.823 293.791C604.591 295.024 621.992 310.317 628.763 313.952C635.876 317.77 645.311 320.386 651.971 320.386C656.57 320.386 666.546 318.253 668.773 316.794C670.52 315.65 672.979 315.222 672.979 316.062C672.978 317.114 666.142 325.596 662.053 329.621C653.555 337.984 641.879 344.548 627.819 348.865C623.245 350.271 618.61 351.792 617.521 352.247C616.431 352.703 611.261 353.231 606.032 353.421C598.173 353.707 595.566 353.492 590.99 352.184C587.948 351.313 585.334 350.726 585.179 350.878C585.026 351.031 584.373 355.195 583.729 360.132C582.406 370.267 580.466 380.292 577.466 392.479C576.34 397.054 575.112 402.238 574.737 403.999C574.135 406.825 568.389 424.045 564.882 433.532C562.393 440.265 552.645 461.02 548.63 468.139C538.556 485.997 517.596 507.173 502.029 515.219C491.103 520.867 486.157 522.348 476.193 522.96C466.941 523.529 466.17 522.442 473.686 519.421C488.841 513.329 500.781 499.823 513.717 474.139C519.545 462.567 524.134 450.315 531.1 427.734C532.748 422.388 534.525 413.799 534.075 413.349C533.811 413.083 531.71 413.756 529.408 414.843C527.106 415.929 524.489 417.048 523.593 417.329C522.522 417.665 520.351 420.977 517.255 426.998C511.669 437.862 511.907 437.44 507.423 444.414C497.789 459.396 487.585 470.188 472.068 481.805C467.558 485.181 463.648 488.479 463.379 489.133C462.473 491.339 461.387 503.712 460.946 516.861C460.443 531.893 460.451 531.914 466.767 534.214C475.16 537.271 479.725 537.047 495.805 532.789C501.772 531.209 502.164 531.196 504.916 532.493C508.548 534.206 514.292 540.145 518.667 546.712C521.443 550.879 523.48 552.749 529.976 557.096C542.126 565.227 549.586 570.837 560.044 579.705C567.958 586.417 571.509 588.548 577.288 590.053C582.973 591.533 594.284 595.976 603.935 600.52C608.009 602.438 611.485 604.008 611.659 604.008C612.258 604.007 611.972 601.605 611.21 600.233C609.08 596.401 603.26 581.492 603.26 579.866C603.26 579.328 604.134 577.944 605.202 576.791C606.91 574.948 607.749 574.697 612.135 574.707C618.479 574.722 623.308 576.429 631.397 581.515C639.003 586.297 645.685 587.639 650.943 585.442C655.087 583.711 655.755 581.427 654.264 574.102C653.575 570.724 652.565 566.891 652.019 565.584C649.494 559.547 648.589 555.048 649.522 553.17C650.534 551.135 658.251 546.174 660.404 546.174C662.725 546.174 666.521 550.052 669.951 555.924C675.07 564.69 678.493 571.762 678.509 573.609C678.518 574.629 679.893 576.419 681.986 578.134C684.59 580.267 686.38 582.893 689.208 588.726C693.303 597.175 693.594 597.841 695.612 603.437C696.705 606.462 696.797 607.625 696.07 609.218C694.674 612.282 694.941 613.401 697.884 616.839C700.869 620.326 701.108 620.785 707.534 635.421C709.841 640.674 708.406 646.084 703.206 651.74C700.723 654.441 698.624 654.492 695.162 651.938C692.18 649.739 690.408 649.402 690.408 651.035C690.408 652.032 693.396 658.839 699.269 671.224L701.651 676.25L704.547 675.709C706.139 675.411 707.846 674.834 708.341 674.426C708.835 674.017 711.602 673.462 714.489 673.192C721.143 672.57 721.918 673.207 726.555 683.106C728.461 687.176 730.02 690.627 730.021 690.776C730.021 690.923 731.052 693.297 732.312 696.051C733.571 698.805 735.494 703.019 736.585 705.415C737.676 707.812 739.717 712.267 741.121 715.317C746.646 727.322 748.242 730.889 748.243 731.227C748.243 731.418 748.914 733.087 749.734 734.935C750.554 736.781 751.667 739.451 752.207 740.867C753.166 743.382 753.302 743.443 758.044 743.46C764.89 743.485 766.059 744.615 773.19 758.099C775.265 762.02 778.115 767.368 779.523 769.982C783.127 776.67 788.059 785.898 791.893 793.127C793.692 796.519 795.429 799.652 795.753 800.088C796.799 801.494 797.289 804.622 796.825 806.939L796.373 809.198H36L36.0127 807.02C36.0236 805.198 44.819 791.794 51.248 783.8C53.1368 781.451 55.8878 777.457 65.291 763.412C75.7376 747.808 79.7985 743.155 85.3721 740.406C89.3563 738.441 93.7069 733.514 102.236 721.308C107.211 714.187 116.391 699.647 121.272 691.154C122.901 688.322 126.893 682.263 130.146 677.691L136.061 669.379L134.754 665.702C132.74 660.03 133.013 659.106 138.202 654.044C140.816 651.494 142.955 649.145 142.955 648.823C142.955 648.502 141.398 646.22 139.495 643.752C133.111 635.471 131.04 630.149 129.427 617.872C127.786 605.392 130.002 590.315 135.48 576.676C140.909 563.163 151.985 543.669 160.513 532.619C162.927 529.491 162.762 528.745 159.655 528.745C157.848 528.745 149.363 526.05 144.936 524.07C144.064 523.68 141.925 522.745 140.183 521.993C134.548 519.562 123.729 511.845 118.595 506.597C111.468 499.31 102.88 486.165 104.31 484.732C104.523 484.519 106.16 485.762 107.945 487.494C114.691 494.041 121.847 495.887 140.183 495.812C151.504 495.765 154.724 495.472 160.385 493.975C168.006 491.958 179.56 487.23 185.665 483.63C187.922 482.299 190.054 481.211 190.403 481.211C190.753 481.211 191.628 480.558 192.349 479.762C193.593 478.387 193.453 478.215 189.611 476.416C184.55 474.046 179.975 468.927 177.716 463.105C174.8 455.593 175.546 442.695 179.394 434.072C179.783 433.201 181.017 430.418 182.136 427.89C183.255 425.36 184.519 422.864 184.942 422.344C185.367 421.822 186.642 420.238 187.776 418.821C188.911 417.405 190.155 416.247 190.54 416.247C190.931 416.247 191.022 419.574 190.745 423.791C190.052 434.34 192.576 441.399 198.568 445.672C203.833 449.427 215.291 447.097 222.443 440.818C225.648 438.004 225.678 437.532 223.003 431.695C219.397 423.827 218.22 420.944 218.22 419.979C218.22 419.407 217.929 418.602 217.574 418.188C217.219 417.773 215.95 414.225 214.753 410.305C212.537 403.044 212.241 402.02 209.938 393.668C209.217 391.054 208.328 387.846 207.964 386.538C206.703 382.017 204.815 373.047 203.961 367.523C203.49 364.474 202.966 361.088 202.798 359.998C202.63 358.909 202.466 357.955 202.434 357.877C202.401 357.8 200.325 358.973 197.819 360.483C195.313 361.994 192.373 363.443 191.283 363.704C190.194 363.965 188.947 364.425 188.511 364.729C184.916 367.235 168.453 367.983 160.824 365.988C154.73 364.395 153.866 363.511 156.424 361.487C159.807 358.81 165.251 353.337 166.097 351.761C166.849 350.359 166.67 350.294 163.446 350.8C155.292 352.078 149.804 352.237 145.135 351.327C139.484 350.227 127.868 346.165 124.337 344.056C123.03 343.275 120.8 342.044 119.383 341.322C116.389 339.796 105.719 330.127 105.719 328.939C105.719 328.47 106.959 328.292 108.69 328.512C115.638 329.394 125.928 326.095 135.711 319.849C147.953 312.032 164.246 291.871 168.65 279.089C169.828 275.67 169.998 275.916 164.494 273.101C158.95 270.263 148.916 262.701 144.33 257.902C137.494 250.75 131.233 241.096 127.053 231.259C123.053 221.848 119.143 206.08 120.479 204.748C120.883 204.346 121.504 204.987 126.317 210.771C130.607 215.926 143.02 223.445 150.585 225.469C152.272 225.92 156.753 226.666 160.546 227.127C168.068 228.04 173.944 227.182 179.474 224.361C185.251 221.414 185.876 219.962 188.083 204.322C188.452 201.708 189.129 197.965 189.589 196.004C195.038 172.732 194.54 174.442 200.076 159.957C201.774 155.515 205.128 148.746 207.607 144.757C211.318 138.786 211.983 137.137 210.945 136.479C210.372 136.115 209.298 135.813 208.562 135.806C207.825 135.799 207.002 135.437 206.732 135.001C206.463 134.565 205.601 134.209 204.816 134.209C203.119 134.209 194.108 129.721 191.294 127.475C183.687 121.4 176.422 111.229 174.715 104.261C173.562 99.5535 174.111 93.6509 175.835 92.2197C176.734 91.4743 177.164 91.8177 178.083 94.0176C180.926 100.821 194.291 105.655 210.298 105.669C225.538 105.682 238.466 101.587 245.949 94.374C247.91 92.4837 251.534 89.4243 254 87.5752C256.597 85.6288 259.064 82.9805 259.861 81.2852C263.577 73.3786 274.634 61.2287 282.945 55.9199C284.773 54.7522 286.587 52.9047 286.976 51.8154C287.365 50.7259 288.433 47.5116 289.349 44.6709C290.849 40.0197 292.005 37.69 296.945 29.3564C299.436 25.1553 304.54 19.2193 310.846 13.1904C316.314 7.96243 319.331 5.57386 327.553 -0.03125L330.325 -1.9209L362.514 -1.98828ZM215.92 562.069C215.658 562.098 213.307 563.325 210.693 564.796C208.079 566.268 205.406 567.735 204.752 568.058C197.551 571.602 186.047 580.554 176.99 589.663C163.981 602.744 155.29 616.31 151.561 629.35C149.799 635.51 149.829 634.905 151.272 634.905C152.42 634.905 158.712 630.731 162.762 627.282C173.337 618.275 178.898 612.899 185.442 605.347C198.995 589.709 200.64 588.472 211.299 585.903C213.375 585.403 215.792 584.994 216.672 584.994C218.61 584.994 219.529 583.006 218.284 581.507C217.787 580.907 217.157 576.276 216.886 571.217C216.615 566.158 216.18 562.042 215.92 562.069ZM316.461 475.477C316.461 473.505 313.85 475.542 310.891 479.824C309.007 482.548 304.812 488.073 301.567 492.103L295.669 499.43L298.954 503.78C308.337 516.206 316.643 522.539 325.021 523.65C329.831 524.288 329.994 525.362 325.527 526.967C321.263 528.498 309.727 527.782 302.992 525.567C296.637 523.478 288.063 519.402 286.007 517.494C285.162 516.711 284.203 516.069 283.875 516.069C283.547 516.069 281.586 518.298 279.519 521.021C277.451 523.744 274.097 527.933 272.065 530.329C265.643 537.908 251.73 556.984 248.787 562.246C245.651 567.854 243.952 572.169 244.616 572.834C245.475 573.692 250.728 571.358 257.475 567.123C261.252 564.751 264.437 562.812 264.554 562.812C264.68 562.805 269.323 560.151 274.881 556.907C288.653 548.87 292.119 548.088 308.142 549.401C327.767 551.01 330.666 549.712 332.272 538.597C333.195 532.213 333.268 498.673 332.373 492.37C331.708 487.689 331.577 487.537 321.675 480.031C318.808 477.859 316.462 475.81 316.461 475.477ZM375.662 14.9072C367.903 9.14627 359.016 6.82161 350.054 8.20801C346.288 8.79032 341.993 9.92306 338.248 11.3213C332.625 13.4207 319.915 20.4215 314.887 24.1895C305.94 30.8924 296.106 41.7974 294.035 47.3115C293.585 48.5118 293.79 48.6626 295.272 48.2197C296.25 47.9282 297.763 47.2541 298.635 46.7217C300.96 45.3004 314.701 40.1366 318.838 39.1289C325.182 37.5841 333.302 36.1958 342.073 35.1572C357.037 33.385 376.544 36.0865 388.054 41.5244C390.811 42.8268 393.301 43.8935 393.585 43.8936C395.476 43.8936 392.053 34.9221 387.365 27.5947C383.579 21.6751 380.975 18.8526 375.662 14.9072Z" />
+              <path fill-rule="evenodd"
+                d="M362.514 -1.98828C390.973 -2.04849 394.821 -1.9116 395.742 -0.801758C396.315 -0.110924 398.409 1.56091 400.395 2.91406C413.635 11.9337 423.888 26.9218 426.969 41.7588C427.42 43.9343 427.512 43.9688 431.167 43.3438C436.866 42.3701 449.885 42.8187 458.242 44.2764C471.665 46.619 479.911 49.242 492.178 55.0713C496.661 57.2021 500.617 58.9457 500.969 58.9463C501.32 58.9463 502.641 59.4501 503.906 60.0664C505.171 60.6828 509.626 61.7585 513.806 62.458C521.833 63.8016 527.955 63.4162 537.289 60.9785C548.36 58.0875 554.401 50.9036 555.487 39.3379C556.13 32.5001 557.277 32.8689 560.025 40.7969C565.314 56.0575 562.27 70.7209 551.62 81.2861C548.853 84.032 545.082 86.9908 543.242 87.8623C541.402 88.7335 539.893 89.6462 539.887 89.8906C539.882 90.1346 544.082 94.5913 549.22 99.7939C554.357 104.997 561.218 112.462 564.467 116.384C567.717 120.305 570.566 123.692 570.8 123.91C571.957 124.992 583.693 141.723 587.193 147.281C600.938 169.107 612.757 194.933 623.607 226.853C633.329 255.451 644.855 267.118 656.105 259.747C659.215 257.709 660.544 258.767 659.881 262.752C658.156 273.11 648.928 285.968 639.396 291.295C631.556 295.678 619.282 297.073 610.651 294.564C608.264 293.871 606.092 293.522 605.823 293.791C604.591 295.024 621.992 310.317 628.763 313.952C635.876 317.77 645.311 320.386 651.971 320.386C656.57 320.386 666.546 318.253 668.773 316.794C670.52 315.65 672.979 315.222 672.979 316.062C672.978 317.114 666.142 325.596 662.053 329.621C653.555 337.984 641.879 344.548 627.819 348.865C623.245 350.271 618.61 351.792 617.521 352.247C616.431 352.703 611.261 353.231 606.032 353.421C598.173 353.707 595.566 353.492 590.99 352.184C587.948 351.313 585.334 350.726 585.179 350.878C585.026 351.031 584.373 355.195 583.729 360.132C582.406 370.267 580.466 380.292 577.466 392.479C576.34 397.054 575.112 402.238 574.737 403.999C574.135 406.825 568.389 424.045 564.882 433.532C562.393 440.265 552.645 461.02 548.63 468.139C538.556 485.997 517.596 507.173 502.029 515.219C491.103 520.867 486.157 522.348 476.193 522.96C466.941 523.529 466.17 522.442 473.686 519.421C488.841 513.329 500.781 499.823 513.717 474.139C519.545 462.567 524.134 450.315 531.1 427.734C532.748 422.388 534.525 413.799 534.075 413.349C533.811 413.083 531.71 413.756 529.408 414.843C527.106 415.929 524.489 417.048 523.593 417.329C522.522 417.665 520.351 420.977 517.255 426.998C511.669 437.862 511.907 437.44 507.423 444.414C497.789 459.396 487.585 470.188 472.068 481.805C467.558 485.181 463.648 488.479 463.379 489.133C462.473 491.339 461.387 503.712 460.946 516.861C460.443 531.893 460.451 531.914 466.767 534.214C475.16 537.271 479.725 537.047 495.805 532.789C501.772 531.209 502.164 531.196 504.916 532.493C508.548 534.206 514.292 540.145 518.667 546.712C521.443 550.879 523.48 552.749 529.976 557.096C542.126 565.227 549.586 570.837 560.044 579.705C567.958 586.417 571.509 588.548 577.288 590.053C582.973 591.533 594.284 595.976 603.935 600.52C608.009 602.438 611.485 604.008 611.659 604.008C612.258 604.007 611.972 601.605 611.21 600.233C609.08 596.401 603.26 581.492 603.26 579.866C603.26 579.328 604.134 577.944 605.202 576.791C606.91 574.948 607.749 574.697 612.135 574.707C618.479 574.722 623.308 576.429 631.397 581.515C639.003 586.297 645.685 587.639 650.943 585.442C655.087 583.711 655.755 581.427 654.264 574.102C653.575 570.724 652.565 566.891 652.019 565.584C649.494 559.547 648.589 555.048 649.522 553.17C650.534 551.135 658.251 546.174 660.404 546.174C662.725 546.174 666.521 550.052 669.951 555.924C675.07 564.69 678.493 571.762 678.509 573.609C678.518 574.629 679.893 576.419 681.986 578.134C684.59 580.267 686.38 582.893 689.208 588.726C693.303 597.175 693.594 597.841 695.612 603.437C696.705 606.462 696.797 607.625 696.07 609.218C694.674 612.282 694.941 613.401 697.884 616.839C700.869 620.326 701.108 620.785 707.534 635.421C709.841 640.674 708.406 646.084 703.206 651.74C700.723 654.441 698.624 654.492 695.162 651.938C692.18 649.739 690.408 649.402 690.408 651.035C690.408 652.032 693.396 658.839 699.269 671.224L701.651 676.25L704.547 675.709C706.139 675.411 707.846 674.834 708.341 674.426C708.835 674.017 711.602 673.462 714.489 673.192C721.143 672.57 721.918 673.207 726.555 683.106C728.461 687.176 730.02 690.627 730.021 690.776C730.021 690.923 731.052 693.297 732.312 696.051C733.571 698.805 735.494 703.019 736.585 705.415C737.676 707.812 739.717 712.267 741.121 715.317C746.646 727.322 748.242 730.889 748.243 731.227C748.243 731.418 748.914 733.087 749.734 734.935C750.554 736.781 751.667 739.451 752.207 740.867C753.166 743.382 753.302 743.443 758.044 743.46C764.89 743.485 766.059 744.615 773.19 758.099C775.265 762.02 778.115 767.368 779.523 769.982C783.127 776.67 788.059 785.898 791.893 793.127C793.692 796.519 795.429 799.652 795.753 800.088C796.799 801.494 797.289 804.622 796.825 806.939L796.373 809.198H36L36.0127 807.02C36.0236 805.198 44.819 791.794 51.248 783.8C53.1368 781.451 55.8878 777.457 65.291 763.412C75.7376 747.808 79.7985 743.155 85.3721 740.406C89.3563 738.441 93.7069 733.514 102.236 721.308C107.211 714.187 116.391 699.647 121.272 691.154C122.901 688.322 126.893 682.263 130.146 677.691L136.061 669.379L134.754 665.702C132.74 660.03 133.013 659.106 138.202 654.044C140.816 651.494 142.955 649.145 142.955 648.823C142.955 648.502 141.398 646.22 139.495 643.752C133.111 635.471 131.04 630.149 129.427 617.872C127.786 605.392 130.002 590.315 135.48 576.676C140.909 563.163 151.985 543.669 160.513 532.619C162.927 529.491 162.762 528.745 159.655 528.745C157.848 528.745 149.363 526.05 144.936 524.07C144.064 523.68 141.925 522.745 140.183 521.993C134.548 519.562 123.729 511.845 118.595 506.597C111.468 499.31 102.88 486.165 104.31 484.732C104.523 484.519 106.16 485.762 107.945 487.494C114.691 494.041 121.847 495.887 140.183 495.812C151.504 495.765 154.724 495.472 160.385 493.975C168.006 491.958 179.56 487.23 185.665 483.63C187.922 482.299 190.054 481.211 190.403 481.211C190.753 481.211 191.628 480.558 192.349 479.762C193.593 478.387 193.453 478.215 189.611 476.416C184.55 474.046 179.975 468.927 177.716 463.105C174.8 455.593 175.546 442.695 179.394 434.072C179.783 433.201 181.017 430.418 182.136 427.89C183.255 425.36 184.519 422.864 184.942 422.344C185.367 421.822 186.642 420.238 187.776 418.821C188.911 417.405 190.155 416.247 190.54 416.247C190.931 416.247 191.022 419.574 190.745 423.791C190.052 434.34 192.576 441.399 198.568 445.672C203.833 449.427 215.291 447.097 222.443 440.818C225.648 438.004 225.678 437.532 223.003 431.695C219.397 423.827 218.22 420.944 218.22 419.979C218.22 419.407 217.929 418.602 217.574 418.188C217.219 417.773 215.95 414.225 214.753 410.305C212.537 403.044 212.241 402.02 209.938 393.668C209.217 391.054 208.328 387.846 207.964 386.538C206.703 382.017 204.815 373.047 203.961 367.523C203.49 364.474 202.966 361.088 202.798 359.998C202.63 358.909 202.466 357.955 202.434 357.877C202.401 357.8 200.325 358.973 197.819 360.483C195.313 361.994 192.373 363.443 191.283 363.704C190.194 363.965 188.947 364.425 188.511 364.729C184.916 367.235 168.453 367.983 160.824 365.988C154.73 364.395 153.866 363.511 156.424 361.487C159.807 358.81 165.251 353.337 166.097 351.761C166.849 350.359 166.67 350.294 163.446 350.8C155.292 352.078 149.804 352.237 145.135 351.327C139.484 350.227 127.868 346.165 124.337 344.056C123.03 343.275 120.8 342.044 119.383 341.322C116.389 339.796 105.719 330.127 105.719 328.939C105.719 328.47 106.959 328.292 108.69 328.512C115.638 329.394 125.928 326.095 135.711 319.849C147.953 312.032 164.246 291.871 168.65 279.089C169.828 275.67 169.998 275.916 164.494 273.101C158.95 270.263 148.916 262.701 144.33 257.902C137.494 250.75 131.233 241.096 127.053 231.259C123.053 221.848 119.143 206.08 120.479 204.748C120.883 204.346 121.504 204.987 126.317 210.771C130.607 215.926 143.02 223.445 150.585 225.469C152.272 225.92 156.753 226.666 160.546 227.127C168.068 228.04 173.944 227.182 179.474 224.361C185.251 221.414 185.876 219.962 188.083 204.322C188.452 201.708 189.129 197.965 189.589 196.004C195.038 172.732 194.54 174.442 200.076 159.957C201.774 155.515 205.128 148.746 207.607 144.757C211.318 138.786 211.983 137.137 210.945 136.479C210.372 136.115 209.298 135.813 208.562 135.806C207.825 135.799 207.002 135.437 206.732 135.001C206.463 134.565 205.601 134.209 204.816 134.209C203.119 134.209 194.108 129.721 191.294 127.475C183.687 121.4 176.422 111.229 174.715 104.261C173.562 99.5535 174.111 93.6509 175.835 92.2197C176.734 91.4743 177.164 91.8177 178.083 94.0176C180.926 100.821 194.291 105.655 210.298 105.669C225.538 105.682 238.466 101.587 245.949 94.374C247.91 92.4837 251.534 89.4243 254 87.5752C256.597 85.6288 259.064 82.9805 259.861 81.2852C263.577 73.3786 274.634 61.2287 282.945 55.9199C284.773 54.7522 286.587 52.9047 286.976 51.8154C287.365 50.7259 288.433 47.5116 289.349 44.6709C290.849 40.0197 292.005 37.69 296.945 29.3564C299.436 25.1553 304.54 19.2193 310.846 13.1904C316.314 7.96243 319.331 5.57386 327.553 -0.03125L330.325 -1.9209L362.514 -1.98828ZM215.92 562.069C215.658 562.098 213.307 563.325 210.693 564.796C208.079 566.268 205.406 567.735 204.752 568.058C197.551 571.602 186.047 580.554 176.99 589.663C163.981 602.744 155.29 616.31 151.561 629.35C149.799 635.51 149.829 634.905 151.272 634.905C152.42 634.905 158.712 630.731 162.762 627.282C173.337 618.275 178.898 612.899 185.442 605.347C198.995 589.709 200.64 588.472 211.299 585.903C213.375 585.403 215.792 584.994 216.672 584.994C218.61 584.994 219.529 583.006 218.284 581.507C217.787 580.907 217.157 576.276 216.886 571.217C216.615 566.158 216.18 562.042 215.92 562.069ZM316.461 475.477C316.461 473.505 313.85 475.542 310.891 479.824C309.007 482.548 304.812 488.073 301.567 492.103L295.669 499.43L298.954 503.78C308.337 516.206 316.643 522.539 325.021 523.65C329.831 524.288 329.994 525.362 325.527 526.967C321.263 528.498 309.727 527.782 302.992 525.567C296.637 523.478 288.063 519.402 286.007 517.494C285.162 516.711 284.203 516.069 283.875 516.069C283.547 516.069 281.586 518.298 279.519 521.021C277.451 523.744 274.097 527.933 272.065 530.329C265.643 537.908 251.73 556.984 248.787 562.246C245.651 567.854 243.952 572.169 244.616 572.834C245.475 573.692 250.728 571.358 257.475 567.123C261.252 564.751 264.437 562.812 264.554 562.812C264.68 562.805 269.323 560.151 274.881 556.907C288.653 548.87 292.119 548.088 308.142 549.401C327.767 551.01 330.666 549.712 332.272 538.597C333.195 532.213 333.268 498.673 332.373 492.37C331.708 487.689 331.577 487.537 321.675 480.031C318.808 477.859 316.462 475.81 316.461 475.477ZM375.662 14.9072C367.903 9.14627 359.016 6.82161 350.054 8.20801C346.288 8.79032 341.993 9.92306 338.248 11.3213C332.625 13.4207 319.915 20.4215 314.887 24.1895C305.94 30.8924 296.106 41.7974 294.035 47.3115C293.585 48.5118 293.79 48.6626 295.272 48.2197C296.25 47.9282 297.763 47.2541 298.635 46.7217C300.96 45.3004 314.701 40.1366 318.838 39.1289C325.182 37.5841 333.302 36.1958 342.073 35.1572C357.037 33.385 376.544 36.0865 388.054 41.5244C390.811 42.8268 393.301 43.8935 393.585 43.8936C395.476 43.8936 392.053 34.9221 387.365 27.5947C383.579 21.6751 380.975 18.8526 375.662 14.9072Z" />
             </svg>
           </div>
         </div>
@@ -924,12 +1580,14 @@
                 copyright 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可
               </div>
               <div class="version-expander-links">
-                <a href="https://github.com/Yunofactory/Kazuha" target="_blank" rel="noopener noreferrer" data-i18n="about.version.github">GitHub 仓库地址</a>
-                <a href="https://qm.qq.com/q/JW7jyyzW4s" target="_blank" rel="noopener noreferrer" data-i18n="about.version.qq">QQ群</a>
+                <a href="https://github.com/Yunofactory/Kazuha" target="_blank" rel="noopener noreferrer"
+                  data-i18n="about.version.github">GitHub 仓库地址</a>
+                <a href="https://qm.qq.com/q/JW7jyyzW4s" target="_blank" rel="noopener noreferrer"
+                  data-i18n="about.version.qq">QQ群</a>
               </div>
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" onclick="showUpdate()">
             <div class="item-info">
               <span class="item-label" data-i18n="about.checkUpdate.label">检查更新</span>
             </div>
@@ -942,7 +1600,7 @@
         </div>
       </div>
 
-      <div class="section" id="section-debug" style="display:none;">
+      <div class="section" id="section-debug">
         <div class="group-title" data-i18n="group.debugOptions">调试选项</div>
         <div class="settings-group">
           <div class="settings-item" onclick="createTestDialog()">
@@ -968,761 +1626,1365 @@
             </div>
           </div>
         </div>
-      </div> <!-- end of content -->
-    </div> <!-- end of layout -->
-  </body>  <script>
-    const I18N = {
-      "zh-CN": {
-        "nav.general": "通用",
-        "nav.interaction": "交互",
-        "nav.about": "关于",
-        "nav.toolbar": "工具栏",
-        "nav.debug": "调试",
-        "section.general": "通用",
-        "section.interaction": "交互",
-        "section.toolbar": "工具栏",
-        "section.about": "关于",
-        "section.debug": "调试",
-        "group.appearance": "外观",
-        "group.general": "通用",
-        "group.interaction": "交互",
-        "group.toolbar": "工具栏",
-        "group.debugOptions": "调试选项",
-        "appearance.mode.label": "外观模式",
-        "appearance.mode.desc": "调整应用程序的显示主题",
-        "appearance.mode.light": "浅色",
-        "appearance.mode.dark": "深色",
-        "appearance.mode.auto": "跟随系统",
-        "general.runAtStartup.label": "开机自启",
-        "general.autoShowOverlay.label": "自动显示悬浮窗",
-        "general.autoShowOverlay.desc": "检测到 PPT 放映时自动显示工具栏",
-        "general.language.label": "界面语言",
-        "general.language.desc": "更改语言后需重启软件才能在所有界面生效",
-        "general.language.warning": "当前选择的语言不是简体中文。为了获得最佳体验，建议使用简体中文。其他语言可能存在翻译不全或排版错位的问题。",
-        "language.zh-CN": "简体中文",
-        "language.zh-TW": "繁體中文",
-        "language.ja-JP": "日本語",
-        "language.en-US": "English",
-        "interaction.autoHandleInk.label": "自动处理墨迹",
-        "interaction.autoHandleInk.desc": "退出放映时自动处理\"是否保留墨迹\"",
-        "interaction.showStatusBar.label": "顶部状态栏",
-        "interaction.showStatusBar.desc": "在悬浮窗顶部显示时间与状态",
-        "interaction.showUndoRedo.label": "显示撤销/重做",
-        "interaction.showUndoRedo.undo": "撤销",
-        "interaction.showUndoRedo.redo": "重做",
-        "interaction.showToolbarText.label": "工具栏文字",
-        "interaction.showToolbarText.desc": "在工具栏图标下方显示功能名称",
-        "interaction.toolbar.customization.label": "工具栏固定程序",
-        "interaction.toolbar.customization.desc": "预览并管理工具栏上的快速启动软件",
-        "interaction.toolbar.preview.label": "工具栏预览",
-        "interaction.toolbar.addApp": "添加软件",
-        "interaction.toolbar.removeApp": "删除软件",
-        "interaction.toolbar.appList.label": "已经添加的软件",
-        "toolbar.select": "选择",
-        "toolbar.pen": "画笔",
-        "toolbar.eraser": "橡皮擦",
-        "toolbar.undo": "撤销",
-        "toolbar.redo": "重做",
-        "toolbar.end_show": "结束放映",
-        "about.version.label": "软件版本",
-        "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可",
-        "about.version.github": "GitHub 仓库地址",
-        "about.version.qq": "QQ群（1004548404）",
-        "about.checkUpdate.label": "检查更新",
-        "debug.createDialog.label": "创建 Dialog",
-        "debug.createDialog.desc": "测试全新的 Dialog 设计风格",
-        "debug.triggerCrash.label": "触发测试崩溃",
-        "debug.triggerCrash.desc": "手动触发一个 RuntimeError 以测试崩溃处理器的表现"
-      },
-      "zh-TW": {
-        "nav.general": "一般",
-        "nav.interaction": "互動",
-        "nav.about": "關於",
-        "nav.toolbar": "工具列",
-        "nav.debug": "偵錯",
-        "section.general": "一般",
-        "section.interaction": "互動",
-        "section.toolbar": "工具列",
-        "section.about": "關於",
-        "section.debug": "偵錯",
-        "group.appearance": "外觀",
-        "group.general": "一般",
-        "group.interaction": "互動",
-        "group.toolbar": "工具列",
-        "group.debugOptions": "偵錯選項",
-        "appearance.mode.label": "外觀模式",
-        "appearance.mode.desc": "調整應用程式的顯示主題",
-        "appearance.mode.light": "淺色",
-        "appearance.mode.dark": "深色",
-        "appearance.mode.auto": "跟隨系統",
-        "general.runAtStartup.label": "開機自啟",
-        "general.autoShowOverlay.label": "自動顯示懸浮窗",
-        "general.autoShowOverlay.desc": "偵測到 PPT 播放時自動顯示工具列",
-        "general.language.label": "介面語言",
-        "general.language.desc": "更改語言後需重新啟動才能在所有介面生效",
-        "general.language.warning": "目前選擇的語言不是簡體中文。為了獲得最佳體驗，建議使用簡體中文。其他語言可能存在翻譯不全或排版錯位的問題。",
-        "language.zh-CN": "簡體中文",
-        "language.zh-TW": "繁體中文",
-        "language.ja-JP": "日本語",
-        "language.en-US": "English",
-        "interaction.autoHandleInk.label": "自動處理墨跡",
-        "interaction.autoHandleInk.desc": "結束播放時自動處理「是否保留墨跡」",
-        "interaction.showStatusBar.label": "頂部狀態列",
-        "interaction.showStatusBar.desc": "在懸浮窗頂部顯示時間與狀態",
-        "interaction.showUndoRedo.label": "顯示復原/重做",
-        "interaction.toolbar.customization.label": "工具列固定程序",
-        "interaction.toolbar.customization.desc": "管理工具列上的快速啟動軟體",
-        "interaction.toolbar.preview.label": "工具列預覽",
-        "interaction.toolbar.addApp": "新增軟體",
-        "interaction.toolbar.removeApp": "移除軟體",
-        "interaction.toolbar.appList.label": "已新增的軟體",
-        "toolbar.select": "選擇",
-        "toolbar.pen": "畫筆",
-        "toolbar.eraser": "橡皮擦",
-        "toolbar.undo": "復原",
-        "toolbar.redo": "重做",
-        "toolbar.end_show": "結束放映",
-        "about.version.label": "軟體版本",
-        "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本程式依據 GNU General Public License 3 授權",
-        "about.version.github": "GitHub 儲存庫",
-        "about.version.qq": "QQ群",
-        "about.checkUpdate.label": "檢查更新",
-        "debug.createDialog.label": "建立 Dialog",
-        "debug.createDialog.desc": "測試全新的 Dialog 設計風格",
-        "debug.triggerCrash.label": "觸發測試當機",
-        "debug.triggerCrash.desc": "手動觸發一個 RuntimeError 以測試當機處理器的表現"
-      },
-      "ja-JP": {
-        "nav.general": "一般",
-        "nav.interaction": "インタラクション",
-        "nav.about": "情報",
-        "nav.toolbar": "ツールバー",
-        "nav.debug": "デバッグ",
-        "section.general": "一般",
-        "section.interaction": "インタラクション",
-        "section.toolbar": "ツールバー",
-        "section.about": "情報",
-        "section.debug": "デバッグ",
-        "group.appearance": "外観",
-        "group.general": "一般",
-        "group.interaction": "インタラクション",
-        "group.toolbar": "ツールバー",
-        "group.debugOptions": "デバッグオプション",
-        "appearance.mode.label": "テーマモード",
-        "appearance.mode.desc": "アプリの表示テーマを切り替えます",
-        "appearance.mode.light": "ライト",
-        "appearance.mode.dark": "ダーク",
-        "appearance.mode.auto": "システムに合わせる",
-        "general.runAtStartup.label": "起動時に自動実行",
-        "general.autoShowOverlay.label": "オーバーレイを自動表示",
-        "general.autoShowOverlay.desc": "PPT スライドショーを検出したらツールバーを自動表示します",
-        "general.language.label": "表示言語",
-        "general.language.desc": "言語変更後は再起動するとすべての画面に反映されます",
-        "general.language.warning": "現在選択されている言語は簡体字中国語ではありません。最高の体験を得るためには、簡体字中国語の使用をお勧めします。他の言語では翻訳が不完全であったり、レイアウトが崩れたりする可能性があります。",
-        "language.zh-CN": "簡体字中国語",
-        "language.zh-TW": "繁体字中国語",
-        "language.ja-JP": "日本語",
-        "language.en-US": "英語",
-        "interaction.autoHandleInk.label": "インクを自動処理",
-        "interaction.autoHandleInk.desc": "スライドショー終了時に「インクを保持するか」を自動処理します",
-        "interaction.showStatusBar.label": "上部ステータスバー",
-        "interaction.showStatusBar.desc": "オーバーレイ上部に時間と状態を表示します",
-        "interaction.showUndoRedo.label": "元に戻す/やり直しを表示",
-        "interaction.toolbar.customization.label": "ツールバー固定プログラム",
-        "interaction.toolbar.customization.desc": "ツールバーのクイック起動アプリを管理します",
-        "interaction.toolbar.preview.label": "ツールバープレビュー",
-        "interaction.toolbar.addApp": "アプリを追加",
-        "interaction.toolbar.removeApp": "アプリを削除",
-        "interaction.toolbar.appList.label": "追加済みアプリ",
-        "toolbar.select": "選択",
-        "toolbar.pen": "ペン",
-        "toolbar.eraser": "消しゴム",
-        "toolbar.undo": "元に戻す",
-        "toolbar.redo": "やり直し",
-        "toolbar.end_show": "スライドショー終了",
-        "about.version.label": "ソフトウェアバージョン",
-        "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本プログラムは GNU General Public License 3 に基づきライセンスされています",
-        "about.version.github": "GitHub リポジトリ",
-        "about.version.qq": "QQ グループ",
-        "about.checkUpdate.label": "更新を確認",
-        "debug.createDialog.label": "Dialog を作成",
-        "debug.createDialog.desc": "新しい Dialog デザインをテストします",
-        "debug.triggerCrash.label": "テストクラッシュを発生",
-        "debug.triggerCrash.desc": "RuntimeError を発生させてクラッシュハンドラをテストします"
-      },
-      "en-US": {
-        "nav.general": "General",
-        "nav.interaction": "Interaction",
-        "nav.about": "About",
-        "nav.toolbar": "Toolbar",
-        "nav.debug": "Debug",
-        "section.general": "General",
-        "section.interaction": "Interaction",
-        "section.toolbar": "Toolbar",
-        "section.about": "About",
-        "section.debug": "Debug",
-        "group.appearance": "Appearance",
-        "group.general": "General",
-        "group.interaction": "Interaction",
-        "group.toolbar": "Toolbar",
-        "group.debugOptions": "Debug options",
-        "appearance.mode.label": "Theme mode",
-        "appearance.mode.desc": "Adjust the display theme of the application",
-        "appearance.mode.light": "Light",
-        "appearance.mode.dark": "Dark",
-        "appearance.mode.auto": "Follow system",
-        "general.runAtStartup.label": "Run at startup",
-        "general.autoShowOverlay.label": "Auto show overlay",
-        "general.autoShowOverlay.desc": "Automatically show toolbar when PPT slideshow is detected",
-        "general.language.label": "Interface language",
-        "general.language.desc": "Restart is required for the language to apply everywhere",
-        "language.zh-CN": "Simplified Chinese",
-        "language.zh-TW": "Traditional Chinese",
-        "language.ja-JP": "Japanese",
-        "language.en-US": "English",
-        "interaction.autoHandleInk.label": "Auto handle ink",
-        "interaction.autoHandleInk.desc": "Automatically handle \"keep ink\" prompt when slideshow ends",
-        "interaction.showStatusBar.label": "Top status bar",
-        "interaction.showStatusBar.desc": "Show time and status at top of overlay",
-        "interaction.showUndoRedo.label": "Show Undo/Redo",
-        "interaction.toolbar.customization.label": "Toolbar fixed program",
-        "interaction.toolbar.customization.desc": "Manage quick launch applications on the toolbar",
-        "interaction.toolbar.preview.label": "Toolbar preview",
-        "interaction.toolbar.addApp": "Add application",
-        "interaction.toolbar.removeApp": "Remove application",
-        "interaction.toolbar.appList.label": "Added applications",
-        "toolbar.select": "Select",
-        "toolbar.pen": "Pen",
-        "toolbar.eraser": "Eraser",
-        "toolbar.undo": "Undo",
-        "toolbar.redo": "Redo",
-        "toolbar.end_show": "End slideshow",
-        "about.version.label": "Software version",
-        "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ Licensed under the GNU General Public License 3",
-        "about.version.github": "GitHub repository",
-        "about.version.qq": "QQ group",
-        "about.checkUpdate.label": "Check for updates",
-        "debug.createDialog.label": "Create Dialog",
-        "debug.createDialog.desc": "Test the new Dialog design style",
-        "debug.triggerCrash.label": "Trigger test crash",
-        "debug.triggerCrash.desc": "Manually trigger a RuntimeError to test the crash handler",
-        "general.language.warning": "The currently selected language is not Simplified Chinese. For the best experience, it is recommended to use Simplified Chinese. Other languages may have incomplete translations or layout issues."
-      }
-    };
+      </div>
 
-    let toolbarApps = [];
-    let selectedToolbarAppPaths = [];
+      <!-- Update Section -->
+      <div class="section" id="section-update">
+        <div class="update-content">
+          <!-- Header with Status -->
+          <div class="update-status-bar">
+            <div class="status-icon" id="update-status-icon">
+              <!-- Default: Info icon -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="8"></line>
+              </svg>
+            </div>
+            <div class="status-info">
+              <div class="status-text" id="update-status-text" data-i18n="update.status.ready">准备检查更新</div>
+              <div class="last-check-time" id="last-check-time">
+                <span data-i18n="update.lastCheck">上次检查时间</span>: <span id="last-check-time-value">--:--</span>
+              </div>
+            </div>
+            <div id="update-header-actions" class="header-actions">
+              <button class="btn-primary" id="update-check-btn" onclick="UpdateManager.check()"
+                data-i18n="update.checkNow">检查更新</button>
+            </div>
+          </div>
 
-    let currentLanguage = "zh-CN";
+          <!-- Pivot Tabs -->
+          <div class="pivot-container">
+            <div class="pivot-item active" data-pivot="changelog" onclick="UpdateManager.switchTab('changelog')"
+              data-i18n="update.pivot.changelog">更新日志</div>
+            <div class="pivot-item" data-pivot="settings" onclick="UpdateManager.switchTab('settings')"
+              data-i18n="update.pivot.settings">更新设置</div>
+          </div>
 
-    function getText(key) {
-      const langPack = I18N[currentLanguage] || I18N["zh-CN"];
-      if (langPack && key in langPack) return langPack[key];
-      const fallback = I18N["zh-CN"];
-      if (fallback && key in fallback) return fallback[key];
-      return "";
+          <!-- Changelog Tab -->
+          <div id="update-pivot-changelog" class="pivot-content active">
+            <!-- No update checked yet -->
+            <div id="update-state-idle" class="update-state-panel">
+              <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  style="margin-bottom: 16px; opacity: 0.3;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px;" data-i18n="update.idle.title">
+                  点击上方按钮检查更新</div>
+                <div style="font-size: 13px; opacity: 0.7;" data-i18n="update.idle.desc">将从 GitHub 获取最新版本信息</div>
+              </div>
+            </div>
+
+            <!-- Loading state -->
+            <div id="update-state-loading" class="update-state-panel" style="display: none;">
+              <div style="display: flex; justify-content: center; align-items: center; padding: 60px;">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+
+            <!-- Error state -->
+            <div id="update-state-error" class="update-state-panel" style="display: none;">
+              <div style="text-align: center; padding: 60px 20px; color: #ff4d4f;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  style="margin-bottom: 16px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12" y2="16"></line>
+                </svg>
+                <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px;" data-i18n="update.error.title">
+                  检查更新失败</div>
+                <div id="update-error-message" style="font-size: 13px; opacity: 0.8; margin-bottom: 16px;"
+                  data-i18n="update.error.desc">请检查网络连接后重试</div>
+                <button class="btn-secondary" onclick="UpdateManager.check()" data-i18n="update.retry">重试</button>
+              </div>
+            </div>
+
+            <!-- Up to date state -->
+            <div id="update-state-latest" class="update-state-panel" style="display: none;">
+              <div style="margin-bottom: 24px;">
+                <div style="margin-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--text-secondary);"
+                  data-i18n="update.latest.changelogTitle">最新公布版本的可用更新日志</div>
+                <div id="update-latest-changelog-content" class="changelog-content"></div>
+              </div>
+            </div>
+
+            <!-- New version available state -->
+            <div id="update-state-available" class="update-state-panel" style="display: none;">
+              <div class="changelog-card">
+                <div id="update-changelog-content" class="changelog-content"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Tab -->
+          <div id="update-pivot-settings" class="pivot-content">
+            <div class="settings-group">
+              <div class="settings-item" onclick="toggleSwitch('Update', 'AutoCheck')">
+                <div class="item-info">
+                  <div class="item-label" data-i18n="update.settings.autoCheck.label">自动检查更新</div>
+                  <div class="item-desc" data-i18n="update.settings.autoCheck.desc">启动时自动检查是否有新版本</div>
+                </div>
+                <div class="switch" id="sw-Update-AutoCheck"></div>
+              </div>
+              <div class="settings-item" onclick="toggleSwitch('Update', 'BetaProgram')">
+                <div class="item-info">
+                  <div class="item-label" data-i18n="update.settings.beta.label">预览版计划</div>
+                  <div class="item-desc" data-i18n="update.settings.beta.desc">获取最新的预览版功能，可能存在不稳定性</div>
+                </div>
+                <div class="switch" id="sw-Update-BetaProgram"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end of content -->
+  </div> <!-- end of layout -->
+</body>
+<script>
+  const I18N = {
+    "zh-CN": {
+      "nav.main": "主程序",
+      "nav.overlay": "顶层窗口",
+      "nav.about": "关于",
+      "nav.plugins": "插件",
+      "nav.debug": "调试",
+      "nav.back": "返回",
+      "section.main": "主程序",
+      "section.overlay": "顶层窗口",
+      "section.plugins": "插件",
+      "section.about": "关于",
+      "section.debug": "调试",
+      "group.appearance": "外观",
+      "group.main": "主程序",
+      "group.overlay": "顶层窗口",
+      "group.plugins": "插件",
+      "group.debugOptions": "调试选项",
+      "appearance.mode.label": "外观模式",
+      "appearance.mode.desc": "调整应用程序的显示主题",
+      "appearance.mode.light": "浅色",
+      "appearance.mode.dark": "深色",
+      "appearance.mode.auto": "跟随系统",
+      "general.runAtStartup.label": "开机自启",
+      "general.autoShowOverlay.label": "自动显示悬浮窗",
+      "general.autoShowOverlay.desc": "检测到 PPT 放映时自动显示工具栏",
+      "general.language.label": "界面语言",
+      "general.language.desc": "更改语言后需重启软件才能在所有界面生效",
+      "general.language.warning": "当前选择的语言不是简体中文。为了获得最佳体验，建议使用简体中文。其他语言可能存在翻译不全或排版错位的问题。",
+      "language.zh-CN": "简体中文",
+      "language.zh-TW": "繁體中文",
+      "language.ja-JP": "日本語",
+      "language.en-US": "English",
+      "interaction.autoHandleInk.label": "自动处理墨迹",
+      "interaction.autoHandleInk.desc": "退出放映时自动处理\"是否保留墨迹\"",
+      "interaction.showStatusBar.label": "顶部状态栏",
+      "interaction.showStatusBar.desc": "在悬浮窗顶部显示时间与状态",
+      "interaction.showUndoRedo.label": "显示撤销/重做",
+      "interaction.showUndoRedo.undo": "撤销",
+      "interaction.showUndoRedo.redo": "重做",
+      "interaction.showToolbarText.label": "工具栏文字",
+      "interaction.showToolbarText.desc": "在工具栏图标下方显示功能名称",
+      "interaction.toolbar.customization.label": "工具栏固定项",
+      "interaction.toolbar.customization.desc": "预览并管理工具栏上的快速启动项",
+      "interaction.toolbar.preview.label": "工具栏预览",
+      "interaction.toolbar.addApp": "添加项",
+      "interaction.toolbar.removeApp": "删除项",
+      "interaction.toolbar.appList.label": "已经添加的项目",
+      "interaction.toolbar.renameApp": "重命名",
+      "toolbar.appList.empty": "暂未添加任何项目",
+      "toolbar.select": "选择",
+      "toolbar.pen": "画笔",
+      "toolbar.eraser": "橡皮擦",
+      "update.status.ready": "准备检查更新",
+      "update.status.latest": "你使用的是最新版本",
+      "update.status.checking": "正在检查更新...",
+      "update.status.error": "检查更新失败",
+      "update.lastCheck": "上次检查时间",
+      "update.checkNow": "检查更新",
+      "update.pivot.changelog": "更新日志",
+      "update.pivot.settings": "更新设置",
+      "update.idle.title": "点击上方按钮检查更新",
+      "update.idle.desc": "将从 GitHub 获取最新版本信息",
+      "update.error.title": "检查更新失败",
+      "update.error.desc": "请检查网络连接后重试",
+      "update.latest.title": "已是最新版本",
+      "update.latest.desc": "无需更新",
+      "update.latest.changelogTitle": "最新公布版本的可用更新日志",
+      "update.available.title": "发现新版本",
+      "update.changelog.title": "更新内容",
+      "update.retry": "重试",
+      "update.later": "稍后提醒",
+      "update.download": "下载更新",
+      "update.settings.autoCheck.label": "自动检查更新",
+      "update.settings.autoCheck.desc": "启动时自动检查是否有新版本",
+      "update.settings.beta.label": "预览版计划",
+      "update.settings.beta.desc": "获取最新的预览版功能，可能存在不稳定性",
+      "toolbar.undo": "撤销",
+      "toolbar.redo": "重做",
+      "toolbar.end_show": "结束放映",
+      "about.version.label": "软件版本",
+      "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可",
+      "about.version.github": "GitHub 仓库地址",
+      "about.version.qq": "QQ群（1004548404）",
+      "about.checkUpdate.label": "检查更新",
+      "debug.createDialog.label": "创建 Dialog",
+      "debug.createDialog.desc": "测试全新的 Dialog 设计风格",
+      "debug.triggerCrash.label": "触发测试崩溃",
+      "debug.triggerCrash.desc": "手动触发一个 RuntimeError 以测试崩溃处理器的表现"
+    },
+    "zh-TW": {
+      "nav.main": "主程式",
+      "nav.overlay": "頂層效果視窗",
+      "nav.about": "關於",
+      "nav.plugins": "插件",
+      "nav.debug": "偵錯",
+      "nav.back": "返回",
+      "section.main": "主程式",
+      "section.overlay": "頂層效果視窗",
+      "section.plugins": "插件",
+      "section.about": "關於",
+      "section.debug": "偵錯",
+      "group.appearance": "外觀",
+      "group.main": "主程式",
+      "group.overlay": "頂層效果視窗",
+      "group.plugins": "插件",
+      "group.debugOptions": "偵錯選項",
+      "appearance.mode.label": "外觀模式",
+      "appearance.mode.desc": "調整應用程式的顯示主題",
+      "appearance.mode.light": "淺色",
+      "appearance.mode.dark": "深色",
+      "appearance.mode.auto": "跟隨系統",
+      "general.runAtStartup.label": "開機自啟",
+      "general.autoShowOverlay.label": "自動顯示懸浮窗",
+      "general.autoShowOverlay.desc": "偵測到 PPT 播放時自動顯示工具列",
+      "general.language.label": "介面語言",
+      "general.language.desc": "更改語言後需重新啟動才能在所有介面生效",
+      "general.language.warning": "目前選擇的語言不是簡體中文。為了獲得最佳體驗，建議使用簡體中文。其他語言可能存在翻譯不全或排版錯位的問題。",
+      "language.zh-CN": "簡體中文",
+      "language.zh-TW": "繁體中文",
+      "language.ja-JP": "日本語",
+      "language.en-US": "English",
+      "interaction.autoHandleInk.label": "自動處理墨跡",
+      "interaction.autoHandleInk.desc": "結束播放時自動處理「是否保留墨跡」",
+      "interaction.showStatusBar.label": "頂部狀態列",
+      "interaction.showStatusBar.desc": "在懸浮窗頂部顯示時間與狀態",
+      "interaction.showUndoRedo.label": "顯示復原/重做",
+      "interaction.toolbar.customization.label": "工具列固定項",
+      "interaction.toolbar.customization.desc": "管理工具列上的快速啟動項",
+      "interaction.toolbar.preview.label": "工具列預覽",
+      "interaction.toolbar.addApp": "新增項",
+      "interaction.toolbar.removeApp": "移除項",
+      "interaction.toolbar.appList.label": "已新增的項目",
+      "interaction.toolbar.renameApp": "重新命名",
+      "toolbar.select": "選擇",
+      "toolbar.pen": "畫筆",
+      "toolbar.eraser": "橡皮擦",
+      "toolbar.undo": "復原",
+      "toolbar.redo": "重做",
+      "toolbar.end_show": "結束放映",
+      "update.status.ready": "準備檢查更新",
+      "update.status.latest": "你使用的是最新版本",
+      "update.status.checking": "正在檢查更新...",
+      "update.status.error": "檢查更新失敗",
+      "update.lastCheck": "上次檢查時間",
+      "update.checkNow": "檢查更新",
+      "update.pivot.changelog": "更新日誌",
+      "update.pivot.settings": "更新設定",
+      "update.idle.title": "點擊上方按鈕檢查更新",
+      "update.idle.desc": "將從 GitHub 獲取最新版本資訊",
+      "update.error.title": "檢查更新失敗",
+      "update.error.desc": "請檢查網路連線後重試",
+      "update.latest.title": "已是最新版本",
+      "update.latest.desc": "無需更新",
+      "update.latest.changelogTitle": "最新公佈版本的可用更新日誌",
+      "update.available.title": "發現新版本",
+      "update.changelog.title": "更新內容",
+      "update.retry": "重試",
+      "update.later": "稍後提醒",
+      "update.download": "下載更新",
+      "update.settings.autoCheck.label": "自動檢查更新",
+      "update.settings.autoCheck.desc": "啟動時自動檢查是否有新版本",
+      "update.settings.beta.label": "預覽版計劃",
+      "update.settings.beta.desc": "獲取最新的預覽版功能，可能存在不穩定性",
+      "about.version.label": "軟體版本",
+      "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本程式依據 GNU General Public License 3 授權",
+      "about.version.github": "GitHub 儲存庫",
+      "about.version.qq": "QQ群",
+      "about.checkUpdate.label": "檢查更新",
+      "debug.createDialog.label": "建立 Dialog",
+      "debug.createDialog.desc": "測試全新的 Dialog 設計風格",
+      "debug.triggerCrash.label": "觸發測試當機",
+      "debug.triggerCrash.desc": "手動觸發一個 RuntimeError 以測試當機處理器的表現"
+    },
+    "ja-JP": {
+      "nav.main": "メインプログラム",
+      "nav.overlay": "トップレベルエフェクトウィンドウ",
+      "nav.about": "情報",
+      "nav.plugins": "プラグイン",
+      "nav.debug": "デバッグ",
+      "nav.back": "戻る",
+      "section.main": "メインプログラム",
+      "section.overlay": "トップレベルエフェクトウィンドウ",
+      "section.plugins": "プラグイン",
+      "section.about": "情報",
+      "section.debug": "デバッグ",
+      "group.appearance": "外観",
+      "group.main": "メインプログラム",
+      "group.overlay": "トップレベルエフェクトウィンドウ",
+      "group.plugins": "プラグイン",
+      "group.debugOptions": "デバッグオプション",
+      "appearance.mode.label": "テーマモード",
+      "appearance.mode.desc": "アプリの表示テーマを切り替えます",
+      "appearance.mode.light": "ライト",
+      "appearance.mode.dark": "ダーク",
+      "appearance.mode.auto": "システムに合わせる",
+      "general.runAtStartup.label": "起動時に自動実行",
+      "general.autoShowOverlay.label": "オーバーレイを自動表示",
+      "general.autoShowOverlay.desc": "PPT スライドショーを検出したらツールバーを自動表示します",
+      "general.language.label": "表示言語",
+      "general.language.desc": "言語変更後は再起動するとすべての画面に反映されます",
+      "general.language.warning": "現在選択されている言語は簡体字中国語ではありません。最高の体験を得るためには、簡体字中国語の使用をお勧めします。他の言語では翻訳が不完全であったり、レイアウトが崩れたりする可能性があります。",
+      "language.zh-CN": "簡体字中国語",
+      "language.zh-TW": "繁体字中国語",
+      "language.ja-JP": "日本語",
+      "language.en-US": "英語",
+      "interaction.autoHandleInk.label": "インクを自動処理",
+      "interaction.autoHandleInk.desc": "スライドショー終了時に「インクを保持するか」を自動処理します",
+      "interaction.showStatusBar.label": "上部ステータスバー",
+      "interaction.showStatusBar.desc": "オーバーレイ上部に時間と状態を表示します",
+      "interaction.showUndoRedo.label": "元に戻す/やり直しを表示",
+      "interaction.toolbar.customization.label": "ツールバー固定プログラム",
+      "interaction.toolbar.customization.desc": "ツールバーのクイック起動アプリを管理します",
+      "interaction.toolbar.preview.label": "ツールバープレビュー",
+      "interaction.toolbar.addApp": "アプリを追加",
+      "interaction.toolbar.removeApp": "アプリを削除",
+      "interaction.toolbar.appList.label": "追加済みアプリ",
+      "toolbar.select": "選択",
+      "toolbar.pen": "ペン",
+      "toolbar.eraser": "消しゴム",
+      "toolbar.undo": "元に戻す",
+      "toolbar.redo": "やり直し",
+      "toolbar.end_show": "スライドショー終了",
+      "update.status.ready": "更新の確認準備完了",
+      "update.status.latest": "最新バージョンを使用しています",
+      "update.status.checking": "更新を確認中...",
+      "update.status.error": "更新の確認に失敗しました",
+      "update.lastCheck": "最終確認日時",
+      "update.checkNow": "今すぐ確認",
+      "update.pivot.changelog": "変更履歴",
+      "update.pivot.settings": "更新設定",
+      "update.idle.title": "上のボタンをクリックして更新を確認",
+      "update.idle.desc": "GitHub から最新のバージョン情報を取得します",
+      "update.error.title": "更新の確認に失敗しました",
+      "update.error.desc": "ネットワーク接続を確認して再試行してください",
+      "update.latest.title": "最新バージョンです",
+      "update.latest.desc": "更新は不要です",
+      "update.latest.changelogTitle": "最新公開バージョンの変更履歴",
+      "update.available.title": "新しいバージョンが見つかりました",
+      "update.changelog.title": "更新内容",
+      "update.retry": "再試行",
+      "update.later": "後で通知",
+      "update.download": "更新をダウンロード",
+      "update.settings.autoCheck.label": "自動更新確認",
+      "update.settings.autoCheck.desc": "起動時に自動で新しいバージョンを確認します",
+      "update.settings.beta.label": "ベータ版プログラム",
+      "update.settings.beta.desc": "最新のベータ版機能を利用できます（不安定な場合があります）",
+      "about.version.label": "ソフトウェアバージョン",
+      "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本プログラムは GNU General Public License 3 に基づきライセンスされています",
+      "about.version.github": "GitHub リポジトリ",
+      "about.version.qq": "QQ グループ",
+      "about.checkUpdate.label": "更新を確認",
+      "debug.createDialog.label": "Dialog を作成",
+      "debug.createDialog.desc": "新しい Dialog デザインをテストします",
+      "debug.triggerCrash.label": "テストクラッシュを発生",
+      "debug.triggerCrash.desc": "RuntimeError を発生させてクラッシュハンドラをテストします"
+    },
+    "en-US": {
+      "nav.main": "Main Program",
+      "nav.overlay": "Top-level Effect Window",
+      "nav.about": "About",
+      "nav.plugins": "Plugins",
+      "nav.debug": "Debug",
+      "nav.back": "Back",
+      "section.main": "Main Program",
+      "section.overlay": "Top-level Effect Window",
+      "section.plugins": "Plugins",
+      "section.about": "About",
+      "section.debug": "Debug",
+      "group.appearance": "Appearance",
+      "group.main": "Main Program",
+      "group.overlay": "Top-level Effect Window",
+      "group.plugins": "Plugins",
+      "group.debugOptions": "Debug options",
+      "appearance.mode.label": "Theme mode",
+      "appearance.mode.desc": "Adjust the display theme of the application",
+      "appearance.mode.light": "Light",
+      "appearance.mode.dark": "Dark",
+      "appearance.mode.auto": "Follow system",
+      "general.runAtStartup.label": "Run at startup",
+      "general.autoShowOverlay.label": "Auto show overlay",
+      "general.autoShowOverlay.desc": "Automatically show toolbar when PPT slideshow is detected",
+      "general.language.label": "Interface language",
+      "general.language.desc": "Restart is required for the language to apply everywhere",
+      "language.zh-CN": "Simplified Chinese",
+      "language.zh-TW": "Traditional Chinese",
+      "language.ja-JP": "Japanese",
+      "language.en-US": "English",
+      "interaction.autoHandleInk.label": "Auto handle ink",
+      "interaction.autoHandleInk.desc": "Automatically handle \"keep ink\" prompt when slideshow ends",
+      "interaction.showStatusBar.label": "Top status bar",
+      "interaction.showStatusBar.desc": "Show time and status at top of overlay",
+      "interaction.showUndoRedo.label": "Show Undo/Redo",
+      "interaction.toolbar.customization.label": "Toolbar fixed program",
+      "interaction.toolbar.customization.desc": "Manage quick launch applications on the toolbar",
+      "interaction.toolbar.preview.label": "Toolbar preview",
+      "interaction.toolbar.addApp": "Add application",
+      "interaction.toolbar.removeApp": "Remove application",
+      "interaction.toolbar.appList.label": "Added applications",
+      "toolbar.select": "Select",
+      "toolbar.pen": "Pen",
+      "toolbar.eraser": "Eraser",
+      "toolbar.undo": "Undo",
+      "toolbar.redo": "Redo",
+      "toolbar.end_show": "End slideshow",
+      "update.status.ready": "Ready to check for updates",
+      "update.status.latest": "You are using the latest version",
+      "update.status.checking": "Checking for updates...",
+      "update.status.error": "Update check failed",
+      "update.lastCheck": "Last checked",
+      "update.checkNow": "Check Update",
+      "update.pivot.changelog": "Changelog",
+      "update.pivot.settings": "Update Settings",
+      "update.idle.title": "Click button above to check for updates",
+      "update.idle.desc": "Fetch latest version info from GitHub",
+      "update.error.title": "Update Check Failed",
+      "update.error.desc": "Please check your network connection and try again",
+      "update.latest.title": "You are up to date",
+      "update.latest.desc": "No updates available",
+      "update.latest.changelogTitle": "Available changelog for the latest published version",
+      "update.available.title": "New version available",
+      "update.changelog.title": "What's New",
+      "update.retry": "Retry",
+      "update.later": "Remind Later",
+      "update.download": "Download Update",
+      "update.settings.autoCheck.label": "Auto-check for updates",
+      "update.settings.autoCheck.desc": "Automatically check for new versions on startup",
+      "update.settings.beta.label": "Beta Program",
+      "update.settings.beta.desc": "Get latest beta features, which may be unstable",
+      "about.version.label": "Software version",
+      "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ Licensed under the GNU General Public License 3",
+      "about.version.github": "GitHub repository",
+      "about.version.qq": "QQ group",
+      "about.checkUpdate.label": "Check for updates",
+      "debug.createDialog.label": "Create Dialog",
+      "debug.createDialog.desc": "Test the new Dialog design style",
+      "debug.triggerCrash.label": "Trigger test crash",
+      "debug.triggerCrash.desc": "Manually trigger a RuntimeError to test the crash handler",
+      "general.language.warning": "The currently selected language is not Simplified Chinese. For the best experience, it is recommended to use Simplified Chinese. Other languages may have incomplete translations or layout issues."
+    }
+  };
+
+  let toolbarApps = [];
+  let selectedToolbarAppPaths = [];
+
+  let currentLanguage = "zh-CN";
+
+  function getText(key) {
+    const langPack = I18N[currentLanguage] || I18N["zh-CN"];
+    if (langPack && key in langPack) return langPack[key];
+    const fallback = I18N["zh-CN"];
+    if (fallback && key in fallback) return fallback[key];
+    return "";
+  }
+
+  function applyLanguageFont() {
+    const isSpecial = currentLanguage === "zh-TW" || currentLanguage === "ja-JP";
+    const fontStack = isSpecial
+      ? "\"MiSans Latin\", \"Yu Gothic UI\", system-ui, sans-serif"
+      : "\"MiSans Latin\", \"HarmonyOS Sans SC\", \"Source Han Sans CN\", \"Noto Sans CJK SC\", \"Microsoft YaHei\", system-ui, sans-serif";
+    document.documentElement.style.setProperty("--font-stack", fontStack);
+  }
+
+  function applyI18n() {
+    document.documentElement.lang = currentLanguage;
+    applyLanguageFont();
+
+    const warningEl = document.getElementById("language-warning");
+    if (warningEl) {
+      warningEl.style.display = currentLanguage === "zh-CN" ? "none" : "flex";
     }
 
-    function applyLanguageFont() {
-      const isSpecial = currentLanguage === "zh-TW" || currentLanguage === "ja-JP";
-      const fontStack = isSpecial
-        ? "\"MiSans Latin\", \"Yu Gothic UI\", system-ui, sans-serif"
-        : "\"MiSans Latin\", \"HarmonyOS Sans SC\", \"Source Han Sans CN\", \"Noto Sans CJK SC\", \"Microsoft YaHei\", system-ui, sans-serif";
-      document.documentElement.style.setProperty("--font-stack", fontStack);
-    }
-
-    function applyI18n() {
-      document.documentElement.lang = currentLanguage;
-      applyLanguageFont();
-      
-      const warningEl = document.getElementById("language-warning");
-      if (warningEl) {
-        warningEl.style.display = currentLanguage === "zh-CN" ? "none" : "flex";
-      }
-
-      const nodes = document.querySelectorAll("[data-i18n]");
-      nodes.forEach(node => {
-        const key = node.getAttribute("data-i18n");
-        const text = getText(key);
-        if (text) node.textContent = text;
-      });
-      const activeItem = document.querySelector(".sidebar-item.active");
-      const title = document.getElementById("section-title");
-      if (activeItem && title) {
-        const sectionKey = activeItem.getAttribute("data-section");
-        const key = "section." + sectionKey;
-        const text = getText(key);
-        if (text) title.textContent = text;
-      }
-      const langButtons = document.querySelectorAll(".language-option");
-      langButtons.forEach(btn => {
-        const lang = btn.getAttribute("data-lang");
-        const key = "language." + lang;
-        const text = getText(key);
-        if (text) btn.textContent = text;
-      });
-      const langValue = currentLanguage;
-      langButtons.forEach(btn => {
-        if (btn.getAttribute("data-lang") === langValue) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      });
-    }
-
-    function initNav() {
-      const items = document.querySelectorAll(".sidebar-item");
-      const sections = document.querySelectorAll(".section");
-      const title = document.getElementById("section-title");
-      items.forEach(function (item) {
-        item.addEventListener("click", function () {
-          const key = item.getAttribute("data-section");
-          items.forEach(function (i) {
-            i.classList.remove("active");
-          });
-          item.classList.add("active");
-          sections.forEach(function (sec) {
-            sec.classList.toggle("active", sec.id === "section-" + key);
-          });
-          if (title) {
-            const textKey = "section." + key;
-            const text = getText(textKey);
-            if (text) {
-              title.textContent = text;
-              title.setAttribute("data-i18n", textKey);
-            }
-            title.style.display = key === "about" ? "none" : "block";
-          }
-        });
-      });
-    }
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      if (settings.Appearance?.ThemeMode === 'Auto') {
-        applySettingsToUI();
-      }
+    const nodes = document.querySelectorAll("[data-i18n]");
+    nodes.forEach(node => {
+      const key = node.getAttribute("data-i18n");
+      const text = getText(key);
+      if (text) node.textContent = text;
     });
-
-    initNav();
-
-    let settings = window.initialSettings || {
-      General: { RunAtStartup: false, AutoShowOverlay: true, Language: "zh-CN" },
-      PPT: { AutoHandleInk: true },
-      Overlay: { ShowStatusBar: true },
-      Toolbar: { ShowUndoRedo: false, ShowToolbarText: true },
-      Appearance: { ThemeMode: "Light" }
-    };
-
-    if (window.initialSettings && window.initialSettings.General && window.initialSettings.General.Language) {
-      currentLanguage = window.initialSettings.General.Language;
+    const activeItem = document.querySelector(".sidebar-item.active");
+    const title = document.getElementById("section-title");
+    if (activeItem && title) {
+      const sectionKey = activeItem.getAttribute("data-section");
+      const key = "section." + sectionKey;
+      const text = getText(key);
+      if (text) title.textContent = text;
     }
-
-    if (window.initialSettings) {
-      applySettingsToUI();
-    }
-
-    window.addEventListener('pywebviewready', () => {
-      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_settings) return;
-      
-      window.pywebview.api.get_settings().then(function (res) {
-        if (res && Object.keys(res).length > 0) {
-          settings = res;
-          const lang = settings.General && settings.General.Language;
-          if (lang) currentLanguage = lang;
-          applySettingsToUI();
-        } else {
-          applySettingsToUI();
-        }
-      }).catch(err => {
-        console.error("Failed to get settings:", err);
-        applySettingsToUI();
-      });
+    const langButtons = document.querySelectorAll(".language-option");
+    langButtons.forEach(btn => {
+      const lang = btn.getAttribute("data-lang");
+      const key = "language." + lang;
+      const text = getText(key);
+      if (text) btn.textContent = text;
     });
-
-    function applySettingsToUI() {
-      setSwitch("General", "RunAtStartup");
-      setSwitch("General", "AutoShowOverlay");
-      setSwitch("PPT", "AutoHandleInk");
-      setSwitch("Overlay", "ShowStatusBar");
-      setSwitch("Toolbar", "ShowUndoRedo");
-      setSwitch("Toolbar", "ShowToolbarText");
-
-      const lang = settings.General && settings.General.Language;
-      if (lang) currentLanguage = lang;
-
-      const mode = settings.Appearance && settings.Appearance.ThemeMode ? settings.Appearance.ThemeMode : "Light";
-      document.querySelectorAll(".theme-option").forEach(opt => opt.classList.remove("active"));
-      const activeOpt = document.getElementById(`theme-${mode}`);
-      if (activeOpt) activeOpt.classList.add("active");
-
-      if (mode === "Auto") {
-        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+    const langValue = currentLanguage;
+    langButtons.forEach(btn => {
+      if (btn.getAttribute("data-lang") === langValue) {
+        btn.classList.add("active");
       } else {
-        document.documentElement.setAttribute("data-theme", mode.toLowerCase());
+        btn.classList.remove("active");
       }
+    });
+  }
 
-      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-      const accent = isDark ? "#E1EBFF" : "#3275F5";
-      document.documentElement.style.setProperty("--accent-blue", accent);
-
-      renderToolbarPreview();
-
-      if (window.pywebview && window.pywebview.api && window.pywebview.api.get_version) {
-        window.pywebview.api.get_version().then(v => {
-          if (!v) return;
-          const codeName = v.code_name || "";
-          const version = v.version || "";
-          const build = v.build != null ? v.build : "";
-          const el = document.getElementById("app-version");
-          if (el) {
-            el.textContent = `Version ${version} (${codeName}) Build ${build}`;
+  function initNav() {
+    const items = document.querySelectorAll(".sidebar-item");
+    const sections = document.querySelectorAll(".section");
+    const title = document.getElementById("section-title");
+    items.forEach(function (item) {
+      item.addEventListener("click", function () {
+        const key = item.getAttribute("data-section");
+        items.forEach(function (i) {
+          i.classList.remove("active");
+        });
+        item.classList.add("active");
+        sections.forEach(function (sec) {
+          sec.classList.toggle("active", sec.id === "section-" + key);
+        });
+        if (title) {
+          const textKey = "section." + key;
+          const text = getText(textKey);
+          if (text) {
+            title.textContent = text;
+            title.setAttribute("data-i18n", textKey);
           }
-
-          const wm = document.getElementById("dev-watermark");
-          if (wm && version) {
-            const parts = String(version).trim().split(".");
-            if (parts.length >= 2 && parts[parts.length - 1] === "1") {
-              wm.textContent = `开发中版本/技术预览版本\n不保证最终品质 （${version}）`;
-              wm.style.display = "block";
-            } else {
-              wm.style.display = "none";
-            }
-          }
-        }).catch(err => console.error("Failed to get version:", err));
-      }
-
-      applyI18n();
-      loadToolbarApps();
-    }
-
-    function setTheme(mode) {
-      if (!settings.Appearance) settings.Appearance = {};
-      settings.Appearance.ThemeMode = mode;
-      applySettingsToUI();
-      if (window.pywebview && window.pywebview.api.save_setting) {
-        window.pywebview.api.save_setting("Appearance", "ThemeMode", mode);
-      }
-    }
-
-    function setLanguage(lang) {
-      if (!settings.General) settings.General = {};
-      settings.General.Language = lang;
-      currentLanguage = lang;
-      applySettingsToUI();
-      if (window.pywebview && window.pywebview.api.save_setting) {
-        window.pywebview.api.save_setting("General", "Language", lang);
-      }
-    }
-
-    function setSwitch(cat, key) {
-      const val = settings[cat]?.[key] ?? false;
-      const el = document.getElementById(`sw-${cat}-${key}`);
-      if (el) {
-        if (val) el.classList.add('active');
-        else el.classList.remove('active');
-      }
-    }
-
-    function toggleSwitch(cat, key) {
-      const el = document.getElementById(`sw-${cat}-${key}`);
-      if (!el) return;
-
-      const isActive = el.classList.contains('active');
-      const newState = !isActive;
-
-      if (newState) el.classList.add('active');
-      else el.classList.remove('active');
-
-      if (!settings[cat]) settings[cat] = {};
-      settings[cat][key] = newState;
-
-      if (window.pywebview && window.pywebview.api.save_setting) {
-        window.pywebview.api.save_setting(cat, key, newState);
-      }
-
-      if (cat === "Toolbar") {
-        renderToolbarPreview();
-      }
-    }
-
-    function syncToolbarAppsToSettings() {
-      if (!settings.Toolbar) settings.Toolbar = {};
-      settings.Toolbar.QuickLaunchApps = toolbarApps;
-    }
-
-    function loadToolbarApps() {
-      const fallback = () => {
-        const apps = (settings.Toolbar && settings.Toolbar.QuickLaunchApps) || [];
-        toolbarApps = Array.isArray(apps) ? apps : [];
-        renderToolbarPreview();
-        renderToolbarAppList();
-      };
-
-      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_quick_launch_apps) {
-        fallback();
-        return;
-      }
-
-      window.pywebview.api.get_quick_launch_apps().then(res => {
-        toolbarApps = Array.isArray(res) ? res : [];
-        syncToolbarAppsToSettings();
-        renderToolbarPreview();
-        renderToolbarAppList();
-      }).catch(err => {
-        console.error("Failed to get quick launch apps:", err);
-        fallback();
+          title.style.display = key === "about" ? "none" : "block";
+        }
       });
+    });
+  }
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (settings.Appearance?.ThemeMode === 'Auto') {
+      applySettingsToUI();
+    }
+  });
+
+  initNav();
+
+  let settings = window.initialSettings || {
+    General: { RunAtStartup: false, AutoShowOverlay: true, Language: "zh-CN" },
+    PPT: { AutoHandleInk: true },
+    Overlay: { ShowStatusBar: true },
+    Toolbar: { ShowUndoRedo: false, ShowToolbarText: true },
+    Update: { AutoCheck: true, BetaProgram: false },
+    Appearance: { ThemeMode: "Light" }
+  };
+
+  if (window.initialSettings && window.initialSettings.General && window.initialSettings.General.Language) {
+    currentLanguage = window.initialSettings.General.Language;
+  }
+
+  if (window.initialSettings) {
+    applySettingsToUI();
+  }
+
+  window.addEventListener('pywebviewready', () => {
+    if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_settings) return;
+
+    window.pywebview.api.get_settings().then(function (res) {
+      if (res && Object.keys(res).length > 0) {
+        settings = res;
+        const lang = settings.General && settings.General.Language;
+        if (lang) currentLanguage = lang;
+        applySettingsToUI();
+      } else {
+        applySettingsToUI();
+      }
+    }).catch(err => {
+      console.error("Failed to get settings:", err);
+      applySettingsToUI();
+    });
+  });
+
+  function applySettingsToUI() {
+    setSwitch("General", "RunAtStartup");
+    setSwitch("General", "AutoShowOverlay");
+    setSwitch("PPT", "AutoHandleInk");
+    setSwitch("Overlay", "ShowStatusBar");
+    setSwitch("Toolbar", "ShowUndoRedo");
+    setSwitch("Toolbar", "ShowToolbarText");
+    setSwitch("Update", "AutoCheck");
+    setSwitch("Update", "BetaProgram");
+
+    const lang = settings.General && settings.General.Language;
+    if (lang) currentLanguage = lang;
+
+    const mode = settings.Appearance && settings.Appearance.ThemeMode ? settings.Appearance.ThemeMode : "Light";
+    document.querySelectorAll(".theme-option").forEach(opt => opt.classList.remove("active"));
+    const activeOpt = document.getElementById(`theme-${mode}`);
+    if (activeOpt) activeOpt.classList.add("active");
+
+    if (mode === "Auto") {
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+    } else {
+      document.documentElement.setAttribute("data-theme", mode.toLowerCase());
     }
 
-    function renderToolbarPreview() {
-      const preview = document.getElementById("toolbar-preview");
-      if (!preview) return;
-      preview.innerHTML = "";
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const accent = isDark ? "#E1EBFF" : "#3275F5";
+    document.documentElement.style.setProperty("--accent-blue", accent);
 
-      const showText = !!(settings.Toolbar && settings.Toolbar.ShowToolbarText);
-      
-      const createBtn = (labelKey, fallback, iconName, isExit = false) => {
+    renderToolbarPreview();
+
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.get_version) {
+      window.pywebview.api.get_version().then(v => {
+        if (!v) return;
+        const codeName = v.code_name || "";
+        const version = v.version || "";
+        UpdateManager.appVersion = version;
+        const build = v.build != null ? v.build : "";
+        const el = document.getElementById("app-version");
+        if (el) {
+          el.textContent = `Version ${version} (${codeName}) Build ${build}`;
+        }
+
+        const wm = document.getElementById("dev-watermark");
+        if (wm && version) {
+          const parts = String(version).trim().split(".");
+          if (parts.length >= 2 && parts[parts.length - 1] === "1") {
+            wm.textContent = `开发中版本/技术预览版本\n不保证最终品质 （${version}）`;
+            wm.style.display = "block";
+          } else {
+            wm.style.display = "none";
+          }
+        }
+      }).catch(err => console.error("Failed to get version:", err));
+    }
+
+    applyI18n();
+    loadToolbarApps();
+
+    // Ensure toolbar action buttons are correctly bound
+    const addBtn = document.getElementById("toolbar-add-btn");
+    if (addBtn) {
+      addBtn.onclick = (e) => {
+        e.preventDefault();
+        addToolbarApp();
+      };
+    }
+
+    const removeBtn = document.getElementById("toolbar-remove-btn");
+    if (removeBtn) {
+      removeBtn.onclick = (e) => {
+        e.preventDefault();
+        removeSelectedToolbarApp();
+      };
+    }
+  }
+
+  function setTheme(mode) {
+    if (!settings.Appearance) settings.Appearance = {};
+    settings.Appearance.ThemeMode = mode;
+    applySettingsToUI();
+    if (window.pywebview && window.pywebview.api.save_setting) {
+      window.pywebview.api.save_setting("Appearance", "ThemeMode", mode);
+    }
+  }
+
+  function setLanguage(lang) {
+    if (!settings.General) settings.General = {};
+    settings.General.Language = lang;
+    currentLanguage = lang;
+    applySettingsToUI();
+    if (window.pywebview && window.pywebview.api.save_setting) {
+      window.pywebview.api.save_setting("General", "Language", lang);
+    }
+  }
+
+  function setSwitch(cat, key) {
+    const val = settings[cat]?.[key] ?? false;
+    const el = document.getElementById(`sw-${cat}-${key}`);
+    if (el) {
+      if (val) el.classList.add('active');
+      else el.classList.remove('active');
+    }
+  }
+
+  function toggleSwitch(cat, key) {
+    const el = document.getElementById(`sw-${cat}-${key}`);
+    if (!el) return;
+
+    const isActive = el.classList.contains('active');
+    const newState = !isActive;
+
+    if (newState) el.classList.add('active');
+    else el.classList.remove('active');
+
+    if (!settings[cat]) settings[cat] = {};
+    settings[cat][key] = newState;
+
+    if (window.pywebview && window.pywebview.api.save_setting) {
+      window.pywebview.api.save_setting(cat, key, newState);
+    }
+
+    if (cat === "Toolbar") {
+      renderToolbarPreview();
+    }
+  }
+
+  function syncToolbarAppsToSettings() {
+    if (!settings.Toolbar) settings.Toolbar = {};
+    settings.Toolbar.QuickLaunchApps = toolbarApps;
+  }
+
+  function loadToolbarApps() {
+    const fallback = () => {
+      const apps = (settings.Toolbar && settings.Toolbar.QuickLaunchApps) || [];
+      toolbarApps = Array.isArray(apps) ? apps : [];
+      renderToolbarPreview();
+      renderToolbarAppList();
+    };
+
+    if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_quick_launch_apps) {
+      fallback();
+      return;
+    }
+
+    window.pywebview.api.get_quick_launch_apps().then(res => {
+      toolbarApps = Array.isArray(res) ? res : [];
+      syncToolbarAppsToSettings();
+      renderToolbarPreview();
+      renderToolbarAppList();
+    }).catch(err => {
+      console.error("Failed to get quick launch apps:", err);
+      fallback();
+    });
+  }
+
+  function renderToolbarPreview() {
+    const preview = document.getElementById("toolbar-preview");
+    if (!preview) return;
+    preview.innerHTML = "";
+
+    const showText = !!(settings.Toolbar && settings.Toolbar.ShowToolbarText);
+
+    const createBtn = (labelKey, fallback, iconName, isExit = false) => {
+      const btn = document.createElement("div");
+      btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
+
+      const icon = document.createElement("div");
+      icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
+
+      btn.appendChild(icon);
+
+      if (showText) {
+        const label = document.createElement("div");
+        label.className = "toolbar-preview-btn-label";
+        label.textContent = getText(labelKey) || fallback;
+        btn.appendChild(label);
+      }
+      return btn;
+    };
+
+    const createSeparator = () => {
+      const sep = document.createElement("div");
+      sep.className = "toolbar-preview-separator";
+      return sep;
+    };
+
+    preview.appendChild(createBtn("toolbar.select", "选择", "select"));
+    preview.appendChild(createBtn("toolbar.pen", "画笔", "pen"));
+    preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser"));
+
+    const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
+    if (showUndoRedo) {
+      preview.appendChild(createSeparator());
+      preview.appendChild(createBtn("toolbar.undo", "撤销", "undo"));
+      preview.appendChild(createBtn("toolbar.redo", "重做", "redo"));
+    }
+
+    if (toolbarApps && toolbarApps.length > 0) {
+      preview.appendChild(createSeparator());
+      toolbarApps.forEach(app => {
         const btn = document.createElement("div");
         btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
-
         const icon = document.createElement("div");
-        icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
-        
-        btn.appendChild(icon);
+        icon.className = "toolbar-preview-btn-icon";
 
+        if (app.icon) {
+          icon.innerHTML = `<img src="${app.icon}" class="toolbar-app-icon-img" style="position: relative; z-index: 1;">`;
+        } else {
+          const firstChar = (app.name || "?").charAt(0).toUpperCase();
+          icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
+        }
+
+        btn.appendChild(icon);
         if (showText) {
           const label = document.createElement("div");
           label.className = "toolbar-preview-btn-label";
-          label.textContent = getText(labelKey) || fallback;
+          const name = app.name || "App";
+          label.textContent = name;
           btn.appendChild(label);
         }
-        return btn;
-      };
-
-      const createSeparator = () => {
-        const sep = document.createElement("div");
-        sep.className = "toolbar-preview-separator";
-        return sep;
-      };
-
-      preview.appendChild(createBtn("toolbar.select", "选择", "select"));
-      preview.appendChild(createBtn("toolbar.pen", "画笔", "pen"));
-      preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser"));
-
-      const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
-      if (showUndoRedo) {
-        preview.appendChild(createSeparator());
-        preview.appendChild(createBtn("toolbar.undo", "撤销", "undo"));
-        preview.appendChild(createBtn("toolbar.redo", "重做", "redo"));
-      }
-
-      if (toolbarApps && toolbarApps.length > 0) {
-        preview.appendChild(createSeparator());
-        toolbarApps.forEach(app => {
-          const btn = document.createElement("div");
-          btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
-          const icon = document.createElement("div");
-          icon.className = "toolbar-preview-btn-icon";
-          
-          const firstChar = (app.name || "?").charAt(0).toUpperCase();
-          icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
-          
-          btn.appendChild(icon);
-          if (showText) {
-            const label = document.createElement("div");
-            label.className = "toolbar-preview-btn-label";
-            label.textContent = app.name || "App";
-            btn.appendChild(label);
-          }
-          preview.appendChild(btn);
-        });
-      }
-
-      preview.appendChild(createSeparator());
-      preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", true));
+        preview.appendChild(btn);
+      });
     }
 
-    function renderToolbarAppList() {
-      const list = document.getElementById("toolbar-app-list");
-      if (!list) return;
-      list.innerHTML = "";
+    preview.appendChild(createSeparator());
+    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", true));
+  }
 
-      if (!toolbarApps || toolbarApps.length === 0) {
-        list.innerHTML = `
+  function renderToolbarAppList() {
+    const list = document.getElementById("toolbar-app-list");
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (!toolbarApps || toolbarApps.length === 0) {
+      list.innerHTML = `
           <div style="padding: 48px 32px; text-align: center; color: var(--text-secondary); background: var(--bg-surface); border-radius: 14px; border: 1px solid var(--divider);">
             <div style="font-size: 40px; margin-bottom: 16px; opacity: 0.3;">📦</div>
             <div style="font-weight: 500;" data-i18n="toolbar.appList.empty">暂未添加任何软件</div>
             <div style="font-size: 12px; margin-top: 8px; opacity: 0.6;">点击下方按钮添加常用工具</div>
           </div>
         `;
-        selectedToolbarAppPaths = [];
-        updateToolbarRemoveButtonState();
-        return;
-      }
+      selectedToolbarAppPaths = [];
+      updateToolbarRemoveButtonState();
+      return;
+    }
 
-      toolbarApps.forEach(app => {
-        const row = document.createElement("div");
-        const isSelected = selectedToolbarAppPaths.includes(app.path);
-        row.className = "toolbar-app-row" + (isSelected ? " selected" : "");
-        row.dataset.path = app.path || "";
-        
-        row.addEventListener("click", (e) => {
-          if (e.detail === 1) {
-            toggleSelectedToolbarApp(app.path || "");
-          } else if (e.detail === 2) {
-            deselectToolbarApp(app.path || "");
-          }
-        });
-        
-        const firstChar = (app.name || "?").charAt(0).toUpperCase();
-        
-        row.innerHTML = `
-          <div class="toolbar-app-icon-placeholder">${firstChar}</div>
+    toolbarApps.forEach(app => {
+      const row = document.createElement("div");
+      const isSelected = selectedToolbarAppPaths.includes(app.path);
+      row.className = "toolbar-app-row" + (isSelected ? " selected" : "");
+      row.dataset.path = app.path || "";
+
+      row.addEventListener("click", (e) => {
+        if (e.detail === 1) {
+          toggleSelectedToolbarApp(app.path || "");
+        } else if (e.detail === 2) {
+          deselectToolbarApp(app.path || "");
+        }
+      });
+
+      const firstChar = (app.name || "?").charAt(0).toUpperCase();
+      const iconHtml = app.icon
+        ? `<img src="${app.icon}" class="toolbar-app-icon-img">`
+        : firstChar;
+
+      row.innerHTML = `
+          <div class="toolbar-app-icon-placeholder">${iconHtml}</div>
           <div class="toolbar-app-info">
-            <div class="toolbar-app-name">${app.name || "Unknown App"}</div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div class="toolbar-app-name">${app.name || "Unknown App"}</div>
+              <button class="toolbar-app-rename-btn" data-i18n="interaction.toolbar.renameApp">重命名</button>
+            </div>
             <div class="toolbar-app-path">${app.path || "No Path"}</div>
           </div>
         `;
-        list.appendChild(row);
-      });
 
-      updateToolbarRemoveButtonState();
-    }
-
-    function toggleSelectedToolbarApp(path) {
-      if (!path) return;
-      const index = selectedToolbarAppPaths.indexOf(path);
-      if (index > -1) {
-        selectedToolbarAppPaths.splice(index, 1);
-      } else {
-        selectedToolbarAppPaths.push(path);
+      const renameBtn = row.querySelector(".toolbar-app-rename-btn");
+      if (renameBtn) {
+        renameBtn.onclick = (e) => {
+          e.stopPropagation();
+          renameToolbarApp(app.path);
+        };
       }
-      refreshSelectionUI();
+
+      list.appendChild(row);
+    });
+
+    updateToolbarRemoveButtonState();
+  }
+
+  function renameToolbarApp(path) {
+    const app = toolbarApps.find(a => a.path === path);
+    if (!app) return;
+
+    const newName = prompt(getText("interaction.toolbar.renameApp") || "重命名", app.name);
+    if (newName === null || newName.trim() === "" || newName === app.name) return;
+
+    if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.rename_quick_launch_app) {
+      app.name = newName.trim();
+      renderToolbarAppList();
+      renderToolbarPreview();
+      return;
     }
 
-    function deselectToolbarApp(path) {
-      if (!path) return;
-      const index = selectedToolbarAppPaths.indexOf(path);
-      if (index > -1) {
-        selectedToolbarAppPaths.splice(index, 1);
-      }
-      refreshSelectionUI();
-    }
-
-    function refreshSelectionUI() {
-      const list = document.getElementById("toolbar-app-list");
-      if (!list) return;
-      const rows = list.querySelectorAll(".toolbar-app-row");
-      rows.forEach(row => {
-        const path = row.dataset.path;
-        row.classList.toggle("selected", selectedToolbarAppPaths.includes(path));
-      });
-      updateToolbarRemoveButtonState();
-    }
-
-    function updateToolbarRemoveButtonState() {
-      const btn = document.getElementById("toolbar-remove-btn");
-      if (!btn) return;
-      const enabled = selectedToolbarAppPaths.length > 0;
-      btn.disabled = !enabled;
-      if (enabled) btn.classList.remove("disabled");
-      else btn.classList.add("disabled");
-    }
-
-    function addToolbarApp() {
-      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.add_quick_launch_app) {
-        return;
-      }
-      window.pywebview.api.add_quick_launch_app().then(res => {
-        if (Array.isArray(res)) {
-          toolbarApps = res;
-          syncToolbarAppsToSettings();
-          if (toolbarApps.length > 0) {
-            const last = toolbarApps[toolbarApps.length - 1];
-            if (last && last.path && !selectedToolbarAppPaths.includes(last.path)) {
-              selectedToolbarAppPaths.push(last.path);
-            }
-          }
-          renderToolbarPreview();
-          renderToolbarAppList();
-        } else {
-          loadToolbarApps();
-        }
-      }).catch(err => {
-        console.error("Failed to add quick launch app:", err);
-      });
-    }
-
-    function removeSelectedToolbarApp() {
-      if (selectedToolbarAppPaths.length === 0) return;
-      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.remove_quick_launch_app) {
-        return;
-      }
-      
-      const removeOneByOne = async () => {
-        const pathsToRemove = [...selectedToolbarAppPaths];
-        for (const path of pathsToRemove) {
-          try {
-            const res = await window.pywebview.api.remove_quick_launch_app(path);
-            if (Array.isArray(res)) {
-              toolbarApps = res;
-              syncToolbarAppsToSettings();
-            }
-          } catch (err) {
-            console.error(`Failed to remove app at ${path}:`, err);
-          }
-        }
-        selectedToolbarAppPaths = [];
+    window.pywebview.api.rename_quick_launch_app(path, newName.trim()).then(res => {
+      if (Array.isArray(res)) {
+        toolbarApps = res;
+        syncToolbarAppsToSettings();
         renderToolbarPreview();
         renderToolbarAppList();
-      };
-
-      removeOneByOne();
-    }
-
-    function triggerTestCrash() {
-      if (window.pywebview && window.pywebview.api.trigger_crash) {
-        window.pywebview.api.trigger_crash();
       }
+    }).catch(err => {
+      console.error("Failed to rename quick launch app:", err);
+    });
+  }
+
+  function toggleSelectedToolbarApp(path) {
+    if (!path) return;
+    const index = selectedToolbarAppPaths.indexOf(path);
+    if (index > -1) {
+      selectedToolbarAppPaths.splice(index, 1);
+    } else {
+      selectedToolbarAppPaths.push(path);
+    }
+    refreshSelectionUI();
+  }
+
+  function deselectToolbarApp(path) {
+    if (!path) return;
+    const index = selectedToolbarAppPaths.indexOf(path);
+    if (index > -1) {
+      selectedToolbarAppPaths.splice(index, 1);
+    }
+    refreshSelectionUI();
+  }
+
+  function refreshSelectionUI() {
+    const list = document.getElementById("toolbar-app-list");
+    if (!list) return;
+    const rows = list.querySelectorAll(".toolbar-app-row");
+    rows.forEach(row => {
+      const path = row.dataset.path;
+      row.classList.toggle("selected", selectedToolbarAppPaths.includes(path));
+    });
+    updateToolbarRemoveButtonState();
+  }
+
+  function updateToolbarRemoveButtonState() {
+    const btn = document.getElementById("toolbar-remove-btn");
+    if (!btn) return;
+    const enabled = selectedToolbarAppPaths.length > 0;
+    btn.disabled = !enabled;
+    if (enabled) btn.classList.remove("disabled");
+    else btn.classList.add("disabled");
+  }
+
+  function addToolbarApp() {
+    // Direct call via window.pywebview.api
+    if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.add_quick_launch_app) {
+      setTimeout(addToolbarApp, 100);
+      return;
     }
 
-    function createTestDialog() {
-      if (window.pywebview && window.pywebview.api.create_dialog) {
-        window.pywebview.api.create_dialog();
-      }
-    }
-
-    (function () {
-      const versionItem = document.getElementById('version-item');
-      const debugSection = document.getElementById('section-debug');
-      const debugNav = document.getElementById('nav-debug');
-      const expander = document.getElementById('version-expander');
-      if (!versionItem || !debugSection) return;
-      let tapCount = 0;
-      versionItem.addEventListener('click', () => {
-        if (expander) {
-          const isHidden = window.getComputedStyle(expander).display === 'none';
-          expander.style.display = isHidden ? 'block' : 'none';
+    window.pywebview.api.add_quick_launch_app().then(res => {
+      if (Array.isArray(res)) {
+        toolbarApps = res;
+        syncToolbarAppsToSettings();
+        if (toolbarApps.length > 0) {
+          const last = toolbarApps[toolbarApps.length - 1];
+          if (last && last.path && !selectedToolbarAppPaths.includes(last.path)) {
+            selectedToolbarAppPaths.push(last.path);
+          }
         }
-        tapCount += 1;
-        if (tapCount >= 5) {
-          debugSection.style.display = '';
-          if (debugNav) debugNav.style.display = 'flex';
+        renderToolbarPreview();
+        renderToolbarAppList();
+      } else {
+        loadToolbarApps();
+      }
+    }).catch(err => {
+      console.error("Failed to add quick launch app:", err);
+    });
+  }
+
+  function removeSelectedToolbarApp() {
+    if (selectedToolbarAppPaths.length === 0) return;
+    if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.remove_quick_launch_app) {
+      return;
+    }
+
+    const removeOneByOne = async () => {
+      const pathsToRemove = [...selectedToolbarAppPaths];
+      for (const path of pathsToRemove) {
+        try {
+          const res = await window.pywebview.api.remove_quick_launch_app(path);
+          if (Array.isArray(res)) {
+            toolbarApps = res;
+            syncToolbarAppsToSettings();
+          }
+        } catch (err) {
+          console.error(`Failed to remove app at ${path}:`, err);
+        }
+      }
+      selectedToolbarAppPaths = [];
+      renderToolbarPreview();
+      renderToolbarAppList();
+    };
+
+    removeOneByOne();
+  }
+
+  function triggerTestCrash() {
+    if (window.pywebview && window.pywebview.api.trigger_crash) {
+      window.pywebview.api.trigger_crash();
+    }
+  }
+
+  function createTestDialog() {
+    if (window.pywebview && window.pywebview.api.create_dialog) {
+      window.pywebview.api.create_dialog();
+    }
+  }
+
+  (function () {
+    const versionItem = document.getElementById('version-item');
+    const debugSection = document.getElementById('section-debug');
+    const debugNav = document.getElementById('nav-debug');
+    const expander = document.getElementById('version-expander');
+    if (!versionItem || !debugSection) return;
+    let tapCount = 0;
+    versionItem.addEventListener('click', () => {
+      if (expander) {
+        const isHidden = window.getComputedStyle(expander).display === 'none';
+        expander.style.display = isHidden ? 'block' : 'none';
+      }
+      tapCount += 1;
+      if (tapCount >= 5) {
+        debugSection.style.display = '';
+        if (debugNav) debugNav.style.display = 'flex';
+      }
+    });
+  })();
+
+  // JS Bridge for real-time updates
+  function updateTheme(mode) {
+    if (!settings.Appearance) settings.Appearance = {};
+    settings.Appearance.ThemeMode = mode;
+    applySettingsToUI();
+  }
+
+  function updateAccentColor() { }
+
+  // Update Manager - Handles all update checking logic
+  const UpdateManager = {
+    latestReleaseUrl: "https://github.com/Yunofactory/Kazuha/releases/latest",
+    appVersion: "",
+    currentReleaseData: null,
+
+    // State management
+    setState(state) {
+      const states = ['idle', 'loading', 'error', 'latest', 'available'];
+      states.forEach(s => {
+        const el = document.getElementById(`update-state-${s}`);
+        if (el) el.style.display = s === state ? 'block' : 'none';
+      });
+    },
+
+    // Update status bar
+    updateStatusBar(text, icon, iconColor) {
+      const statusTextEl = document.getElementById('update-status-text');
+      const statusIconEl = document.getElementById('update-status-icon');
+
+      if (statusTextEl) statusTextEl.textContent = text;
+
+      if (statusIconEl && icon) {
+        statusIconEl.innerHTML = icon;
+        if (iconColor) statusIconEl.style.color = iconColor;
+      }
+    },
+
+    // Update last check time
+    updateLastCheckTime() {
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      const timeValueEl = document.getElementById('last-check-time-value');
+      if (timeValueEl) timeValueEl.textContent = timeStr;
+    },
+
+    // Set header actions
+    setActions(mode) {
+      const container = document.getElementById('update-header-actions');
+      if (!container) return;
+
+      const checkText = getText("update.checkNow") || "检查更新";
+      const downloadText = getText("update.download") || "下载更新";
+      const laterText = getText("update.later") || "稍后提醒";
+      const retryText = getText("update.retry") || "重试";
+      const checkingText = getText("update.status.checking") || "检查中...";
+
+      if (mode === 'download') {
+        container.innerHTML = `
+          <button class="btn-primary" onclick="UpdateManager.openDownload()">${downloadText}</button>
+          <button class="btn-secondary" onclick="UpdateManager.dismissUpdate()">${laterText}</button>
+        `;
+      } else if (mode === 'loading') {
+        container.innerHTML = `
+          <button class="btn-primary" disabled style="opacity: 0.7; cursor: wait;">${checkingText}</button>
+        `;
+      } else {
+        const isRetry = mode === 'retry';
+        container.innerHTML = `
+          <button class="btn-primary" id="update-check-btn" onclick="UpdateManager.check()">
+            ${isRetry ? retryText : checkText}
+          </button>
+        `;
+      }
+    },
+
+    // Check for updates
+    async check() {
+      this.setState('loading');
+      this.setActions('loading');
+      this.updateStatusBar(
+        getText("update.status.checking") || "正在检查更新...",
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>`,
+        "var(--accent-blue)"
+      );
+
+      try {
+        let apiUrl = 'https://api.github.com/repos/Yunofactory/Kazuha/releases/latest';
+        if (settings.Update && settings.Update.BetaProgram) {
+          apiUrl = 'https://api.github.com/repos/Yunofactory/Kazuha/releases';
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        const response = await fetch(apiUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const release = Array.isArray(data) ? data[0] : data;
+
+        this.currentReleaseData = release;
+        this.latestReleaseUrl = release.html_url;
+        this.updateLastCheckTime();
+
+        // Version comparison
+        const latestVersion = release.tag_name || '';
+        const currentV = this.appVersion.startsWith('v') ? this.appVersion : 'v' + this.appVersion;
+        const latestV = latestVersion.startsWith('v') ? latestVersion : 'v' + latestVersion;
+
+        // Compare versions (semver-ish)
+        const compare = (v1, v2) => {
+          const clean = v => v.replace(/^v/, '').split('.').map(p => parseInt(p, 10) || 0);
+          const p1 = clean(v1);
+          const p2 = clean(v2);
+          for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+            const val1 = p1[i] || 0;
+            const val2 = p2[i] || 0;
+            if (val1 > val2) return 1;
+            if (val1 < val2) return -1;
+          }
+          return 0;
+        };
+
+        // If latest <= current, we are up to date (or newer)
+        if (compare(latestV, currentV) <= 0 || !latestVersion) {
+          this.showUpToDate(currentV, release ? release.body : '');
+        } else {
+          this.showNewVersion(currentV, latestVersion, release.body || '');
+        }
+
+      } catch (error) {
+        console.error("Check update failed:", error);
+        this.showError(error.message);
+      }
+    },
+
+    // Show up-to-date state
+    showUpToDate(version, changelog) {
+      this.setState('latest');
+      this.setActions('check');
+      this.updateStatusBar(
+        getText("update.latest.title") || "已是最新版本",
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>`,
+        "var(--accent-blue)"
+      );
+
+      const changelogEl = document.getElementById('update-latest-changelog-content');
+      if (changelogEl) {
+        const content = changelog || (getText("update.noChangelog") || "暂无更新日志");
+        if (window.marked && typeof window.marked.parse === 'function') {
+          changelogEl.innerHTML = window.marked.parse(content);
+        } else if (typeof window.marked === 'function') {
+          changelogEl.innerHTML = window.marked(content);
+        } else {
+          changelogEl.textContent = content;
+        }
+      }
+    },
+
+    // Show new version available
+    showNewVersion(currentVersion, latestVersion, changelog) {
+      this.setState('available');
+      this.setActions('download');
+
+      const title = getText("update.available.title") || "发现新版本";
+      const statusText = `${title}: ${currentVersion} → ${latestVersion}`;
+
+      this.updateStatusBar(
+        statusText,
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>`,
+        "#F5A623"
+      );
+
+      const changelogEl = document.getElementById('update-changelog-content');
+      if (changelogEl) {
+        if (window.marked && typeof window.marked.parse === 'function') {
+          changelogEl.innerHTML = window.marked.parse(changelog || (getText("update.noChangelog") || "暂无更新日志"));
+        } else if (typeof window.marked === 'function') {
+          changelogEl.innerHTML = window.marked(changelog || (getText("update.noChangelog") || "暂无更新日志"));
+        } else {
+          changelogEl.textContent = changelog || (getText("update.noChangelog") || "暂无更新日志");
+        }
+      }
+    },
+
+    // Show error state
+    showError(errorMessage) {
+      this.setState('error');
+      this.setActions('retry');
+      this.updateStatusBar(
+        getText("update.error.title") || "检查更新失败",
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12" y2="16"></line>
+        </svg>`,
+        "#ff4d4f"
+      );
+
+      const errorMsgEl = document.getElementById('update-error-message');
+      if (errorMsgEl && errorMessage) {
+        errorMsgEl.textContent = errorMessage;
+      }
+    },
+
+    // Switch between tabs
+    switchTab(tabName) {
+      const items = document.querySelectorAll('.pivot-item');
+      const contents = document.querySelectorAll('.pivot-content');
+
+      items.forEach(item => {
+        if (item.getAttribute('data-pivot') === tabName) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
         }
       });
-    })();
 
-    // JS Bridge for real-time updates
-    function updateTheme(mode) {
-      if (!settings.Appearance) settings.Appearance = {};
-      settings.Appearance.ThemeMode = mode;
-      applySettingsToUI();
+      contents.forEach(content => {
+        if (content.id === `update-pivot-${tabName}`) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+    },
+
+    // Open download page
+    openDownload() {
+      if (window.pywebview && window.pywebview.api.open_browser) {
+        window.pywebview.api.open_browser(this.latestReleaseUrl);
+      } else {
+        window.open(this.latestReleaseUrl, '_blank');
+      }
+    },
+
+    // Dismiss update notification
+    dismissUpdate() {
+      this.setState('idle');
+      this.setActions('check');
+      this.updateStatusBar(
+        getText("update.status.ready") || "准备检查更新",
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="8"></line>
+        </svg>`
+      );
     }
+  };
 
-    function updateAccentColor() {}
-  </script>
+  // Show update (3-island layout)
+  function showUpdate() {
+    const layout = document.getElementById('layout');
+    const sections = document.querySelectorAll(".section");
+    const navItems = document.querySelectorAll(".sidebar-item");
+    const title = document.getElementById("section-title");
+
+    layout.classList.add('three-island');
+
+    navItems.forEach(item => {
+      item.classList.add('disabled');
+      if (item.classList.contains('active')) {
+        const span = item.querySelector('span');
+        if (span) {
+          const aboutText = getText("nav.about") || "关于";
+          span.textContent = `${aboutText} / 软件更新`;
+        }
+      }
+    });
+
+    sections.forEach(sec => sec.classList.remove('active'));
+    document.getElementById('section-update').classList.add('active');
+
+    if (title) {
+      title.textContent = getText("about.checkUpdate.label") || "软件更新";
+      title.style.display = 'block';
+    }
+  }
+
+  // Hide update (back to 2-island)
+  function hideUpdate() {
+    const layout = document.getElementById('layout');
+    const sections = document.querySelectorAll(".section");
+    const navItems = document.querySelectorAll(".sidebar-item");
+    const title = document.getElementById("section-title");
+
+    layout.classList.remove('three-island');
+
+    navItems.forEach(item => {
+      item.classList.remove('disabled');
+      const span = item.querySelector('span');
+      const key = item.getAttribute('data-section');
+      if (span && key) {
+        const text = getText("nav." + key);
+        if (text) span.textContent = text;
+      }
+    });
+
+    sections.forEach(sec => {
+      sec.classList.toggle('active', sec.id === 'section-about');
+    });
+
+    navItems.forEach(item => {
+      item.classList.toggle('active', item.getAttribute('data-section') === 'about');
+    });
+
+    if (title) {
+      title.style.display = 'none';
+    }
+  }
+</script>
 </body>
 
 </html>
+```

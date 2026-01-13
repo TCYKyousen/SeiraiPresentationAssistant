@@ -33,6 +33,10 @@ class PPTMonitor(QObject):
         self._last_win_rect = (0, 0, 0, 0)
         self._active_kind = None
 
+    def get_page_info(self):
+        """Returns (current_slide, total_slides)."""
+        return self._current_slide, self._total_slides
+
     def start_monitoring(self):
         self._monitoring_active = True
         self._check_timer = QTimer(self)

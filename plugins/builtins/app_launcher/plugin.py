@@ -10,7 +10,7 @@ class AppLauncherPlugin(AssistantPlugin):
         super().__init__(parent)
 
     def get_name(self):
-        return "应用启动器"
+        return "工具栏固定项"
 
     def get_icon(self):
         return "apps.svg"
@@ -20,7 +20,10 @@ class AppLauncherPlugin(AssistantPlugin):
 
     def add_app(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            None, "选择要添加的程序", "", "Executable Files (*.exe);;All Files (*.*)"
+            None, 
+            "选择要添加的项目", 
+            "", 
+            "固定项 (*.exe *.lnk *.mp3 *.wav *.mp4 *.mkv *.png *.jpg *.jpeg *.gif);;程序与快捷方式 (*.exe *.lnk);;媒体文件 (*.mp3 *.wav *.mp4 *.mkv *.png *.jpg *.jpeg *.gif);;所有文件 (*.*)"
         )
         if file_path:
             name = os.path.splitext(os.path.basename(file_path))[0]
@@ -32,7 +35,7 @@ class AppLauncherPlugin(AssistantPlugin):
             apps.append({
                 "name": name,
                 "path": file_path,
-                "icon": "" # We could try to extract icon later
+                "icon": "" 
             })
             cfg.quickLaunchApps.value = apps
             _save_cfg()
@@ -40,6 +43,17 @@ class AppLauncherPlugin(AssistantPlugin):
             # Notify toolbar to refresh
             if self.context and hasattr(self.context, 'update_toolbar'):
                 self.context.update_toolbar()
+
+    def rename_app(self, path, new_name):
+        apps = cfg.quickLaunchApps.value.copy()
+        for app in apps:
+            if app['path'] == path:
+                app['name'] = new_name
+                break
+        cfg.quickLaunchApps.value = apps
+        _save_cfg()
+        if self.context and hasattr(self.context, 'update_toolbar'):
+            self.context.update_toolbar()
 
     def remove_app(self, path):
         apps = cfg.quickLaunchApps.value.copy()
@@ -65,12 +79,11 @@ class AppLauncherPlugin(AssistantPlugin):
     def execute_app(self, path):
         try:
             if os.path.exists(path):
-                # Use shell=True for some apps to launch correctly, but Popen is better
-                subprocess.Popen(path, shell=True)
+                os.startfile(path)
             else:
-                QMessageBox.warning(None, "错误", f"找不到程序: {path}")
+                QMessageBox.warning(None, "错误", f"找不到文件: {path}")
         except Exception as e:
-            QMessageBox.critical(None, "错误", f"启动程序失败: {str(e)}")
+            QMessageBox.critical(None, "错误", f"打开失败: {str(e)}")
 
     def execute(self):
         self.add_app()

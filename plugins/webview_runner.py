@@ -105,23 +105,97 @@ class Api:
         if not self._window:
             return self.get_quick_launch_apps()
 
-        try:
-            result = self._window.create_file_dialog(
-                webview.OPEN_DIALOG,
-                file_types=["Executable Files (*.exe)", "All Files (*.*)"],
-            )
-        except Exception:
-            return self.get_quick_launch_apps()
+        file_path = None
+        
+        # Try native Windows dialog via ctypes for maximum "directness" and reliability
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                from ctypes import wintypes
+                
+                class OPENFILENAMEW(ctypes.Structure):
+                    _fields_ = [
+                        ("lStructSize", wintypes.DWORD),
+                        ("hwndOwner", wintypes.HWND),
+                        ("hInstance", wintypes.HINSTANCE),
+                        ("lpstrFilter", wintypes.LPCWSTR),
+                        ("lpstrCustomFilter", wintypes.LPWSTR),
+                        ("nMaxCustFilter", wintypes.DWORD),
+                        ("nFilterIndex", wintypes.DWORD),
+                        ("lpstrFile", wintypes.LPWSTR),
+                        ("nMaxFile", wintypes.DWORD),
+                        ("lpstrFileTitle", wintypes.LPWSTR),
+                        ("nMaxFileTitle", wintypes.DWORD),
+                        ("lpstrInitialDir", wintypes.LPCWSTR),
+                        ("lpstrTitle", wintypes.LPCWSTR),
+                        ("Flags", wintypes.DWORD),
+                        ("nFileOffset", wintypes.WORD),
+                        ("nFileExtension", wintypes.WORD),
+                        ("lpstrDefExt", wintypes.LPCWSTR),
+                        ("lCustData", wintypes.LPARAM),
+                        ("lpfnHook", ctypes.c_void_p),
+                        ("lpTemplateName", wintypes.LPCWSTR),
+                        ("pvReserved", ctypes.c_void_p),
+                        ("dwReserved", wintypes.DWORD),
+                        ("FlagsEx", wintypes.DWORD),
+                    ]
 
-        if not result:
-            return self.get_quick_launch_apps()
+                ofn = OPENFILENAMEW()
+                ofn.lStructSize = ctypes.sizeof(OPENFILENAMEW)
+                
+                # Try to get valid HWND from window.native
+                hwnd = 0
+                try:
+                    if isinstance(self._window.native, int):
+                        hwnd = self._window.native
+                    elif hasattr(self._window.native, 'value'): # some ctypes objects
+                        hwnd = self._window.native.value
+                    elif hasattr(self._window.native, 'Handle'): # WinForms
+                        hwnd = int(self._window.native.Handle)
+                except:
+                    pass
+                ofn.hwndOwner = hwnd
+                
+                # Filters: must be a null-terminated sequence of null-terminated strings
+                filter_str = "Fixed Items\0*.exe;*.lnk;*.mp3;*.wav;*.mp4;*.mkv;*.png;*.jpg;*.jpeg;*.gif\0All Files\0*.*\0\0"
+                filter_buf = ctypes.create_unicode_buffer(filter_str)
+                ofn.lpstrFilter = ctypes.cast(filter_buf, wintypes.LPCWSTR)
+                
+                # Buffer for file path
+                buf = ctypes.create_unicode_buffer(260)
+                ofn.lpstrFile = ctypes.cast(buf, wintypes.LPWSTR)
+                ofn.nMaxFile = 260
+                
+                # Flags: OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY
+                ofn.Flags = 0x00080000 | 0x00001000 | 0x00000004
+                
+                if ctypes.windll.comdlg32.GetOpenFileNameW(ctypes.byref(ofn)):
+                    file_path = buf.value
+            except Exception as e:
+                print(f"Direct Windows dialog failed, falling back to pywebview: {e}")
 
-        file_path = result[0]
+        # Fallback to pywebview dialog if ctypes failed or not on Windows
+        if not file_path:
+            try:
+                # Use simpler filters for pywebview to avoid format errors
+                result = self._window.create_file_dialog(
+                    webview.OPEN_DIALOG,
+                    file_types=(
+                        "Items (*.exe;*.lnk;*.mp3;*.wav;*.mp4;*.mkv;*.png;*.jpg;*.jpeg;*.gif)",
+                        "All Files (*.*)"
+                    ),
+                )
+                if result:
+                    file_path = result[0]
+            except Exception as e:
+                print(f"Error opening pywebview file dialog: {e}", file=sys.stderr)
+                return self.get_quick_launch_apps()
+
         if not file_path:
             return self.get_quick_launch_apps()
 
         name = os.path.splitext(os.path.basename(file_path))[0]
-
+        
         settings_path = self._get_settings_path()
         data = {}
         try:
@@ -147,6 +221,40 @@ class Api:
                     "icon": "",
                 }
             )
+
+            toolbar["QuickLaunchApps"] = apps
+            data["Toolbar"] = toolbar
+
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+
+            self.settings = data
+            return apps
+        except Exception:
+            return self.get_quick_launch_apps()
+
+    def rename_quick_launch_app(self, path, new_name):
+        if not path or not new_name:
+            return self.get_quick_launch_apps()
+
+        settings_path = self._get_settings_path()
+        data = {}
+        try:
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                    except JSONDecodeError:
+                        data = {}
+            toolbar = data.get("Toolbar") or {}
+            apps = toolbar.get("QuickLaunchApps") or []
+            if not isinstance(apps, list):
+                apps = []
+
+            for app in apps:
+                if app.get("path") == path:
+                    app["name"] = new_name
+                    break
 
             toolbar["QuickLaunchApps"] = apps
             data["Toolbar"] = toolbar
@@ -214,6 +322,26 @@ class Api:
                 
         except Exception as e:
             print(f"Error saving settings: {e}", file=sys.stderr)
+
+    def show_window(self):
+        """Bring the window to the foreground."""
+        if self._window:
+            if sys.platform == "win32":
+                try:
+                    import ctypes
+                    hwnd = self._window.native
+                    if hwnd:
+                        # SW_RESTORE = 9, SW_SHOW = 5
+                        ctypes.windll.user32.ShowWindow(hwnd, 9)
+                        ctypes.windll.user32.SetForegroundWindow(hwnd)
+                except Exception as e:
+                    print(f"Error bringing window to foreground: {e}", file=sys.stderr)
+            else:
+                self._window.show()
+
+    def open_browser(self, url):
+        import webbrowser
+        webbrowser.open(url)
 
     def trigger_crash(self):
         raise RuntimeError("这是一个手动触发的测试崩溃。")
