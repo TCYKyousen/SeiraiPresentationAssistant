@@ -60,7 +60,7 @@ Kazuha 提供了灵活的界面布局，您可以根据个人习惯和演示需�
 
 ## 下载与社区
 
-Kazuha 处于长期 **测试阶段**，请通过下方二维码加入 **QQ 群** 或访问我们的 [Release 页面](https://github.com/TCYKyousen/Kazuha/releases) 获取最新版本。
+Kazuha 处于长期 **不稳定阶段**，请通过下方二维码加入 **QQ 群** 或访问我们的 [Release 页面](https://github.com/TCYKyousen/Kazuha/releases) 获取最新版本。
 
 <div align="center">
     <img width="150" height="150" alt="QQ群二维码" src="https://github.com/user-attachments/assets/fcfa5426-51f8-4162-a5bc-1b724ccdb31c" />
@@ -83,5 +83,5 @@ Kazuha 处于长期 **测试阶段**，请通过下方二维码加入 **QQ 群**
 
 我们欢迎所有形式的贡献和反馈！
 
-* 这是我的新人作品，欢迎向我提出 [**Issues**](https://github.com/TCYKyousen/Kazuha/issues)（提交 Bug 报告或功能请求）。
+* 这是我的新人作品，欢迎向我提出 [**议题**](https://github.com/TCYKyousen/Kazuha/issues)（提交 Bug 报告或功能请求）。
 * 同时，也欢迎提交 [**拉取请求（Pull Requests）**](https://github.com/TCYKyousen/Kazuha/pulls) 帮助改进代码。
