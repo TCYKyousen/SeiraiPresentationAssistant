@@ -69,6 +69,13 @@ jobs:
             exit 1
           }
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kazuha-Nightly-${{ env.VERSION }}
+          path: ${{ env.ASSET_PATH }}
+          if-no-files-found: error
+
       - name: Create nightly release and upload asset
         uses: ncipollo/release-action@v1
         with:
