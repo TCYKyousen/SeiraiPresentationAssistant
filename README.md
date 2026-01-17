@@ -24,10 +24,11 @@ Kazuha 致力于提供简洁、高效的演示体验，特别针对课堂教学�
 
 具备所有演示助手工具的核心能力，允许您在演示软件上实时进行标记、绘画和书写。
 
-* **自由绘制：** 支持自由地进行批注。
+* **自由绘制：** 通过 COM 接口调用 PowerPoint 的批注功能，以支持自由地进行批注。
 * **颜色选择：** 拥有便捷的颜色选择工具。
 
-<img width="1920" height="1080" alt="批注" src="https://github.com/user-attachments/assets/58596eb8-dfb7-4897-9a28-4e2449e24302" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/65562ae8-a616-44f7-914e-86ee16b646f6" />
+
 
 
 ### 重点框选
@@ -37,15 +38,17 @@ Kazuha 致力于提供简洁、高效的演示体验，特别针对课堂教学�
 * **聚焦：** 框选屏幕区域后，重点区域以外的内容将自动被**压暗**。
 * **教学辅助：** 极其适用于课堂中要求学生记录知识点时，便于学生方便地找出何处应该记录。
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a011b804-330b-4706-a672-d80dd928ab5d" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3923f9c1-2275-41e0-b1a4-4e94498cc302" />
+
 
 
 ### 3. 高度自定义
 
-Kazuha 提供了灵活的界面布局，您可以根据个人习惯和演示需求调整元素位置。
+Kazuha 提供了灵活的自定义义项，您可以根据个人习惯和演示需求调整。
+<img width="1580" height="951" alt="image" src="https://github.com/user-attachments/assets/1a9711d9-ef4b-431c-b9b1-edbd52a59bdf" />
+<img width="1580" height="951" alt="image" src="https://github.com/user-attachments/assets/27916137-1183-4fe0-aaff-c67aa04df291" />
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/43ff8d47-4935-407b-acab-1082ef75ea98" />
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0e4b820d-61bf-48a9-92e6-8d03007783ef" />
+
 
 
 ---
