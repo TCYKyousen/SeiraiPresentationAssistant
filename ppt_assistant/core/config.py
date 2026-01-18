@@ -14,6 +14,8 @@ from qfluentwidgets import (
 from qfluentwidgets.common.config import EnumSerializer
 import os
 import json
+import sys
+import winreg
 
 
 class Config(QConfig):
@@ -41,12 +43,12 @@ class Config(QConfig):
     autoHandleInk = ConfigItem("PPT", "AutoHandleInk", True, BoolValidator())
 
     overlayScreen = OptionsConfigItem(
-        "Overlay",
-        "OverlayScreen",
-        "Auto",
-        OptionsValidator(["Auto", "Primary", "Screen 1", "Screen 2", "Screen 3"]),
-        restart=False,
-    )
+    "Overlay",
+    "OverlayScreen",
+    "Auto",
+    OptionsValidator(["Auto", "Primary"] + [f"Screen {i}" for i in range(1, 21)]),
+    restart=False,
+)
 
     splashMode = OptionsConfigItem(
         "General",
@@ -64,8 +66,64 @@ class Config(QConfig):
 
 cfg = Config()
 _root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SETTINGS_PATH = os.path.join(_root_dir, "settings.json")
+
+# 路径配置：开发环境保持原样，打包环境迁移到程序同级
+if getattr(sys, "frozen", False):
+    # 打包环境：settings.json 和 plugins 文件夹都在 exe 同级
+    _base_exe_dir = os.path.dirname(sys.executable)
+    SETTINGS_PATH = os.path.join(_base_exe_dir, "settings.json")
+    PLUGINS_DIR = os.path.join(_base_exe_dir, "plugins")
+else:
+    # 开发环境：settings.json 在项目根目录，外置插件目录也在根目录下的 plugins_external (避免与源码 plugins 冲突)
+    _root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    SETTINGS_PATH = os.path.join(_root_dir, "settings.json")
+    PLUGINS_DIR = os.path.join(_root_dir, "plugins_external")
+
+if not os.path.exists(PLUGINS_DIR):
+    try:
+        os.makedirs(PLUGINS_DIR)
+    except:
+        pass
+
 qconfig.load(SETTINGS_PATH, cfg)
+
+
+def _set_run_at_startup(enabled: bool):
+    """设置或取消开机自启 (Windows 注册表)"""
+    if sys.platform != "win32":
+        return
+        
+    app_name = "Kazuha"
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Run",
+            0,
+            winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE
+        )
+        
+        if enabled:
+            if getattr(sys, "frozen", False):
+                app_path = sys.executable
+            else:
+                # 开发环境下不建议设置自启，或者设置为 python main.py
+                return
+            
+            winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, f'"{app_path}" --autostart')
+        else:
+            try:
+                winreg.DeleteValue(key, app_name)
+            except FileNotFoundError:
+                pass
+        
+        winreg.CloseKey(key)
+    except Exception as e:
+        print(f"Error setting startup: {e}")
+
+
+def _on_run_at_startup_changed(enabled):
+    _set_run_at_startup(enabled)
+    _save_cfg()
 
 
 def _apply_theme_and_color(theme_value):
@@ -130,7 +188,7 @@ def _on_theme_changed(theme):
 
 def _bind_auto_save():
     cfg.themeMode.valueChanged.connect(_on_theme_changed)
-    cfg.runAtStartup.valueChanged.connect(lambda *_: _save_cfg())
+    cfg.runAtStartup.valueChanged.connect(_on_run_at_startup_changed)
     cfg.autoShowOverlay.valueChanged.connect(lambda *_: _save_cfg())
     cfg.showUndoRedo.valueChanged.connect(lambda *_: _save_cfg())
     cfg.showSpotlight.valueChanged.connect(lambda *_: _save_cfg())
@@ -147,6 +205,7 @@ def _bind_auto_save():
 
 
 _bind_auto_save()
+_set_run_at_startup(cfg.runAtStartup.value)
 _save_cfg()
 
 

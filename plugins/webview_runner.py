@@ -339,8 +339,11 @@ class Api:
     def save_setting(self, category, key, value):
         settings_path = os.environ.get("SETTINGS_PATH")
         if not settings_path:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            settings_path = os.path.join(base_dir, "settings.json")
+            if getattr(sys, "frozen", False):
+                settings_path = os.path.join(os.path.dirname(sys.executable), "settings.json")
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                settings_path = os.path.join(os.path.dirname(base_dir), "settings.json")
             
         try:
             data = {}
@@ -519,6 +522,66 @@ class Api:
             self._window.destroy()
         sys.exit(0)
 
+    def get_screen_list(self):
+        screens = []
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                from ctypes import wintypes
+
+                user32 = ctypes.windll.user32
+
+                class MONITORINFOEXW(ctypes.Structure):
+                    _fields_ = [
+                        ("cbSize", wintypes.DWORD),
+                        ("rcMonitor", wintypes.RECT),
+                        ("rcWork", wintypes.RECT),
+                        ("dwFlags", wintypes.DWORD),
+                        ("szDevice", wintypes.WCHAR * 32)
+                    ]
+
+                class DISPLAY_DEVICEW(ctypes.Structure):
+                    _fields_ = [
+                        ("cb", wintypes.DWORD),
+                        ("DeviceName", wintypes.WCHAR * 32),
+                        ("DeviceString", wintypes.WCHAR * 128),
+                        ("StateFlags", wintypes.DWORD),
+                        ("DeviceID", wintypes.WCHAR * 128),
+                        ("DeviceKey", wintypes.WCHAR * 128)
+                    ]
+
+                monitor_infos = []
+
+                def monitor_enum_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
+                    mi = MONITORINFOEXW()
+                    mi.cbSize = ctypes.sizeof(MONITORINFOEXW)
+                    if user32.GetMonitorInfoW(hMonitor, ctypes.byref(mi)):
+                        monitor_infos.append(mi)
+                    return True
+
+                MONITORENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(wintypes.RECT), ctypes.c_double)
+                user32.EnumDisplayMonitors(0, 0, MONITORENUMPROC(monitor_enum_proc), 0)
+
+                for i, mi in enumerate(monitor_infos):
+                    name = f"Display {i+1}"
+                    
+                    # Try to get the monitor name
+                    dd = DISPLAY_DEVICEW()
+                    dd.cb = ctypes.sizeof(DISPLAY_DEVICEW)
+                    
+                    if user32.EnumDisplayDevicesW(mi.szDevice, 0, ctypes.byref(dd), 0):
+                        name = dd.DeviceString
+                        
+                    screens.append({
+                        "id": i,
+                        "name": name,
+                        "is_primary": (mi.dwFlags & 1) != 0
+                    })
+            except Exception as e:
+                print(f"Error getting screens: {e}", file=sys.stderr)
+        
+        return screens
+
 def main():
     # Optimization: Only import what's needed for the specific mode
     if "--dialog" in sys.argv or "--crash-file" in sys.argv:
@@ -620,6 +683,14 @@ def main():
     
     # Pre-load settings
     settings_path = os.environ.get("SETTINGS_PATH")
+    if not settings_path:
+        # 兼容逻辑：如果环境变量没传，尝试从程序同级读取
+        if getattr(sys, "frozen", False):
+            settings_path = os.path.join(os.path.dirname(sys.executable), "settings.json")
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            settings_path = os.path.join(os.path.dirname(base_dir), "settings.json")
+
     api.settings = {}
     if settings_path and os.path.exists(settings_path):
         try:

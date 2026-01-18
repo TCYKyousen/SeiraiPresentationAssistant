@@ -5,6 +5,7 @@ import tempfile
 import subprocess
 import json
 import importlib
+import importlib.util
 import time
 
 # Delay heavy imports or move them inside if __name__ == "__main__" logic
@@ -29,7 +30,7 @@ from ppt_assistant.ui.overlay import OverlayWindow
 from plugins.builtins.settings.plugin import SettingsPlugin
 from plugins.builtins.timer.plugin import TimerPlugin
 from ppt_assistant.ui.tray import SystemTray
-from ppt_assistant.core.config import cfg, SETTINGS_PATH, reload_cfg, _apply_theme_and_color, Theme, qconfig
+from ppt_assistant.core.config import cfg, SETTINGS_PATH, PLUGINS_DIR, reload_cfg, _apply_theme_and_color, Theme, qconfig
 from ppt_assistant.core.timer_manager import TimerManager
 from ppt_assistant.core.i18n import t
 
@@ -46,7 +47,11 @@ SPLASH_I18N = {
         "loading_timer": "加载计时器",
         "init_tray": "创建托盘图标",
         "finalizing": "完成初始化",
-        "dev_watermark": "开发中版本/技术预览版本\n不保证最终品质 （{version}）"
+        "watermark.1": "开发中版本",
+        "watermark.2": "技术预览版",
+        "watermark.3": "Release Preview",
+        "watermark.4": "重新评估版本",
+        "dev_watermark": "{type}\n不保证最终品质 （{version}）"
     },
     "zh-TW": {
         "initializing": "正在初始化",
@@ -59,7 +64,11 @@ SPLASH_I18N = {
         "loading_timer": "載入計時器",
         "init_tray": "建立系統匣圖示",
         "finalizing": "完成初始化",
-        "dev_watermark": "開發中版本/技術預覽版本\n不保證最終品質 （{version}）"
+        "watermark.1": "開發中版本",
+        "watermark.2": "技術預覽版",
+        "watermark.3": "Release Preview",
+        "watermark.4": "重新評估版本",
+        "dev_watermark": "{type}\n不保證最終品質 （{version}）"
     },
     "ja-JP": {
         "initializing": "初期化中",
@@ -72,7 +81,11 @@ SPLASH_I18N = {
         "loading_timer": "タイマーを読み込み中",
         "init_tray": "トレイアイコンを作成中",
         "finalizing": "初期化完了",
-        "dev_watermark": "開発中バージョン/テクニカルプレビュー\n品質は保証されません （{version}）"
+        "watermark.1": "開発中バージョン",
+        "watermark.2": "テクニカルプレビュー",
+        "watermark.3": "Release Preview",
+        "watermark.4": "再評価バージョン",
+        "dev_watermark": "{type}\n品質は保証されません （{version}）"
     },
     "en-US": {
         "initializing": "Initializing",
@@ -85,7 +98,11 @@ SPLASH_I18N = {
         "loading_timer": "Loading timer",
         "init_tray": "Creating system tray",
         "finalizing": "Finalizing",
-        "dev_watermark": "In-Development/Technical Preview\nFinal quality not guaranteed ({version})"
+        "watermark.1": "In-Development",
+        "watermark.2": "Technical Preview",
+        "watermark.3": "Release Preview",
+        "watermark.4": "Re-evaluated Version",
+        "dev_watermark": "{type}\nFinal quality not guaranteed ({version})"
     }
 }
 
@@ -162,7 +179,9 @@ def _is_dev_preview_version(version: str) -> bool:
     parts = str(version).strip().split(".")
     if len(parts) < 2:
         return False
-    return parts[-1] == "1"
+    # 除了 .0 是正式版，其他后缀 (.1, .2, .3, .4) 都带水印
+    suffix = parts[-1]
+    return suffix in ["1", "2", "3", "4"]
 
 
 class StartupSplash(QWidget):
@@ -193,8 +212,11 @@ class StartupSplash(QWidget):
 
         if _is_dev_preview_version(self._version_text):
             self._dev_watermark = QLabel(self._container)
-            tmpl = SPLASH_I18N.get(self._language, SPLASH_I18N["zh-CN"]).get("dev_watermark", "")
-            self._dev_watermark.setText(tmpl.format(version=self._version_text))
+            i18n_table = SPLASH_I18N.get(self._language, SPLASH_I18N["zh-CN"])
+            suffix = self._version_text.split(".")[-1]
+            w_type = i18n_table.get(f"watermark.{suffix}", "")
+            tmpl = i18n_table.get("dev_watermark", "")
+            self._dev_watermark.setText(tmpl.format(type=w_type, version=self._version_text))
             font = QFont()
             font.setPixelSize(11)
             self._dev_watermark.setFont(font)
@@ -619,10 +641,7 @@ class PPTAssistantApp:
         
         # Step 5: Plugins (IO/Process - expensive)
         yield 60, "loading_plugins"
-        self.settings_plugin = SettingsPlugin()
-        
-        yield 70, "loading_timer"
-        self.timer_plugin = TimerPlugin()
+        self._load_plugins()
         
         # Step 6: Tray (UI)
         yield 80, "init_tray"
@@ -652,6 +671,80 @@ class PPTAssistantApp:
         except Exception as e:
             print(f"Initialization error: {e}")
             sys.exit(1)
+
+    def _load_plugins(self):
+        """Dynamic plugin loading from builtins and external directory."""
+        self.plugins = []
+        
+        # 1. Load Builtin Plugins
+        builtin_plugins = [
+            "plugins.builtins.settings.plugin.SettingsPlugin",
+            "plugins.builtins.timer.plugin.TimerPlugin",
+            "plugins.builtins.spotlight.plugin.SpotlightPlugin",
+            "plugins.builtins.app_launcher.plugin.AppLauncherPlugin"
+        ]
+        
+        for p_path in builtin_plugins:
+            try:
+                mod_name, cls_name = p_path.rsplit(".", 1)
+                mod = importlib.import_module(mod_name)
+                cls = getattr(mod, cls_name)
+                plugin = cls()
+                plugin.set_context(self)
+                self.plugins.append(plugin)
+                
+                # Maintain compatibility with existing code
+                if cls_name == "SettingsPlugin":
+                    self.settings_plugin = plugin
+                elif cls_name == "TimerPlugin":
+                    self.timer_plugin = plugin
+            except Exception as e:
+                print(f"Failed to load builtin plugin {p_path}: {e}")
+
+        # 2. Load External Plugins from PLUGINS_DIR
+        if os.path.exists(PLUGINS_DIR):
+            for item in os.listdir(PLUGINS_DIR):
+                p_dir = os.path.join(PLUGINS_DIR, item)
+                if not os.path.isdir(p_dir):
+                    continue
+                
+                # Check for manifest.json
+                manifest_path = os.path.join(p_dir, "manifest.json")
+                if not os.path.exists(manifest_path):
+                    continue
+                
+                try:
+                    with open(manifest_path, "r", encoding="utf-8") as f:
+                        manifest = json.load(f)
+                    
+                    entry_point = manifest.get("entry")
+                    if not entry_point:
+                        continue
+                    
+                    # Add plugins dir to sys.path if not present
+                    if PLUGINS_DIR not in sys.path:
+                        sys.path.insert(0, PLUGINS_DIR)
+                    
+                    # Import from the specific plugin directory
+                    mod_name, cls_name = entry_point.rsplit(".", 1)
+                    spec = importlib.util.spec_from_file_location(
+                        f"external_plugin_{item}", 
+                        os.path.join(p_dir, mod_name + ".py")
+                    )
+                    mod = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(mod)
+                    
+                    # Instantiate the plugin class
+                    cls = getattr(mod, cls_name)
+                    plugin = cls()
+                    plugin.set_context(self)
+                    # Set plugin metadata from manifest
+                    plugin.manifest = manifest
+                    self.plugins.append(plugin)
+                    print(f"Loaded external plugin: {manifest.get('name', item)}")
+                except Exception as e:
+                    print(f"Failed to load external plugin from {p_dir}: {e}")
+                    traceback.print_exc()
 
     def update_splash(self, value, text):
         if self._splash:

@@ -572,7 +572,7 @@
       gap: 6px;
     }
 
-    .credits-list span {
+    .credits-list span, .credits-list a {
       font-size: 12px;
       color: var(--text-secondary);
       background: var(--card-bg);
@@ -580,9 +580,15 @@
       border-radius: 6px;
       border: 1px solid var(--card-border);
       transition: all 0.2s;
+      text-decoration: none;
+      cursor: default;
     }
 
-    .credits-list span:hover {
+    .credits-list a {
+      cursor: pointer;
+    }
+
+    .credits-list span:hover, .credits-list a:hover {
       background: var(--item-hover);
       color: var(--text-primary);
     }
@@ -974,15 +980,35 @@
     }
 
     .loading-spinner {
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-top-color: var(--accent-blue);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      width: 27px;
+      height: 27px;
+      position: relative;
     }
 
-    @keyframes spin {
+    .loading-spinner svg {
+      width: 27px;
+      height: 27px;
+    }
+
+    .loading-spinner .spinner-ring {
+      fill: none;
+      stroke: var(--text-secondary);
+      stroke-width: 3;
+    }
+
+    .loading-spinner .spinner-dot {
+      fill: var(--text-secondary);
+    }
+
+    .loading-spinner .spinner-orbit {
+      transform-origin: 13.5px 13.5px;
+      animation: spin-rotate 1s linear infinite;
+    }
+
+    @keyframes spin-rotate {
+      from {
+        transform: rotate(0deg);
+      }
       to {
         transform: rotate(360deg);
       }
@@ -1146,6 +1172,27 @@
       mask-image: url('../../../icons/Minimize.svg');
       -webkit-mask-image: url('../../../icons/Minimize.svg');
       background-color: #FF453A;
+    }
+
+    .toolbar-preview-number {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toolbar-preview-btn-capsule .toolbar-preview-number {
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .toolbar-preview-hero {
@@ -1607,11 +1654,123 @@
       border: 1px solid var(--divider);
       box-shadow: 0 8px 24px var(--shadow-color);
       z-index: 20;
-      display: none;
+      
+      display: block;
+      opacity: 0;
+      transform: scaleY(0.9) translateY(-10px);
+      transform-origin: top center;
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      visibility: hidden;
+      pointer-events: none;
     }
 
     .font-dropdown.open .font-dropdown-menu {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* Generic Custom Select */
+    .custom-select-container {
+      position: relative;
+      min-width: 140px;
+      display: inline-block;
+    }
+
+    .custom-select-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--divider);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 32px;
+    }
+
+    .custom-select-toggle:hover {
+      background-color: var(--item-hover);
+    }
+
+    .custom-select-label {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+
+    .custom-select-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 16px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M7 10l5 5 5-5z"/></svg>');
+      transition: transform 0.2s;
+    }
+
+    [data-theme="dark"] .custom-select-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M7 10l5 5 5-5z"/></svg>');
+    }
+    
+    .custom-select-container.open .custom-select-icon {
+      transform: rotate(180deg);
+    }
+
+    .custom-select-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      max-height: 240px;
+      overflow-y: auto;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      border: 1px solid var(--divider);
+      box-shadow: 0 8px 24px var(--shadow-color);
+      z-index: 20;
+
       display: block;
+      opacity: 0;
+      transform: scaleY(0.9) translateY(-10px);
+      transform-origin: top center;
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .custom-select-container.open .custom-select-menu {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .custom-select-option {
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-primary);
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+
+    .custom-select-option:hover {
+      background: var(--item-hover);
+    }
+
+    .custom-select-option.selected {
+      background: var(--item-hover);
+      color: var(--accent-blue);
+      font-weight: 500;
     }
 
     .font-dropdown-menu-header {
@@ -2082,6 +2241,112 @@
       filter: brightness(0.9);
     }
 
+    /* Custom Select - Replaces native select */
+    .custom-select-container {
+      position: relative;
+      min-width: 140px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .custom-select-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--divider);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 32px;
+    }
+
+    .custom-select-toggle:hover {
+      background: var(--item-hover);
+      border-color: var(--text-secondary);
+    }
+
+    .custom-select-container.open .custom-select-toggle {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px var(--logo-glow);
+    }
+
+    .custom-select-arrow {
+      width: 12px;
+      height: 12px;
+      margin-left: 8px;
+      opacity: 0.6;
+      fill: currentColor;
+      transition: transform 0.2s;
+      background-color: currentColor;
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+      mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-position: center;
+    }
+
+    .custom-select-container.open .custom-select-arrow {
+      transform: rotate(180deg);
+    }
+
+    .custom-select-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      max-height: 240px;
+      overflow-y: auto;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      border: 1px solid var(--divider);
+      box-shadow: 0 8px 24px var(--shadow-color);
+      z-index: 20;
+
+      display: block;
+      opacity: 0;
+      transform: scaleY(0.9) translateY(-10px);
+      transform-origin: top center;
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .custom-select-container.open .custom-select-menu {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .custom-select-option {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .custom-select-option:hover {
+      background: var(--item-hover);
+    }
+
+    .custom-select-option.active {
+      color: var(--accent-blue);
+      background: rgba(50, 117, 245, 0.08);
+      font-weight: 500;
+    }
+
   </style>
 </head>
 
@@ -2535,10 +2800,15 @@
               <div class="credits-section">
                 <div class="credits-title" data-i18n="about.credits.libraries">第三方库</div>
                 <div class="credits-list">
-                  <span>pywebview</span>
-                  <span>marked.js</span>
-                  <span>python-pptx</span>
-                  <span>win32com</span>
+                  <a href="https://doc.qt.io/qtforpython-6/" target="_blank" rel="noopener noreferrer">PySide6</a>
+                  <a href="https://github.com/zhiyiYo/PySide6-Fluent-Widgets" target="_blank" rel="noopener noreferrer">PySide6-Fluent-Widgets</a>
+                  <a href="https://pywebview.flowrl.com/" target="_blank" rel="noopener noreferrer">pywebview</a>
+                  <a href="https://python-pptx.readthedocs.io/" target="_blank" rel="noopener noreferrer">python-pptx</a>
+                  <a href="https://github.com/mhammond/pywin32" target="_blank" rel="noopener noreferrer">pywin32</a>
+                  <a href="https://marked.js.org/" target="_blank" rel="noopener noreferrer">marked.js</a>
+                  <a href="https://sortablejs.github.io/Sortable/" target="_blank" rel="noopener noreferrer">Sortable.js</a>
+                  <a href="https://pyinstaller.org/" target="_blank" rel="noopener noreferrer">PyInstaller</a>
+                  <a href="https://nuitka.net/" target="_blank" rel="noopener noreferrer">Nuitka</a>
                 </div>
               </div>
               <div class="credits-section">
@@ -2655,7 +2925,14 @@
             <!-- Loading state -->
             <div id="update-state-loading" class="update-state-panel" style="display: none;">
               <div style="display: flex; justify-content: center; align-items: center; padding: 60px;">
-                <div class="loading-spinner"></div>
+                <div class="loading-spinner">
+                  <svg viewBox="0 0 27 27">
+                    <circle class="spinner-ring" cx="13.5" cy="13.5" r="10"></circle>
+                    <g class="spinner-orbit">
+                      <circle class="spinner-dot" cx="13.5" cy="8.0" r="2.5"></circle>
+                    </g>
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -2799,7 +3076,11 @@
       "general.splashMode.timeRange": "特定时间段内显示",
       "general.splashMode.timeRange.start": "开始时间",
       "general.splashMode.timeRange.end": "结束时间",
-      "general.devWatermark": "开发中版本/技术预览版本\n不保证最终品质 （{version}）",
+      "watermark.1": "开发中版本",
+      "watermark.2": "技术预览版",
+      "watermark.3": "Release Preview",
+      "watermark.4": "重新评估版本",
+      "general.devWatermark": "{type}\n不保证最终品质 （{version}）",
       "general.autoShowOverlay.label": "自动显示悬浮窗",
       "general.autoShowOverlay.desc": "检测到 PPT 放映时自动显示工具栏",
       "general.overlayScreen.label": "显示屏幕",
@@ -2937,7 +3218,11 @@
       "general.splashMode.timeRange": "特定時段內顯示",
       "general.splashMode.timeRange.start": "開始時間",
       "general.splashMode.timeRange.end": "結束時間",
-      "general.devWatermark": "開發中版本/技術預覽版本\n不保證最終品質 （{version}）",
+      "watermark.1": "開發中版本",
+      "watermark.2": "技術預覽版",
+      "watermark.3": "Release Preview",
+      "watermark.4": "重新評估版本",
+      "general.devWatermark": "{type}\n不保證最終品質 （{version}）",
       "general.autoShowOverlay.label": "自動顯示懸浮窗",
       "general.autoShowOverlay.desc": "偵測到 PPT 播放時自動顯示工具列",
       "general.overlayScreen.label": "顯示螢幕",
@@ -3070,7 +3355,11 @@
       "general.splashMode.timeRange": "特定の時間帯のみ表示",
       "general.splashMode.timeRange.start": "開始時刻",
       "general.splashMode.timeRange.end": "終了時刻",
-      "general.devWatermark": "開発中バージョン/テクニカルプレビュー\n品質は保証されません （{version}）",
+      "watermark.1": "開発中バージョン",
+      "watermark.2": "テクニカルプレビュー",
+      "watermark.3": "Release Preview",
+      "watermark.4": "再評価バージョン",
+      "general.devWatermark": "{type}\n品質は保証されません （{version}）",
       "general.autoShowOverlay.label": "オーバーレイを自動表示",
       "general.autoShowOverlay.desc": "PPT スライドショーを検出したらツールバーを自動表示します",
       "general.overlayScreen.label": "表示ディスプレイ",
@@ -3209,7 +3498,11 @@
       "general.splashMode.timeRange": "Show during time range",
       "general.splashMode.timeRange.start": "Start Time",
       "general.splashMode.timeRange.end": "End Time",
-      "general.devWatermark": "In-Development/Technical Preview\nFinal quality not guaranteed ({version})",
+      "watermark.1": "In-Development",
+      "watermark.2": "Technical Preview",
+      "watermark.3": "Release Preview",
+      "watermark.4": "Re-evaluated Version",
+      "general.devWatermark": "{type}\nFinal quality not guaranteed ({version})",
       "general.autoShowOverlay.label": "Auto show overlay",
       "general.autoShowOverlay.desc": "Automatically show toolbar when PPT slideshow is detected",
       "general.overlayScreen.label": "Display Screen",
@@ -3636,7 +3929,7 @@
   }
 
   document.addEventListener("click", () => {
-    document.querySelectorAll(".font-dropdown.open").forEach(dd => dd.classList.remove("open"));
+    document.querySelectorAll(".font-dropdown.open, .custom-select-container.open").forEach(dd => dd.classList.remove("open"));
   });
 
   function applyI18n() {
@@ -3744,6 +4037,7 @@
   });
 
   initNav();
+  convertNativeSelectsToCustom();
 
   let settings = window.initialSettings || {
     General: { RunAtStartup: false, AutoShowOverlay: true, Language: "zh-CN" },
@@ -3782,6 +4076,131 @@
     });
   });
 
+  function convertNativeSelectsToCustom() {
+    const selects = document.querySelectorAll('select.styled-select:not([data-converted])');
+    selects.forEach(sel => {
+      sel.setAttribute('data-converted', 'true');
+      sel.style.display = 'none';
+
+      const container = document.createElement('div');
+      container.className = 'custom-select-container';
+
+      const toggle = document.createElement('div');
+      toggle.className = 'custom-select-toggle';
+
+      const label = document.createElement('span');
+      const selectedOption = sel.options[sel.selectedIndex];
+      label.textContent = selectedOption ? selectedOption.text : '';
+      label.className = 'custom-select-label';
+      
+      const arrow = document.createElement('div');
+      arrow.className = 'custom-select-arrow';
+
+      toggle.appendChild(label);
+      toggle.appendChild(arrow);
+      container.appendChild(toggle);
+
+      const menu = document.createElement('div');
+      menu.className = 'custom-select-menu';
+
+      Array.from(sel.options).forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'custom-select-option';
+        item.textContent = opt.text;
+        item.dataset.value = opt.value;
+        if (opt.selected) item.classList.add('selected');
+
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sel.value = opt.value;
+          sel.dispatchEvent(new Event('change'));
+          label.textContent = opt.text;
+          menu.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+          item.classList.add('selected');
+          container.classList.remove('open');
+        });
+
+        menu.appendChild(item);
+      });
+
+      container.appendChild(menu);
+
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.custom-select-container.open').forEach(c => {
+          if (c !== container) c.classList.remove('open');
+        });
+        document.querySelectorAll('.font-dropdown.open').forEach(c => c.classList.remove('open'));
+        container.classList.toggle('open');
+      });
+
+      sel.parentNode.insertBefore(container, sel.nextSibling);
+    });
+  }
+
+  function refreshCustomSelect(sel) {
+    if (!sel || !sel.nextSibling || !sel.nextSibling.classList.contains('custom-select-container')) return;
+    const container = sel.nextSibling;
+    const label = container.querySelector('.custom-select-label');
+    const selectedOption = sel.options[sel.selectedIndex];
+    if (label && selectedOption) label.textContent = selectedOption.text;
+    
+    const menu = container.querySelector('.custom-select-menu');
+    if (menu) {
+        menu.querySelectorAll('.custom-select-option').forEach(opt => {
+            if (opt.dataset.value === sel.value) opt.classList.add('selected');
+            else opt.classList.remove('selected');
+        });
+    }
+  }
+
+  function updateScreenList(currentVal) {
+    const sel = document.getElementById("sel-Overlay-OverlayScreen");
+    if (!sel) return;
+
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.get_screen_list) {
+      window.pywebview.api.get_screen_list().then(screens => {
+        if (!Array.isArray(screens)) return;
+        
+        const autoText = getText("general.overlayScreen.auto") || "自动识别";
+        const primaryText = getText("general.overlayScreen.primary") || "主显示器";
+        
+        sel.innerHTML = "";
+        
+        const createOpt = (v, t, k) => {
+            const o = document.createElement("option");
+            o.value = v;
+            o.textContent = t;
+            if (k) o.setAttribute("data-i18n", k);
+            return o;
+        };
+        
+        sel.appendChild(createOpt("Auto", autoText, "general.overlayScreen.auto"));
+        sel.appendChild(createOpt("Primary", primaryText, "general.overlayScreen.primary"));
+        
+        screens.forEach(s => {
+            const val = `Screen ${s.id + 1}`;
+            const name = s.name || `Display ${s.id + 1}`;
+            const label = s.name ? `${s.name} (${val})` : val;
+            sel.appendChild(createOpt(val, label));
+        });
+        
+        sel.value = currentVal;
+        
+        if (sel.nextSibling && sel.nextSibling.classList.contains("custom-select-container")) {
+            sel.nextSibling.remove();
+        }
+        sel.removeAttribute("data-converted");
+        sel.style.display = "";
+        convertNativeSelectsToCustom();
+        
+      }).catch(err => console.error("Screen list update failed:", err));
+    } else {
+        sel.value = currentVal;
+        refreshCustomSelect(sel);
+    }
+  }
+
   function applySettingsToUI() {
     setSwitch("General", "RunAtStartup");
     setSwitch("General", "AutoShowOverlay");
@@ -3803,16 +4222,14 @@
 
     // Overlay Screen
     const overlayScreen = settings.Overlay?.OverlayScreen || "Auto";
-    const screenEl = document.getElementById("sel-Overlay-OverlayScreen");
-    if (screenEl) {
-      screenEl.value = overlayScreen;
-    }
+    updateScreenList(overlayScreen);
 
     // Splash Mode
     const splashMode = settings.General?.SplashMode || "Always";
     const splashEl = document.getElementById("sel-General-SplashMode");
     if (splashEl) {
         splashEl.value = splashMode;
+        refreshCustomSelect(splashEl);
         // Trigger UI update for time inputs
         const timeRangeEl = document.getElementById("splash-time-range");
         if (timeRangeEl) {
@@ -3864,9 +4281,11 @@
         const wm = document.getElementById("dev-watermark");
         if (wm && version) {
           const parts = String(version).trim().split(".");
-          if (parts.length >= 2 && parts[parts.length - 1] === "1") {
-            const tmpl = getText("general.devWatermark") || "开发中版本/技术预览版本\n不保证最终品质 （{version}）";
-            wm.textContent = tmpl.replace("{version}", version);
+          const suffix = parts.length >= 2 ? parts[parts.length - 1] : "";
+          if (["1", "2", "3", "4"].includes(suffix)) {
+            const type = getText("watermark." + suffix) || "";
+            const tmpl = getText("general.devWatermark") || "{type}\n不保证最终品质 ({version})";
+            wm.textContent = tmpl.replace("{type}", type).replace("{version}", version);
             wm.style.display = "block";
           } else {
             wm.style.display = "none";
@@ -4012,23 +4431,34 @@
     });
   }
 
+  let sortableInstance = null;
+
   function renderToolbarPreview() {
     const preview = document.getElementById("toolbar-preview");
     if (!preview) return;
+
+    if (sortableInstance) {
+      sortableInstance.destroy();
+      sortableInstance = null;
+    }
+
     preview.innerHTML = "";
 
     const showText = !!(settings.Toolbar && settings.Toolbar.ShowToolbarText);
     const order = (settings.Toolbar && settings.Toolbar.ToolbarOrder) || ["select", "pen", "eraser", "spotlight", "timer", "undo", "redo", "apps"];
 
-    const createBtn = (labelKey, fallback, iconName, toolId) => {
+    let count = 1;
+
+    const createBtn = (labelKey, fallback, toolId) => {
       const btn = document.createElement("div");
       btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
       btn.dataset.id = toolId;
 
-      const icon = document.createElement("div");
-      icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
+      const num = document.createElement("div");
+      num.className = "toolbar-preview-number";
+      num.textContent = count++;
 
-      btn.appendChild(icon);
+      btn.appendChild(num);
 
       if (showText) {
         const label = document.createElement("div");
@@ -4039,56 +4469,45 @@
       return btn;
     };
 
-    const createSeparator = () => {
-      const sep = document.createElement("div");
-      sep.className = "toolbar-preview-separator";
-      return sep;
-    };
-
     order.forEach(itemId => {
       if (itemId === "select") {
-        preview.appendChild(createBtn("toolbar.select", "选择", "select", "select"));
+        preview.appendChild(createBtn("toolbar.select", "选择", "select"));
       } else if (itemId === "pen") {
-        preview.appendChild(createBtn("toolbar.pen", "画笔", "pen", "pen"));
+        preview.appendChild(createBtn("toolbar.pen", "画笔", "pen"));
       } else if (itemId === "eraser") {
-        preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser", "eraser"));
+        preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser"));
       } else if (itemId === "spotlight") {
         const showSpotlight = !!(settings.Toolbar && settings.Toolbar.ShowSpotlight);
         if (showSpotlight) {
-          preview.appendChild(createBtn("toolbar.spotlight", "聚光灯", "spotlight", "spotlight"));
+          preview.appendChild(createBtn("toolbar.spotlight", "聚光灯", "spotlight"));
         }
       } else if (itemId === "timer") {
         const showTimer = !!(settings.Toolbar && settings.Toolbar.ShowTimer);
         if (showTimer) {
-          preview.appendChild(createBtn("toolbar.timer", "计时器", "timer", "timer"));
+          preview.appendChild(createBtn("toolbar.timer", "计时器", "timer"));
         }
       } else if (itemId === "undo") {
         const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
         if (showUndoRedo) {
-          preview.appendChild(createBtn("toolbar.undo", "撤销", "undo", "undo"));
+          preview.appendChild(createBtn("toolbar.undo", "撤销", "undo"));
         }
       } else if (itemId === "redo") {
         const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
         if (showUndoRedo) {
-          preview.appendChild(createBtn("toolbar.redo", "重做", "redo", "redo"));
+          preview.appendChild(createBtn("toolbar.redo", "重做", "redo"));
         }
       } else if (itemId === "apps") {
         if (toolbarApps && toolbarApps.length > 0) {
           toolbarApps.forEach((app, idx) => {
             const btn = document.createElement("div");
             btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
-            btn.dataset.id = "apps"; // Group apps as one logical unit for sorting simplicity or keep separate
-            const icon = document.createElement("div");
-            icon.className = "toolbar-preview-btn-icon";
+            btn.dataset.id = "apps";
+            
+            const num = document.createElement("div");
+            num.className = "toolbar-preview-number";
+            num.textContent = count++;
 
-            if (app.icon) {
-              icon.innerHTML = `<img src="${app.icon}" class="toolbar-app-icon-img" style="position: relative; z-index: 1;">`;
-            } else {
-              const firstChar = (app.name || "?").charAt(0).toUpperCase();
-              icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
-            }
-
-            btn.appendChild(icon);
+            btn.appendChild(num);
             if (showText) {
               const label = document.createElement("div");
               label.className = "toolbar-preview-btn-label";
@@ -4102,12 +4521,11 @@
       }
     });
 
-    preview.appendChild(createSeparator());
-    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", "exit"));
+    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit"));
 
     // Initialize Sortable
     if (typeof Sortable !== 'undefined') {
-      new Sortable(preview, {
+      sortableInstance = new Sortable(preview, {
         animation: 150,
         draggable: ".toolbar-preview-btn",
         filter: "[data-id='exit']", // Don't allow moving the exit button
@@ -4460,10 +4878,14 @@
       this.setActions('loading');
       this.updateStatusBar(
         getText("update.status.checking") || "正在检查更新...",
-        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>`,
+        `<div class="loading-spinner" style="width: 20px; height: 20px;">
+          <svg viewBox="0 0 27 27" style="width: 20px; height: 20px;">
+            <circle class="spinner-ring" cx="13.5" cy="13.5" r="10"></circle>
+            <g class="spinner-orbit">
+              <circle class="spinner-dot" cx="13.5" cy="8.0" r="2.5"></circle>
+            </g>
+          </svg>
+        </div>`,
         "var(--accent-blue)"
       );
 

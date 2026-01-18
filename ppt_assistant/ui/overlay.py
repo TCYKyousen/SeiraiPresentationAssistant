@@ -76,7 +76,11 @@ _TRANSLATIONS = {
         "toolbar.page": "页码",
         "toolbar.theme_colors": "主题颜色",
         "toolbar.standard_colors": "标准颜色",
-        "overlay.dev_watermark": "开发中版本/技术预览版本\n不保证最终品质 （{version}）",
+        "watermark.1": "开发中版本",
+        "watermark.2": "技术预览版",
+        "watermark.3": "Release Preview",
+        "watermark.4": "重新评估版本",
+        "overlay.dev_watermark": "{type}\n不保证最终品质 （{version}）",
     },
     "zh-TW": {
         "status.media_length": "媒體時長",
@@ -92,7 +96,11 @@ _TRANSLATIONS = {
         "toolbar.page": "頁碼",
         "toolbar.theme_colors": "主題顏色",
         "toolbar.standard_colors": "标准颜色",
-        "overlay.dev_watermark": "開發中版本/技術預覽版本\n不保證最終品質 （{version}）",
+        "watermark.1": "開發中版本",
+        "watermark.2": "技術預覽版",
+        "watermark.3": "Release Preview",
+        "watermark.4": "重新評估版本",
+        "overlay.dev_watermark": "{type}\n不保證最終品質 （{version}）",
     },
     "ja-JP": {
         "status.media_length": "メディア長さ",
@@ -108,7 +116,11 @@ _TRANSLATIONS = {
         "toolbar.page": "ページ番号",
         "toolbar.theme_colors": "テーマの色",
         "toolbar.standard_colors": "標準の色",
-        "overlay.dev_watermark": "開発中バージョン/テクニカルプレビュー\n品質は保証されません （{version}）",
+        "watermark.1": "開発中バージョン",
+        "watermark.2": "テクニカルプレビュー",
+        "watermark.3": "Release Preview",
+        "watermark.4": "再評価バージョン",
+        "overlay.dev_watermark": "{type}\n品質は保証されません （{version}）",
     },
     "en-US": {
         "status.media_length": "Media duration",
@@ -124,7 +136,11 @@ _TRANSLATIONS = {
         "toolbar.page": "Page number",
         "toolbar.theme_colors": "Theme Colors",
         "toolbar.standard_colors": "Standard Colors",
-        "overlay.dev_watermark": "In-Development/Technical Preview\nFinal quality not guaranteed ({version})",
+        "watermark.1": "In-Development",
+        "watermark.2": "Technical Preview",
+        "watermark.3": "Release Preview",
+        "watermark.4": "Re-evaluated Version",
+        "overlay.dev_watermark": "{type}\nFinal quality not guaranteed ({version})",
     },
 }
 
@@ -148,7 +164,9 @@ def _is_dev_preview_version(version: str) -> bool:
     parts = str(version).strip().split(".")
     if len(parts) < 2:
         return False
-    return parts[-1] == "1"
+    # 除了 .0 是正式版，其他后缀 (.1, .2, .3, .4) 都带水印
+    suffix = parts[-1]
+    return suffix in ["1", "2", "3", "4"]
 
 
 def _t(key: str) -> str:
@@ -1189,7 +1207,9 @@ class OverlayWindow(QWidget):
         version = _get_app_version()
         if _is_dev_preview_version(version):
             label = QLabel(self)
-            label.setText(_t("overlay.dev_watermark").format(version=version))
+            suffix = version.split(".")[-1]
+            w_type = _t(f"watermark.{suffix}")
+            label.setText(_t("overlay.dev_watermark").format(type=w_type, version=version))
             font = QFont()
             font.setPixelSize(11)
             label.setFont(font)
