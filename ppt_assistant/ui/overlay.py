@@ -68,6 +68,8 @@ _TRANSLATIONS = {
         "toolbar.select": "选择",
         "toolbar.pen": "画笔",
         "toolbar.eraser": "橡皮",
+        "toolbar.spotlight": "聚光灯",
+        "toolbar.timer": "计时器",
         "toolbar.undo": "上一步",
         "toolbar.redo": "下一步",
         "toolbar.end_show": "结束放映",
@@ -82,6 +84,8 @@ _TRANSLATIONS = {
         "toolbar.select": "選取",
         "toolbar.pen": "畫筆",
         "toolbar.eraser": "橡皮擦",
+        "toolbar.spotlight": "聚光燈",
+        "toolbar.timer": "計時器",
         "toolbar.undo": "上一步",
         "toolbar.redo": "下一步",
         "toolbar.end_show": "結束播放",
@@ -96,6 +100,8 @@ _TRANSLATIONS = {
         "toolbar.select": "選択",
         "toolbar.pen": "ペン",
         "toolbar.eraser": "消しゴム",
+        "toolbar.spotlight": "スポットライト",
+        "toolbar.timer": "タイマー",
         "toolbar.undo": "戻る",
         "toolbar.redo": "進む",
         "toolbar.end_show": "スライド終了",
@@ -110,6 +116,8 @@ _TRANSLATIONS = {
         "toolbar.select": "Select",
         "toolbar.pen": "Pen",
         "toolbar.eraser": "Eraser",
+        "toolbar.spotlight": "Spotlight",
+        "toolbar.timer": "Timer",
         "toolbar.undo": "Undo",
         "toolbar.redo": "Redo",
         "toolbar.end_show": "End Show",
@@ -211,7 +219,8 @@ class StatusBarWidget(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(30)
+        scale = cfg.scale.value
+        self.setFixedHeight(int(30 * scale))
         self._is_light = False
         self._monitor = None
         self._network_kind = "offline"
@@ -262,8 +271,9 @@ class StatusBarWidget(QFrame):
 
     def _build_ui(self):
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 0, 16, 0)
-        layout.setSpacing(12)
+        scale = cfg.scale.value
+        layout.setContentsMargins(int(16 * scale), 0, int(16 * scale), 0)
+        layout.setSpacing(int(12 * scale))
 
         self.time_label = QLabel("", self)
         self.time_label.setObjectName("TimeLabel")
@@ -273,10 +283,10 @@ class StatusBarWidget(QFrame):
         self.countdown_container = QWidget(self)
         countdown_layout = QHBoxLayout(self.countdown_container)
         countdown_layout.setContentsMargins(0, 0, 0, 0)
-        countdown_layout.setSpacing(8)
+        countdown_layout.setSpacing(int(8 * scale))
         self.countdown_separator = QFrame(self)
         self.countdown_separator.setFixedWidth(1)
-        self.countdown_separator.setFixedHeight(12)
+        self.countdown_separator.setFixedHeight(int(12 * scale))
         self.countdown_separator.setObjectName("Separator")
         self.countdown_label = QLabel("", self)
         self.countdown_label.setObjectName("CountdownLabel")
@@ -289,10 +299,10 @@ class StatusBarWidget(QFrame):
         self.video_container = QWidget(self)
         video_layout = QHBoxLayout(self.video_container)
         video_layout.setContentsMargins(0, 0, 0, 0)
-        video_layout.setSpacing(8)
+        video_layout.setSpacing(int(8 * scale))
         self.separator = QFrame(self)
         self.separator.setFixedWidth(1)
-        self.separator.setFixedHeight(12)
+        self.separator.setFixedHeight(int(12 * scale))
         self.separator.setObjectName("Separator")
         self.progress_value = QLabel("", self)
         self.progress_value.setObjectName("ProgressValue")
@@ -307,11 +317,11 @@ class StatusBarWidget(QFrame):
         layout.addStretch(1)
 
         self.net_icon = IconWidget(FIF.WIFI, self)
-        self.net_icon.setFixedSize(18, 18)
+        self.net_icon.setFixedSize(int(18 * scale), int(18 * scale))
         layout.addWidget(self.net_icon)
 
         self.volume_icon = IconWidget(FIF.VOLUME, self)
-        self.volume_icon.setFixedSize(18, 18)
+        self.volume_icon.setFixedSize(int(18 * scale), int(18 * scale))
         layout.addWidget(self.volume_icon)
 
     def _update_countdown(self, seconds):
@@ -423,6 +433,7 @@ class StatusBarWidget(QFrame):
         fg = "#FFFFFF"
         bg = "#40000000"
         font_stack = _get_overlay_font_stack()
+        scale = cfg.scale.value
 
         self.setStyleSheet(
             f"""
@@ -436,11 +447,11 @@ class StatusBarWidget(QFrame):
                 background: transparent;
             }}
             QLabel#TimeLabel {{
-                font-size: 13px;
+                font-size: {int(13 * scale)}px;
                 font-weight: bold;
             }}
             QLabel#ProgressValue, QLabel#ProgressCaption, QLabel#CountdownLabel {{
-                font-size: 11px;
+                font-size: {int(11 * scale)}px;
                 font-weight: 500;
             }}
             QFrame#Separator {{
@@ -727,17 +738,29 @@ class CustomToolButton(QFrame):
 
     def update_size(self):
         show_text = cfg.showToolbarText.value and bool(self.text)
+        scale = cfg.scale.value
         if show_text:
             # Match HTML: .toolbar-preview-btn-capsule { min-width: 68px; height: 40px; }
             # Increased width to 92 for horizontal layout and marquee room
-            self.setFixedSize(92, 38)
-            self.icon_size = 18
-            self.layout.setContentsMargins(12, 4, 12, 4)
+            self.setFixedSize(int(92 * scale), int(38 * scale))
+            self.icon_size = int(18 * scale)
+            self.layout.setContentsMargins(int(12 * scale), int(4 * scale), int(12 * scale), int(4 * scale))
         else:
             # Match HTML: .toolbar-preview-btn { min-width: 38px; height: 38px; }
-            self.setFixedSize(38, 38)
-            self.icon_size = 20
-            self.layout.setContentsMargins(4, 4, 4, 4)
+            self.setFixedSize(int(38 * scale), int(38 * scale))
+            self.icon_size = int(20 * scale)
+            self.layout.setContentsMargins(int(4 * scale), int(4 * scale), int(4 * scale), int(4 * scale))
+        
+        if show_text:
+            self.text_label.setStyleSheet(f"""
+                QLabel {{
+                    font-size: {int(8 * scale)}px;
+                    font-weight: 300;
+                    font-family: {_get_overlay_font_stack()};
+                    color: rgba(255, 255, 255, 0.6);
+                    background: transparent;
+                }}
+            """)
         
         self.set_icon_color(False)
 
@@ -1479,7 +1502,9 @@ class OverlayWindow(QWidget):
         try:
             w = self.width()
             h = self.height()
-            margin = 16
+            scale = cfg.scale.value
+            safe_area = cfg.safeArea.value
+            margin = int(16 * scale) + safe_area
 
             if w <= 100 or h <= 100:
                 return
@@ -1489,18 +1514,19 @@ class OverlayWindow(QWidget):
             tb_w = tb_size.width()
             tb_h = tb_size.height()
             if tb_h < 32 or tb_h > 240:
-                tb_h = max(self.toolbar.sizeHint().height(), 45)
+                tb_h = max(self.toolbar.sizeHint().height(), int(45 * scale))
 
-            self.left_flipper.setFixedSize(tb_h, 160)
-            self.right_flipper.setFixedSize(tb_h, 160)
+            flipper_h = int(160 * scale)
+            self.left_flipper.setFixedSize(tb_h, flipper_h)
+            self.right_flipper.setFixedSize(tb_h, flipper_h)
 
             self.left_flipper.h_val = tb_h
             self.right_flipper.h_val = tb_h
             self.left_flipper.update_style(getattr(self, "_is_light", False))
             self.right_flipper.update_style(getattr(self, "_is_light", False))
 
-            y_pos = (h - 160) // 2
-            self.toolbar.move((w - tb_w) // 2, h - tb_h - 14)
+            y_pos = (h - flipper_h) // 2
+            self.toolbar.move((w - tb_w) // 2, h - tb_h - int(14 * scale) - safe_area)
             self.left_flipper.move(margin, y_pos)
             self.right_flipper.move(w - self.right_flipper.width() - margin, y_pos)
 
@@ -1512,7 +1538,7 @@ class OverlayWindow(QWidget):
                 self.status_bar.move(0, 0)
 
             if self._dev_watermark:
-                self._dev_watermark.move(w - self._dev_watermark.width() - 16, h - self._dev_watermark.height() - 12)
+                self._dev_watermark.move(w - self._dev_watermark.width() - margin, h - self._dev_watermark.height() - int(12 * scale) - safe_area)
 
             if self._reload_mask is not None and self._reload_mask.isVisible():
                 self._reload_mask.setGeometry(self.rect())
@@ -1762,12 +1788,15 @@ class ToolbarWidget(QWidget):
         self._is_light = is_light
         self.update_layout_style()
 
-    def _on_undo_redo_visibility_changed(self, visible: bool):
-        self.btn_undo.setVisible(visible)
-        self.btn_redo.setVisible(visible)
-        self.line1.setVisible(visible)
-        self.update_layout_style()
+    def _on_toolbar_visibility_changed(self, value):
+        self.update_toolbar_layout()
         QTimer.singleShot(10, self._update_indicator_now)
+
+    def _execute_plugin_by_name(self, name):
+        for plugin in self.plugins:
+            if hasattr(plugin, "get_name") and plugin.get_name() == name:
+                plugin.execute()
+                return
 
     def _update_indicator_now(self):
         pass # Indicator is hidden in new design
@@ -1828,56 +1857,99 @@ class ToolbarWidget(QWidget):
         self.layout.setSizeConstraint(QHBoxLayout.SetFixedSize)
         self.layout.setAlignment(Qt.AlignCenter)
 
-        # Base Tools
+        # Initialize all buttons
         self.btn_select = CustomToolButton("Mouse.svg", _t("toolbar.select"), self, tool_name="select", text=_t("toolbar.select"))
         self.btn_select.clicked.connect(lambda: self._on_tool_changed("select", self.select_clicked))
-        self.layout.addWidget(self.btn_select)
 
         self.btn_pen = CustomToolButton("Pen.svg", _t("toolbar.pen"), self, tool_name="pen", text=_t("toolbar.pen"))
         self.btn_pen.clicked.connect(self._on_pen_button_clicked)
-        self.layout.addWidget(self.btn_pen)
 
         self.btn_eraser = CustomToolButton("Eraser.svg", _t("toolbar.eraser"), self, tool_name="eraser", text=_t("toolbar.eraser"))
         self.btn_eraser.clicked.connect(lambda: self._on_tool_changed("eraser", self.eraser_clicked))
-        self.layout.addWidget(self.btn_eraser)
+
+        self.btn_undo = CustomToolButton("Previous.svg", _t("toolbar.undo"), self, text=_t("toolbar.undo"))
+        self.btn_undo.clicked.connect(self.prev_clicked.emit)
+
+        self.btn_redo = CustomToolButton("Next.svg", _t("toolbar.redo"), self, text=_t("toolbar.redo"))
+        self.btn_redo.clicked.connect(self.next_clicked.emit)
+
+        self.btn_spotlight = CustomToolButton("spotlight.svg", _t("toolbar.spotlight"), self, text=_t("toolbar.spotlight"))
+        self.btn_spotlight.clicked.connect(lambda: self._execute_plugin_by_name("聚光灯"))
+
+        self.btn_timer = CustomToolButton("timer.svg", _t("toolbar.timer"), self, text=_t("toolbar.timer"))
+        self.btn_timer.clicked.connect(lambda: self._execute_plugin_by_name("计时器"))
 
         self.line1 = QFrame()
         self.line1.setFrameShape(QFrame.VLine)
         self.line1.setFixedHeight(24)
-        self.layout.addWidget(self.line1)
 
-        self.btn_undo = CustomToolButton("Previous.svg", _t("toolbar.undo"), self, text=_t("toolbar.undo"))
-        self.btn_undo.clicked.connect(self.prev_clicked.emit)
-        self.layout.addWidget(self.btn_undo)
-
-        self.btn_redo = CustomToolButton("Next.svg", _t("toolbar.redo"), self, text=_t("toolbar.redo"))
-        self.btn_redo.clicked.connect(self.next_clicked.emit)
-        self.layout.addWidget(self.btn_redo)
-
-        self.btn_undo.setVisible(cfg.showUndoRedo.value)
-        self.btn_redo.setVisible(cfg.showUndoRedo.value)
-        self.line1.setVisible(cfg.showUndoRedo.value)
-        cfg.showUndoRedo.valueChanged.connect(self._on_undo_redo_visibility_changed)
-
-        # Plugins and Dynamic Content
         self.dynamic_container = QWidget(self)
         self.dynamic_layout = QHBoxLayout(self.dynamic_container)
         self.dynamic_layout.setContentsMargins(0, 0, 0, 0)
         self.dynamic_layout.setSpacing(4)
-        self.layout.addWidget(self.dynamic_container)
-        
-        self.refresh_dynamic_tools()
 
         self.line3 = QFrame()
         self.line3.setFrameShape(QFrame.VLine)
         self.line3.setFixedHeight(24)
-        self.layout.addWidget(self.line3)
 
         self.btn_end = CustomToolButton("Minimize.svg", _t("toolbar.end_show"), self, is_exit=True, text=_t("toolbar.end_show"))
         self.btn_end.clicked.connect(self.end_clicked.emit)
+
+        # Add to layout based on order
+        self.update_toolbar_layout()
+
+        # Connect signals
+        cfg.showUndoRedo.valueChanged.connect(self._on_toolbar_visibility_changed)
+        cfg.showSpotlight.valueChanged.connect(self._on_toolbar_visibility_changed)
+        cfg.showTimer.valueChanged.connect(self._on_toolbar_visibility_changed)
+        cfg.toolbarOrder.valueChanged.connect(self.update_toolbar_layout)
+
+        QTimer.singleShot(0, self._update_indicator_now)
+
+    def update_toolbar_layout(self):
+        # Clear layout
+        while self.layout.count():
+            item = self.layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+        
+        order = cfg.toolbarOrder.value
+        has_undo_redo = cfg.showUndoRedo.value
+        has_spotlight = cfg.showSpotlight.value
+        has_timer = cfg.showTimer.value
+
+        for item_id in order:
+            if item_id == "select":
+                self.layout.addWidget(self.btn_select)
+            elif item_id == "pen":
+                self.layout.addWidget(self.btn_pen)
+            elif item_id == "eraser":
+                self.layout.addWidget(self.btn_eraser)
+            elif item_id == "undo":
+                self.btn_undo.setVisible(has_undo_redo)
+                if has_undo_redo:
+                    self.layout.addWidget(self.btn_undo)
+            elif item_id == "redo":
+                self.btn_redo.setVisible(has_undo_redo)
+                if has_undo_redo:
+                    self.layout.addWidget(self.btn_redo)
+            elif item_id == "spotlight":
+                self.btn_spotlight.setVisible(has_spotlight)
+                if has_spotlight:
+                    self.layout.addWidget(self.btn_spotlight)
+            elif item_id == "timer":
+                self.btn_timer.setVisible(has_timer)
+                if has_timer:
+                    self.layout.addWidget(self.btn_timer)
+            elif item_id == "apps":
+                self.layout.addWidget(self.dynamic_container)
+            
+        # Add separator line and end button
+        self.layout.addWidget(self.line3)
         self.layout.addWidget(self.btn_end)
         
-        QTimer.singleShot(0, self._update_indicator_now)
+        self.refresh_dynamic_tools()
+        self.update_layout_style()
 
     def refresh_dynamic_tools(self):
         p = self.parent()
@@ -1901,6 +1973,9 @@ class ToolbarWidget(QWidget):
 
             if isinstance(name, str) and ("工具栏固定项" in name or "应用启动器" in name or "App Launcher" in name):
                 app_launcher = plugin
+                continue
+
+            if name in ["聚光灯", "计时器"]:
                 continue
 
             if isinstance(plugin_type, str) and plugin_type.startswith("toolbar"):
@@ -1957,16 +2032,17 @@ class PageFlipButton(QFrame):
         super().__init__(parent)
         self.icon_name = icon_name
         self.rotation = rotation
-        self.setFixedSize(38, 38)
+        scale = cfg.scale.value
+        self.setFixedSize(int(38 * scale), int(38 * scale))
         self.setCursor(Qt.PointingHandCursor)
-        self.setStyleSheet("""
-            QFrame {
+        self.setStyleSheet(f"""
+            QFrame {{
                 background-color: transparent;
-                border-radius: 19px;
-            }
-            QFrame:hover {
+                border-radius: {int(19 * scale)}px;
+            }}
+            QFrame:hover {{
                 background-color: rgba(255, 255, 255, 0.08);
-            }
+            }}
         """)
         
         layout = QVBoxLayout(self)
@@ -1975,7 +2051,7 @@ class PageFlipButton(QFrame):
         layout.setAlignment(Qt.AlignCenter)
         
         self.icon_label = QLabel(self)
-        self.icon_label.setFixedSize(20, 20)
+        self.icon_label.setFixedSize(int(20 * scale), int(20 * scale))
         self.icon_label.setAlignment(Qt.AlignCenter)
         
         layout.addWidget(self.icon_label)
@@ -1986,7 +2062,9 @@ class PageFlipButton(QFrame):
         if not os.path.exists(icon_path):
             return
             
-        cache_key = (self.icon_name, color.name(), 20, self.rotation)
+        scale = cfg.scale.value
+        s = int(20 * scale)
+        cache_key = (self.icon_name, color.name(), s, self.rotation)
         cached_pixmap = GlobalIconCache.get(cache_key)
         if cached_pixmap:
             self.icon_label.setPixmap(cached_pixmap)
@@ -1994,7 +2072,8 @@ class PageFlipButton(QFrame):
 
         renderer = QSvgRenderer(icon_path)
         if renderer.isValid():
-            base = QPixmap(40, 40)
+            device_size = int(40 * scale)
+            base = QPixmap(device_size, device_size)
             base.fill(Qt.transparent)
             p = QPainter(base)
             p.setRenderHint(QPainter.Antialiasing)
@@ -2006,7 +2085,7 @@ class PageFlipButton(QFrame):
             p.setCompositionMode(QPainter.CompositionMode_SourceIn)
             p.fillRect(base.rect(), color)
             p.end()
-            scaled = base.scaled(20, 20, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled = base.scaled(s, s, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             GlobalIconCache.set(cache_key, scaled)
             self.icon_label.setPixmap(scaled)
 
@@ -2024,7 +2103,8 @@ class PageFlipWidget(QFrame):
         super().__init__(parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.side = side
-        self.h_val = height
+        scale = cfg.scale.value
+        self.h_val = int(height * scale)
         self.orientation = orientation
         
         self.update_style()
@@ -2051,9 +2131,9 @@ class PageFlipWidget(QFrame):
         self.page_layout.addWidget(self.lbl_hint)
 
         if orientation == "Vertical":
-             self.setFixedSize(self.h_val, 160)
+             self.setFixedSize(self.h_val, int(160 * scale))
              self.layout = QVBoxLayout(self)
-             self.layout.setContentsMargins(0, 5, 0, 5)
+             self.layout.setContentsMargins(0, int(5 * scale), 0, int(5 * scale))
              
              # Up arrow (Previous) - Rotate 90 deg
              self.btn_prev = PageFlipButton("Previous.svg", self, rotation=90)
@@ -2065,9 +2145,9 @@ class PageFlipWidget(QFrame):
              self.layout.addWidget(self.page_container, 1)
              self.layout.addWidget(self.btn_next, 0, Qt.AlignHCenter)
         else:
-             self.setFixedSize(160, self.h_val)
+             self.setFixedSize(int(160 * scale), self.h_val)
              self.layout = QHBoxLayout(self)
-             self.layout.setContentsMargins(5, 0, 5, 0)
+             self.layout.setContentsMargins(int(5 * scale), 0, int(5 * scale), 0)
              self.btn_prev = PageFlipButton("Previous.svg", self)
              self.btn_next = PageFlipButton("Next.svg", self)
              
@@ -2086,21 +2166,23 @@ class PageFlipWidget(QFrame):
 
     def set_page_info(self, current, total):
         hint_fg = "rgba(255, 255, 255, 0.6)" if not hasattr(self, "_is_light") or not self._is_light else "rgba(0, 0, 0, 0.5)"
+        scale = cfg.scale.value
         
         # Calculate optimal font size based on number length to prevent overflow
         num_len = len(str(current))
-        font_size = 16
+        font_size = int(16 * scale)
         if num_len > 3:
-            font_size = 12
+            font_size = int(12 * scale)
         elif num_len > 2:
-            font_size = 14
+            font_size = int(14 * scale)
             
         self.lbl_page.setText(f'<span style="font-size: {font_size}px; font-weight: 900;">{current}</span>'
-                              f'<span style="font-size: 10px; font-weight: 400; color: {hint_fg};">/{total}</span>')
+                              f'<span style="font-size: {int(10 * scale)}px; font-weight: 400; color: {hint_fg};">/{total}</span>')
         self.lbl_page.repaint()
 
     def update_style(self, is_light=False):
         self._is_light = is_light
+        scale = cfg.scale.value
         
         # Settings Design Style
         if self._is_light:
@@ -2131,13 +2213,13 @@ class PageFlipWidget(QFrame):
             QLabel {{
                 color: {fg};
                 font-family: 'MiSans Latin', 'HarmonyOS Sans SC', 'SF Pro', '苹方-简', 'PingFang SC', 'Segoe UI', 'Microsoft YaHei', sans-serif;
-                font-size: 12px;
+                font-size: {int(12 * scale)}px;
                 font-weight: 900;
                 background: transparent;
                 border: none;
             }}
             QLabel#PageHint {{
-                font-size: 9px;
+                font-size: {int(9 * scale)}px;
                 font-weight: 400;
                 color: {hint_fg};
             }}
@@ -2148,7 +2230,7 @@ class PageFlipWidget(QFrame):
             btn.setStyleSheet(f"""
                 QFrame {{
                     background-color: transparent;
-                    border-radius: 19px;
+                    border-radius: {int(19 * scale)}px;
                 }}
                 QFrame:hover {{
                     background-color: {hover_bg};

@@ -722,6 +722,11 @@ class PPTAssistantApp:
             old_toolbar_text = cfg.showToolbarText.value
             old_status_bar = cfg.showStatusBar.value
             old_undo_redo = cfg.showUndoRedo.value
+            old_spotlight = cfg.showSpotlight.value
+            old_timer = cfg.showTimer.value
+            old_toolbar_order = cfg.toolbarOrder.value
+            old_safe_area = cfg.safeArea.value
+            old_scale = cfg.scale.value
             # old_layout_mode = cfg.toolbarLayout.value
 
             reload_cfg()
@@ -752,7 +757,12 @@ class PPTAssistantApp:
                 cfg.showToolbarText.value != old_toolbar_text or 
                 cfg.showStatusBar.value != old_status_bar or
                 cfg.showUndoRedo.value != old_undo_redo or
-                new_overlay_font != old_overlay_font):
+                cfg.showSpotlight.value != old_spotlight or
+                cfg.showTimer.value != old_timer or
+                cfg.toolbarOrder.value != old_toolbar_order or
+                new_overlay_font != old_overlay_font or
+                cfg.safeArea.value != old_safe_area or
+                cfg.scale.value != old_scale):
                 if not self._reloading_overlay:
                     self._reload_timer.start()
             

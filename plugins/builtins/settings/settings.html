@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Settings</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     :root {
       --bg-app: #f2f3f5;
@@ -14,18 +15,20 @@
       /* Legacy */
       --sidebar-bg: #ffffff;
       /* Legacy */
-      --border-color: #e5e7eb;
+      --border-color: rgba(0, 0, 0, 0.08);
       /* Legacy */
-      --text-primary: #1f2937;
-      --text-secondary: #6b7280;
+      --text-primary: #1a1c1e;
+      --text-secondary: #5e6368;
       --accent-blue: #3275F5;
-      --divider: #e5e7eb;
-      --card-bg: #ffffff;
-      --card-border: #e5e7eb;
-      --item-hover: #f3f4f6;
+      --divider: rgba(0, 0, 0, 0.08);
+      --card-bg: rgba(0, 0, 0, 0.03);
+      --card-border: rgba(0, 0, 0, 0.02);
+      --item-hover: rgba(0, 0, 0, 0.05);
       --shadow-color: rgba(0, 0, 0, 0.06);
       --shadow-main: 0 4px 12px var(--shadow-color);
       --logo-glow: rgba(50, 117, 245, 0.1);
+      --hyperos-g1: #e0f2fe;
+      --hyperos-g2: #fef9c3;
       --hyperos-g3: #fce7f3;
       --hyperos-g4: #d1fae5;
       --hyperos-g5: #ffffff;
@@ -328,7 +331,7 @@
 
     .section.active {
       display: block;
-      animation: sectionFadeIn 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation: pivotSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes sectionFadeIn {
@@ -340,6 +343,19 @@
       to {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    @keyframes pivotSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(30px) scaleX(1.05);
+        filter: blur(8px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scaleX(1);
+        filter: blur(0);
       }
     }
 
@@ -398,57 +414,184 @@
       font-size: 15px;
       color: var(--text-primary);
       font-weight: 500;
+      letter-spacing: 0.2px;
     }
 
     .item-desc {
       font-size: 13px;
       color: var(--text-secondary);
-      line-height: 1.4;
+      line-height: 1.5;
+      opacity: 0.85;
     }
 
     .item-state {
       display: flex;
       align-items: center;
       color: var(--text-secondary);
-      font-size: 15px;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 160px;
+    }
+
+    .slider-value {
+      min-width: 45px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      color: var(--accent-blue);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100px;
+      height: 4px;
+      background: var(--divider);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--accent-blue);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.1s;
+      border: 2px solid var(--bg-surface);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
     }
 
     .chevron {
       width: 14px;
       height: 14px;
-      margin-left: 6px;
-      opacity: 0.3;
+      margin-left: 8px;
+      opacity: 0.4;
       fill: currentColor;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .settings-item.active .chevron {
+      transform: rotate(90deg);
+      opacity: 0.6;
     }
 
     .version-expander {
-      padding: 0 20px 16px 20px;
-      border-top: 1px solid var(--divider);
-      font-size: 12px;
-      color: var(--text-secondary);
-      display: none;
+      padding: 0 20px;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-top: 1px solid transparent;
+      pointer-events: none;
+    }
+
+    .version-expander.active {
+      padding: 12px 20px 20px 20px;
+      max-height: 600px;
+      opacity: 1;
+      border-top-color: var(--divider);
+      pointer-events: auto;
     }
 
     .version-expander-inner {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 16px;
     }
 
     .version-expander-text {
-      line-height: 1.5;
+      line-height: 1.6;
+      font-size: 13px;
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+
+    .version-expander-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .version-expander-links a {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--accent-blue);
       text-decoration: none;
-      margin-left: 8px;
+      padding: 6px 14px;
+      background: rgba(50, 117, 245, 0.08);
+      border-radius: 8px;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
     }
 
     .version-expander-links a:hover {
-      text-decoration: underline;
+      background: var(--accent-blue);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(50, 117, 245, 0.2);
+    }
+
+    .version-expander-links a:active {
+      transform: translateY(0);
+    }
+
+    .credits-section {
+      margin-bottom: 16px;
+    }
+
+    .credits-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .credits-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.5;
+    }
+
+    .credits-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .credits-list span {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--card-bg);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      transition: all 0.2s;
+    }
+
+    .credits-list span:hover {
+      background: var(--item-hover);
+      color: var(--text-primary);
+    }
+
+    .credits-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      opacity: 0.7;
     }
 
     /* Update Section Styles */
@@ -489,29 +632,46 @@
 
     .header-actions .btn-primary {
       border-radius: 999px;
-      background: transparent;
-      border: 1px solid var(--accent-blue);
+      background: rgba(50, 117, 245, 0.08);
+      border: 1px solid rgba(50, 117, 245, 0.2);
       color: var(--accent-blue);
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 8px 20px;
+      box-shadow: none;
+      font-size: 13.5px;
+      font-weight: 500;
     }
 
     .header-actions .btn-primary:hover {
-      background: rgba(50, 117, 245, 0.1);
-      opacity: 1;
+      background: var(--accent-blue);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(50, 117, 245, 0.2);
+    }
+
+    .header-actions .btn-primary:active {
+      transform: scale(0.96);
     }
 
     .header-actions .btn-secondary {
       border-radius: 999px;
       background: transparent;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--divider);
       color: var(--text-primary);
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 8px 20px;
+      font-size: 13.5px;
+      font-weight: 500;
     }
 
     .header-actions .btn-secondary:hover {
       background: var(--item-hover);
       border-color: var(--text-secondary);
-      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .header-actions .btn-secondary:active {
+      transform: scale(0.96);
     }
 
     .status-info {
@@ -522,9 +682,10 @@
     }
 
     .status-text {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--text-primary);
+      letter-spacing: -0.01em;
     }
 
     .update-carbon-notice {
@@ -582,8 +743,9 @@
     }
 
     .last-check-time {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-secondary);
+      opacity: 0.6;
     }
 
     /* Pivot Styles */
@@ -600,7 +762,11 @@
       color: var(--text-secondary);
       cursor: pointer;
       position: relative;
-      transition: color 0.2s;
+      transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .pivot-item:active {
+      transform: scale(0.96);
     }
 
     .pivot-item:hover {
@@ -612,6 +778,17 @@
       font-weight: 600;
     }
 
+    @keyframes pivotUnderlineIn {
+      from {
+        opacity: 0;
+        transform: scaleX(0.5);
+      }
+      to {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+    }
+
     .pivot-item.active::after {
       content: "";
       position: absolute;
@@ -621,6 +798,7 @@
       height: 2px;
       background: var(--accent-blue);
       border-radius: 1px;
+      animation: pivotUnderlineIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .pivot-content {
@@ -629,7 +807,7 @@
 
     .pivot-content.active {
       display: block;
-      animation: sectionFadeIn 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation: pivotSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .update-header {
@@ -748,11 +926,26 @@
       color: white;
       border: none;
       padding: 10px 24px;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(50, 117, 245, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #4085ff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(50, 117, 245, 0.25);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
     }
 
     .btn-secondary {
@@ -760,15 +953,24 @@
       color: var(--text-primary);
       border: none;
       padding: 10px 24px;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .btn-primary:hover,
     .btn-secondary:hover {
-      opacity: 0.9;
+      background: var(--divider);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.97);
     }
 
     .loading-spinner {
@@ -844,6 +1046,11 @@
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
       min-height: 52px;
+    }
+
+    [data-theme="light"] .toolbar-preview-bar {
+      background: rgba(45, 45, 45, 0.85);
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
     }
 
     .toolbar-preview-btn {
@@ -923,6 +1130,16 @@
     .toolbar-preview-btn-icon.icon-redo::before {
       mask-image: url('../../../icons/Next.svg');
       -webkit-mask-image: url('../../../icons/Next.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-spotlight::before {
+      mask-image: url('../../../icons/spotlight.svg');
+      -webkit-mask-image: url('../../../icons/spotlight.svg');
+    }
+
+    .toolbar-preview-btn-icon.icon-timer::before {
+      mask-image: url('../../../icons/timer.svg');
+      -webkit-mask-image: url('../../../icons/timer.svg');
     }
 
     .toolbar-preview-btn-icon.icon-exit::before {
@@ -1127,17 +1344,28 @@
 
     .btn {
       min-width: 88px;
-      height: 34px;
-      border-radius: 17px;
+      height: 36px;
+      border-radius: 18px;
       border: none;
       font-size: 13.5px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: center;
       outline: none;
+      gap: 6px;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn:disabled, .btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
     }
 
     .btn-cancel {
@@ -1148,17 +1376,21 @@
 
     .btn-cancel:hover {
       background: var(--item-hover);
+      color: var(--text-primary);
+      transform: translateY(-1px);
     }
 
     .btn-confirm {
-      background: transparent;
+      background: rgba(50, 117, 245, 0.08);
       color: var(--accent-blue);
-      border: 1px solid var(--accent-blue);
+      border: 1px solid rgba(50, 117, 245, 0.15);
     }
 
     .btn-confirm:hover {
       background: var(--accent-blue);
       color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(50, 117, 245, 0.2);
     }
 
     .toolbar-btn:hover:not(:disabled) {
@@ -1532,31 +1764,32 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 0;
     }
 
     .about-main-logo {
-      width: 180px;
-      height: 180px;
+      width: 420px;
+      height: 420px;
       display: block;
-      filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.15));
+      filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.1));
+      margin: -50px 0;
     }
 
     [data-theme="dark"] .about-main-logo {
-      filter: drop-shadow(0 0 25px rgba(50, 117, 245, 0.6));
+      filter: drop-shadow(0 0 30px rgba(50, 117, 245, 0.45));
     }
 
     .about-main-logo path {
-      fill: rgba(255, 255, 255, 0.1);
-      stroke: rgba(255, 255, 255, 0.4);
-      stroke-width: 1.2px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      fill: rgba(0, 0, 0, 0.02);
+      stroke: rgba(0, 0, 0, 0.12);
+      stroke-width: 0.8px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
     }
 
     [data-theme="dark"] .about-main-logo path {
-      fill: rgba(255, 255, 255, 0.05);
-      stroke: rgba(255, 255, 255, 0.2);
+      fill: rgba(255, 255, 255, 0.08);
+      stroke: rgba(255, 255, 255, 0.3);
     }
 
     .language-warning {
@@ -1657,28 +1890,9 @@
       border-radius: 4px;
     }
 
-    .icon-select {
-      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.6V2z"/></svg>');
-    }
-
-    .icon-pen {
-      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>');
-    }
-
-    .icon-eraser {
-      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.78-.78 2.05 0 2.83L5.17 20h-1v2h13v-2h-3l4.24-4.24c.78-.78.78-2.05 0-2.83l-4.24-4.24l-2.62-2.61l-.01-.01c-.39-.39-.9-.59-1.4-.59zM15.14 5l4.24 4.24l-4.24 4.24l-4.24-4.24L15.14 5zM4 16.14l4.24-4.24l4.24 4.24l-4.24 4.24L4 16.14z"/></svg>');
-    }
-
-    .icon-undo {
-      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>');
-    }
-
-    .icon-redo {
-      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>');
-    }
-
-    .icon-exit {
-      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>');
+    /* Icon Classes - using common styles from above */
+    .icon-select, .icon-pen, .icon-eraser, .icon-undo, .icon-redo, .icon-exit, .icon-spotlight, .icon-timer {
+      background-color: #FFFFFF;
     }
 
     /* Font Customization Styles */
@@ -1867,6 +2081,7 @@
       transform: scale(0.98);
       filter: brightness(0.9);
     }
+
   </style>
 </head>
 
@@ -1935,7 +2150,7 @@
 
     <div id="dev-watermark" class="dev-watermark" style="display: none;"></div>
 
-    <div class="content">
+    <div class="content" id="content">
       <div class="page-title" id="section-title" data-i18n="section.main">主程序</div>
 
       <div class="section active" id="section-main">
@@ -2186,6 +2401,30 @@
             </div>
             <div class="switch" id="sw-Overlay-ShowStatusBar"></div>
           </div>
+          <div class="settings-item">
+            <div class="item-info">
+              <span class="item-label" data-i18n="overlay.safeArea.label">屏幕内安全区</span>
+              <span class="item-desc" data-i18n="overlay.safeArea.desc">调整组件与屏幕边缘的距离</span>
+            </div>
+            <div class="item-state">
+              <div class="slider-container">
+                <input type="range" id="range-Overlay-SafeArea" min="0" max="100" step="1" oninput="updateRangeValue('Overlay', 'SafeArea', this.value)" onchange="saveRangeValue('Overlay', 'SafeArea', this.value)">
+                <span class="slider-value" id="val-Overlay-SafeArea">0px</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="item-info">
+              <span class="item-label" data-i18n="overlay.scale.label">组件缩放倍率</span>
+              <span class="item-desc" data-i18n="overlay.scale.desc">调整悬浮窗组件的整体显示大小</span>
+            </div>
+            <div class="item-state">
+              <div class="slider-container">
+                <input type="range" id="range-Overlay-Scale" min="0.5" max="2.0" step="0.05" oninput="updateRangeValue('Overlay', 'Scale', this.value)" onchange="saveRangeValue('Overlay', 'Scale', this.value)">
+                <span class="slider-value" id="val-Overlay-Scale">1.00x</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2204,42 +2443,24 @@
             </div>
             <div class="switch" id="sw-Toolbar-ShowUndoRedo"></div>
           </div>
+          <div class="settings-item" onclick="toggleSwitch('Toolbar', 'ShowSpotlight')">
+            <div class="item-info">
+              <span class="item-label" data-i18n="interaction.showSpotlight.label">显示聚光灯</span>
+            </div>
+            <div class="switch" id="sw-Toolbar-ShowSpotlight"></div>
+          </div>
+          <div class="settings-item" onclick="toggleSwitch('Toolbar', 'ShowTimer')">
+            <div class="item-info">
+              <span class="item-label" data-i18n="interaction.showTimer.label">显示计时器</span>
+            </div>
+            <div class="switch" id="sw-Toolbar-ShowTimer"></div>
+          </div>
           <div class="settings-item" onclick="toggleSwitch('Toolbar', 'ShowToolbarText')">
             <div class="item-info">
               <span class="item-label" data-i18n="interaction.showToolbarText.label">工具栏文字</span>
               <span class="item-desc" data-i18n="interaction.showToolbarText.desc">在工具栏图标下方显示功能名称</span>
             </div>
             <div class="switch" id="sw-Toolbar-ShowToolbarText"></div>
-          </div>
-        </div>
-
-        <div class="group-title" data-i18n="interaction.toolbar.layout.label">工具栏布局</div>
-        <div class="settings-group">
-          <div class="settings-item" style="padding: 16px;">
-            <div class="layout-selector">
-              <div class="layout-option" id="layout-Horizontal" onclick="setToolbarLayout('Horizontal')">
-                <div class="layout-preview">
-                  <svg viewBox="0 0 120 60" class="layout-svg" fill="none">
-                    <rect x="0" y="0" width="120" height="60" rx="4" fill="var(--bg-surface)" stroke="var(--divider)" />
-                    <rect x="40" y="45" width="40" height="8" rx="4" fill="currentColor" opacity="0.2" />
-                    <rect x="10" y="45" width="20" height="8" rx="4" fill="var(--accent-blue)" />
-                    <rect x="90" y="45" width="20" height="8" rx="4" fill="var(--accent-blue)" />
-                  </svg>
-                </div>
-                <div class="layout-label" data-i18n="interaction.toolbar.layout.horizontal">水平排列</div>
-              </div>
-              <div class="layout-option" id="layout-VerticalSplit" onclick="setToolbarLayout('VerticalSplit')">
-                <div class="layout-preview">
-                  <svg viewBox="0 0 120 60" class="layout-svg" fill="none">
-                    <rect x="0" y="0" width="120" height="60" rx="4" fill="var(--bg-surface)" stroke="var(--divider)" />
-                    <rect x="40" y="45" width="40" height="8" rx="4" fill="currentColor" opacity="0.2" />
-                    <rect x="10" y="15" width="8" height="30" rx="4" fill="var(--accent-blue)" />
-                    <rect x="102" y="15" width="8" height="30" rx="4" fill="var(--accent-blue)" />
-                  </svg>
-                </div>
-                <div class="layout-label" data-i18n="interaction.toolbar.layout.vertical">两侧竖向</div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -2281,13 +2502,52 @@
           <div class="version-expander" id="version-expander">
             <div class="version-expander-inner">
               <div class="version-expander-text" data-i18n="about.version.copyright">
-                copyright 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可
-              </div>
+            COPYRIGHT 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可
+          </div>
               <div class="version-expander-links">
                 <a href="https://github.com/Yunofactory/Kazuha" target="_blank" rel="noopener noreferrer"
                   data-i18n="about.version.github">GitHub 仓库地址</a>
                 <a href="https://qm.qq.com/q/JW7jyyzW4s" target="_blank" rel="noopener noreferrer"
                   data-i18n="about.version.qq">QQ群</a>
+              </div>
+            </div>
+          </div>
+          <div class="settings-item" id="credits-item">
+            <div class="item-info">
+              <span class="item-label" data-i18n="about.credits.label">鸣谢</span>
+            </div>
+            <div class="item-state">
+              <svg class="chevron" viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+              </svg>
+            </div>
+          </div>
+          <div class="version-expander" id="credits-expander">
+            <div class="version-expander-inner">
+              <div class="credits-section">
+                <div class="credits-title" data-i18n="about.credits.contributors">贡献人员</div>
+                <div class="credits-list">
+                  <span>Haraguse</span>
+                  <span>hujinming0722</span>
+                  <span>IsHPDuwu</span>
+                </div>
+              </div>
+              <div class="credits-section">
+                <div class="credits-title" data-i18n="about.credits.libraries">第三方库</div>
+                <div class="credits-list">
+                  <span>pywebview</span>
+                  <span>marked.js</span>
+                  <span>python-pptx</span>
+                  <span>win32com</span>
+                </div>
+              </div>
+              <div class="credits-section">
+                <div class="credits-text">
+                  本软件的启发来自希沃课堂助手与鸿合演示助手<br>
+                  本程序的部分图标资源来自 希沃白板5<br>
+                  应用字体使用了小米与汉仪字库联合出品的 MiSans<br>
+                  感谢所有帮助测试的用户与贡献成员<br>
+                </div>
               </div>
             </div>
           </div>
@@ -2560,20 +2820,19 @@
       "interaction.autoHandleInk.desc": "退出放映时自动处理\"是否保留墨迹\"",
       "interaction.showToolbarText.label": "显示按钮文字",
       "interaction.showToolbarText.desc": "在工具栏按钮下方显示文字标签",
-      "interaction.toolbarLayout.label": "工具栏布局",
-      "interaction.toolbarLayout.desc": "选择工具栏和翻页按钮的排列方式",
-      "interaction.layout.horizontal": "水平排列",
-      "interaction.layout.verticalSplit": "两侧竖向",
       "interaction.showStatusBar.label": "顶部状态栏",
       "interaction.showStatusBar.desc": "在悬浮窗顶部显示时间与状态",
+      "overlay.safeArea.label": "屏幕内安全区",
+      "overlay.safeArea.desc": "调整组件与屏幕边缘的距离",
+      "overlay.scale.label": "组件缩放倍率",
+      "overlay.scale.desc": "调整悬浮窗组件的整体显示大小",
       "interaction.showUndoRedo.label": "显示撤销/重做",
+      "interaction.showSpotlight.label": "显示聚光灯",
+      "interaction.showTimer.label": "显示计时器",
       "interaction.showUndoRedo.undo": "撤销",
       "interaction.showUndoRedo.redo": "重做",
       "interaction.showToolbarText.label": "工具栏文字",
       "interaction.showToolbarText.desc": "在工具栏图标下方显示功能名称",
-      "interaction.toolbar.layout.label": "工具栏布局",
-      "interaction.toolbar.layout.horizontal": "水平排列",
-      "interaction.toolbar.layout.vertical": "两侧竖向",
       "interaction.toolbar.customization.label": "工具栏固定项",
       "interaction.toolbar.customization.desc": "预览并管理工具栏上的快速启动项",
       "interaction.toolbar.preview.label": "工具栏预览",
@@ -2585,6 +2844,8 @@
       "toolbar.select": "选择",
       "toolbar.pen": "画笔",
       "toolbar.eraser": "橡皮擦",
+      "toolbar.spotlight": "聚光灯",
+      "toolbar.timer": "计时器",
       "update.status.ready": "准备检查更新",
       "update.status.latest": "你使用的是最新版本",
       "update.status.checking": "正在检查更新...",
@@ -2614,9 +2875,12 @@
       "toolbar.redo": "重做",
       "toolbar.end_show": "结束放映",
       "about.version.label": "软件版本",
-      "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可",
+      "about.version.copyright": "COPYRIGHT 2025-2026 Seirai Haraguchi / YunoFactory 丨本程序根据 GNU General Public License 3 获得许可",
       "about.version.github": "GitHub 仓库地址",
       "about.version.qq": "QQ群（1004548404）",
+      "about.credits.label": "鸣谢",
+      "about.credits.contributors": "贡献人员",
+      "about.credits.libraries": "第三方库",
       "about.checkUpdate.label": "检查更新",
       "debug.createDialog.label": "创建 Dialog",
       "debug.createDialog.desc": "测试全新的 Dialog 设计风格",
@@ -2694,13 +2958,15 @@
       "interaction.autoHandleInk.desc": "結束播放時自動處理「是否保留墨跡」",
       "interaction.showToolbarText.label": "顯示按鈕文字",
       "interaction.showToolbarText.desc": "在工具列按鈕下方顯示文字標籤",
-      "interaction.toolbarLayout.label": "工具列佈局",
-      "interaction.toolbarLayout.desc": "選擇工具列和翻頁按鈕的排列方式",
-      "interaction.layout.horizontal": "水平排列",
-      "interaction.layout.verticalSplit": "兩側豎向",
       "interaction.showStatusBar.label": "頂部狀態列",
       "interaction.showStatusBar.desc": "在懸浮窗頂部顯示時間與狀態",
+      "overlay.safeArea.label": "螢幕內安全區",
+      "overlay.safeArea.desc": "調整組件與螢幕邊緣的距離",
+      "overlay.scale.label": "組件縮放倍率",
+      "overlay.scale.desc": "調整懸浮窗組件的整體顯示大小",
       "interaction.showUndoRedo.label": "顯示復原/重做",
+      "interaction.showSpotlight.label": "顯示聚光燈",
+      "interaction.showTimer.label": "顯示計時器",
       "interaction.toolbar.customization.label": "工具列固定項",
       "interaction.toolbar.customization.desc": "管理工具列上的快速啟動項",
       "interaction.toolbar.preview.label": "工具列預覽",
@@ -2711,6 +2977,8 @@
       "toolbar.select": "選擇",
       "toolbar.pen": "畫筆",
       "toolbar.eraser": "橡皮擦",
+      "toolbar.spotlight": "聚光燈",
+      "toolbar.timer": "計時器",
       "toolbar.undo": "復原",
       "toolbar.redo": "重做",
       "toolbar.end_show": "結束放映",
@@ -2740,9 +3008,12 @@
       "update.settings.beta.label": "預覽版計劃",
       "update.settings.beta.desc": "獲取最新的預覽版功能，可能存在不穩定性",
       "about.version.label": "軟體版本",
-      "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本程式依據 GNU General Public License 3 授權",
+      "about.version.copyright": "COPYRIGHT 2025-2026 Seirai Haraguchi / YunoFactory │ 本程式依據 GNU General Public License 3 授權",
       "about.version.github": "GitHub 儲存庫",
       "about.version.qq": "QQ群",
+      "about.credits.label": "鳴謝",
+      "about.credits.contributors": "貢獻人員",
+      "about.credits.libraries": "第三方庫",
       "about.checkUpdate.label": "檢查更新",
       "debug.createDialog.label": "建立 Dialog",
       "debug.createDialog.desc": "測試全新的 Dialog 設計風格",
@@ -2825,8 +3096,14 @@
       "interaction.layout.horizontal": "水平配置",
       "interaction.layout.verticalSplit": "両側縦向き",
       "interaction.showStatusBar.label": "上部ステータスバー",
-      "interaction.showStatusBar.desc": "オーバーレイ上部に時間と状態を表示します",
+      "interaction.showStatusBar.desc": "オーバーレイの上部に時間とステータスを表示します",
+      "overlay.safeArea.label": "画面内セーフエリア",
+      "overlay.safeArea.desc": "コンポーネントと画面端の距離を調整します",
+      "overlay.scale.label": "コンポーネント倍率",
+      "overlay.scale.desc": "オーバーレイコンポーネント全体の表示サイズを調整します",
       "interaction.showUndoRedo.label": "元に戻す/やり直しを表示",
+      "interaction.showSpotlight.label": "スポットライトを表示",
+      "interaction.showTimer.label": "タイマーを表示",
       "interaction.toolbar.layout.label": "ツールバーレイアウト",
       "interaction.toolbar.layout.horizontal": "水平配置",
       "interaction.toolbar.layout.vertical": "両側垂直",
@@ -2839,6 +3116,8 @@
       "toolbar.select": "選択",
       "toolbar.pen": "ペン",
       "toolbar.eraser": "消しゴム",
+      "toolbar.spotlight": "スポットライト",
+      "toolbar.timer": "タイマー",
       "toolbar.undo": "元に戻す",
       "toolbar.redo": "やり直し",
       "toolbar.end_show": "スライドショー終了",
@@ -2871,6 +3150,9 @@
       "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本プログラムは GNU General Public License 3 に基づきライセンスされています",
       "about.version.github": "GitHub リポジトリ",
       "about.version.qq": "QQ グループ",
+      "about.credits.label": "謝辞",
+      "about.credits.contributors": "コントリビューター",
+      "about.credits.libraries": "サードパーティライブラリ",
       "about.checkUpdate.label": "更新を確認",
       "debug.createDialog.label": "Dialog を作成",
       "debug.createDialog.desc": "新しい Dialog デザインをテストします",
@@ -2954,7 +3236,13 @@
       "interaction.layout.verticalSplit": "Vertical Split",
       "interaction.showStatusBar.label": "Top status bar",
       "interaction.showStatusBar.desc": "Show time and status at top of overlay",
+      "overlay.safeArea.label": "On-screen Safe Area",
+      "overlay.safeArea.desc": "Adjust distance between components and screen edges",
+      "overlay.scale.label": "Component Scaling",
+      "overlay.scale.desc": "Adjust the overall display size of overlay components",
       "interaction.showUndoRedo.label": "Show Undo/Redo",
+      "interaction.showSpotlight.label": "Show Spotlight",
+      "interaction.showTimer.label": "Show Timer",
       "interaction.toolbar.customization.label": "Toolbar fixed program",
       "interaction.toolbar.customization.desc": "Manage quick launch applications on the toolbar",
       "interaction.toolbar.preview.label": "Toolbar preview",
@@ -2964,6 +3252,8 @@
       "toolbar.select": "Select",
       "toolbar.pen": "Pen",
       "toolbar.eraser": "Eraser",
+      "toolbar.spotlight": "Spotlight",
+      "toolbar.timer": "Timer",
       "toolbar.undo": "Undo",
       "toolbar.redo": "Redo",
       "toolbar.end_show": "End slideshow",
@@ -2996,6 +3286,9 @@
       "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ Licensed under the GNU General Public License 3",
       "about.version.github": "GitHub repository",
       "about.version.qq": "QQ group",
+      "about.credits.label": "Credits",
+      "about.credits.contributors": "Contributors",
+      "about.credits.libraries": "Third-party Libraries",
       "about.checkUpdate.label": "Check for updates",
       "debug.createDialog.label": "Create Dialog",
       "debug.createDialog.desc": "Test the new Dialog design style",
@@ -3495,10 +3788,16 @@
     setSwitch("PPT", "AutoHandleInk");
     setSwitch("Overlay", "ShowStatusBar");
     setSwitch("Toolbar", "ShowUndoRedo");
+    setSwitch("Toolbar", "ShowSpotlight");
+    setSwitch("Toolbar", "ShowTimer");
     setSwitch("Toolbar", "ShowToolbarText");
     setSwitch("Update", "AutoCheck");
     setSwitch("Update", "BetaProgram");
     setSwitch("Fonts", "CustomFont");
+
+    // Ranges
+    initRange("Overlay", "SafeArea", 0, "px");
+    initRange("Overlay", "Scale", 1.0, "x", 2);
 
     renderFontSelects();
 
@@ -3627,6 +3926,41 @@
     }
   }
 
+  function initRange(cat, key, defaultVal, unit, decimals = 0) {
+    const val = settings[cat]?.[key] ?? defaultVal;
+    const rangeEl = document.getElementById(`range-${cat}-${key}`);
+    const valEl = document.getElementById(`val-${cat}-${key}`);
+    if (rangeEl) {
+      rangeEl.value = val;
+    }
+    if (valEl) {
+      valEl.textContent = Number(val).toFixed(decimals) + unit;
+    }
+  }
+
+  function updateRangeValue(cat, key, val) {
+    const valEl = document.getElementById(`val-${cat}-${key}`);
+    if (valEl) {
+      let unit = "";
+      let decimals = 0;
+      if (key === "SafeArea") unit = "px";
+      if (key === "Scale") {
+        unit = "x";
+        decimals = 2;
+      }
+      valEl.textContent = Number(val).toFixed(decimals) + unit;
+    }
+  }
+
+  function saveRangeValue(cat, key, val) {
+    if (!settings[cat]) settings[cat] = {};
+    const numVal = Number(val);
+    settings[cat][key] = numVal;
+    if (window.pywebview && window.pywebview.api.save_setting) {
+      window.pywebview.api.save_setting(cat, key, numVal);
+    }
+  }
+
   function toggleSwitch(cat, key) {
     const el = document.getElementById(`sw-${cat}-${key}`);
     if (!el) return;
@@ -3684,10 +4018,12 @@
     preview.innerHTML = "";
 
     const showText = !!(settings.Toolbar && settings.Toolbar.ShowToolbarText);
+    const order = (settings.Toolbar && settings.Toolbar.ToolbarOrder) || ["select", "pen", "eraser", "spotlight", "timer", "undo", "redo", "apps"];
 
-    const createBtn = (labelKey, fallback, iconName, isExit = false) => {
+    const createBtn = (labelKey, fallback, iconName, toolId) => {
       const btn = document.createElement("div");
       btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
+      btn.dataset.id = toolId;
 
       const icon = document.createElement("div");
       icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
@@ -3709,46 +4045,91 @@
       return sep;
     };
 
-    preview.appendChild(createBtn("toolbar.select", "选择", "select"));
-    preview.appendChild(createBtn("toolbar.pen", "画笔", "pen"));
-    preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser"));
-
-    const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
-    if (showUndoRedo) {
-      preview.appendChild(createSeparator());
-      preview.appendChild(createBtn("toolbar.undo", "撤销", "undo"));
-      preview.appendChild(createBtn("toolbar.redo", "重做", "redo"));
-    }
-
-    if (toolbarApps && toolbarApps.length > 0) {
-      preview.appendChild(createSeparator());
-      toolbarApps.forEach(app => {
-        const btn = document.createElement("div");
-        btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
-        const icon = document.createElement("div");
-        icon.className = "toolbar-preview-btn-icon";
-
-        if (app.icon) {
-          icon.innerHTML = `<img src="${app.icon}" class="toolbar-app-icon-img" style="position: relative; z-index: 1;">`;
-        } else {
-          const firstChar = (app.name || "?").charAt(0).toUpperCase();
-          icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
+    order.forEach(itemId => {
+      if (itemId === "select") {
+        preview.appendChild(createBtn("toolbar.select", "选择", "select", "select"));
+      } else if (itemId === "pen") {
+        preview.appendChild(createBtn("toolbar.pen", "画笔", "pen", "pen"));
+      } else if (itemId === "eraser") {
+        preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser", "eraser"));
+      } else if (itemId === "spotlight") {
+        const showSpotlight = !!(settings.Toolbar && settings.Toolbar.ShowSpotlight);
+        if (showSpotlight) {
+          preview.appendChild(createBtn("toolbar.spotlight", "聚光灯", "spotlight", "spotlight"));
         }
-
-        btn.appendChild(icon);
-        if (showText) {
-          const label = document.createElement("div");
-          label.className = "toolbar-preview-btn-label";
-          const name = app.name || "App";
-          label.textContent = name;
-          btn.appendChild(label);
+      } else if (itemId === "timer") {
+        const showTimer = !!(settings.Toolbar && settings.Toolbar.ShowTimer);
+        if (showTimer) {
+          preview.appendChild(createBtn("toolbar.timer", "计时器", "timer", "timer"));
         }
-        preview.appendChild(btn);
-      });
-    }
+      } else if (itemId === "undo") {
+        const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
+        if (showUndoRedo) {
+          preview.appendChild(createBtn("toolbar.undo", "撤销", "undo", "undo"));
+        }
+      } else if (itemId === "redo") {
+        const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
+        if (showUndoRedo) {
+          preview.appendChild(createBtn("toolbar.redo", "重做", "redo", "redo"));
+        }
+      } else if (itemId === "apps") {
+        if (toolbarApps && toolbarApps.length > 0) {
+          toolbarApps.forEach((app, idx) => {
+            const btn = document.createElement("div");
+            btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
+            btn.dataset.id = "apps"; // Group apps as one logical unit for sorting simplicity or keep separate
+            const icon = document.createElement("div");
+            icon.className = "toolbar-preview-btn-icon";
+
+            if (app.icon) {
+              icon.innerHTML = `<img src="${app.icon}" class="toolbar-app-icon-img" style="position: relative; z-index: 1;">`;
+            } else {
+              const firstChar = (app.name || "?").charAt(0).toUpperCase();
+              icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
+            }
+
+            btn.appendChild(icon);
+            if (showText) {
+              const label = document.createElement("div");
+              label.className = "toolbar-preview-btn-label";
+              const name = app.name || "App";
+              label.textContent = name;
+              btn.appendChild(label);
+            }
+            preview.appendChild(btn);
+          });
+        }
+      }
+    });
 
     preview.appendChild(createSeparator());
-    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", true));
+    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", "exit"));
+
+    // Initialize Sortable
+    if (typeof Sortable !== 'undefined') {
+      new Sortable(preview, {
+        animation: 150,
+        draggable: ".toolbar-preview-btn",
+        filter: "[data-id='exit']", // Don't allow moving the exit button
+        onEnd: function (evt) {
+          const newOrder = [];
+          const children = Array.from(preview.children);
+          children.forEach(child => {
+            const id = child.dataset.id;
+            if (id && id !== 'exit' && !newOrder.includes(id)) {
+              newOrder.push(id);
+            }
+          });
+          
+          if (!settings.Toolbar) settings.Toolbar = {};
+          settings.Toolbar.ToolbarOrder = newOrder;
+          
+          if (window.pywebview && window.pywebview.api.save_setting) {
+            window.pywebview.api.save_setting("Toolbar", "ToolbarOrder", newOrder);
+          }
+        }
+      });
+    }
   }
 
   function renderToolbarAppList() {
@@ -3954,8 +4335,8 @@
     let tapCount = 0;
     versionItem.addEventListener('click', () => {
       if (expander) {
-        const isHidden = window.getComputedStyle(expander).display === 'none';
-        expander.style.display = isHidden ? 'block' : 'none';
+        const isActive = expander.classList.toggle('active');
+        versionItem.classList.toggle('active', isActive);
       }
       tapCount += 1;
       if (tapCount >= 5) {
@@ -3963,6 +4344,15 @@
         if (debugNav) debugNav.style.display = 'flex';
       }
     });
+
+    const creditsItem = document.getElementById('credits-item');
+    const creditsExpander = document.getElementById('credits-expander');
+    if (creditsItem && creditsExpander) {
+      creditsItem.addEventListener('click', () => {
+        const isActive = creditsExpander.classList.toggle('active');
+        creditsItem.classList.toggle('active', isActive);
+      });
+    }
   })();
 
   // JS Bridge for real-time updates
