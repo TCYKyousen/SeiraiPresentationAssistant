@@ -12,11 +12,8 @@
       --bg-app: #f2f3f5;
       --bg-surface: #ffffff;
       --bg-color: #ffffff;
-      /* Legacy */
       --sidebar-bg: #ffffff;
-      /* Legacy */
       --border-color: rgba(0, 0, 0, 0.08);
-      /* Legacy */
       --text-primary: #1a1c1e;
       --text-secondary: #5e6368;
       --accent-blue: #3275F5;
@@ -35,9 +32,58 @@
       --font-stack: "MiSans Latin", "HarmonyOS Sans SC", "SF Pro", "苹方-简", "PingFang SC", "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
     }
 
-    [data-theme="dark"] {
+    :root[data-theme-id="default"][data-theme-variant="light"] {
+      --bg-app: #f2f3f5;
+      --bg-surface: #ffffff;
+      --bg-color: #ffffff;
+      --sidebar-bg: #ffffff;
+      --border-color: rgba(0, 0, 0, 0.08);
+      --text-primary: #1a1c1e;
+      --text-secondary: #5e6368;
+      --accent-blue: #3275F5;
+      --divider: rgba(0, 0, 0, 0.08);
+      --card-bg: rgba(0, 0, 0, 0.03);
+      --card-border: rgba(0, 0, 0, 0.02);
+      --item-hover: rgba(0, 0, 0, 0.05);
+      --shadow-color: rgba(0, 0, 0, 0.06);
+      --shadow-main: 0 4px 12px var(--shadow-color);
+      --logo-glow: rgba(50, 117, 245, 0.1);
+      --hyperos-g1: #e0f2fe;
+      --hyperos-g2: #fef9c3;
+      --hyperos-g3: #fce7f3;
+      --hyperos-g4: #d1fae5;
+      --hyperos-g5: #ffffff;
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(0, 0, 0, 0.08);
+      --overlay-toolbar-line: rgba(0, 0, 0, 0.08);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.15);
+      --overlay-toolbar-fg: #191919;
+      --overlay-button-hover: rgba(0, 0, 0, 0.06);
+      --overlay-button-active: rgba(0, 0, 0, 0.12);
+      --overlay-status-bg: rgba(0, 0, 0, 0.25);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.3);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(0, 0, 0, 0.12);
+      --overlay-popup-fg: #191919;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(0, 0, 0, 0.08);
+      --overlay-page-fg: #191919;
+      --overlay-page-hint: rgba(0, 0, 0, 0.5);
+      --overlay-page-hover: rgba(0, 0, 0, 0.05);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.15);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.43);
+      --overlay-reload-card: rgba(30, 30, 30, 0.86);
+      --overlay-reload-text: rgba(255, 255, 255, 0.92);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="default"][data-theme-variant="dark"] {
       --bg-app: #121212;
       --bg-surface: #1E1E1E;
+      --bg-color: #1E1E1E;
+      --sidebar-bg: #1E1E1E;
+      --border-color: rgba(255, 255, 255, 0.08);
       --text-primary: #E5E5E5;
       --text-secondary: #909090;
       --accent-blue: #4A85F6;
@@ -53,6 +99,981 @@
       --hyperos-g3: #1e1b4b;
       --hyperos-g4: #064e3b;
       --hyperos-g5: #0f172a;
+      --overlay-toolbar-bg: #202020;
+      --overlay-toolbar-border: rgba(255, 255, 255, 0.08);
+      --overlay-toolbar-line: rgba(255, 255, 255, 0.15);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.31);
+      --overlay-toolbar-fg: #FFFFFF;
+      --overlay-button-hover: rgba(255, 255, 255, 0.08);
+      --overlay-button-active: rgba(255, 255, 255, 0.15);
+      --overlay-status-bg: rgba(0, 0, 0, 0.25);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.3);
+      --overlay-popup-bg: #202020;
+      --overlay-popup-border: rgba(255, 255, 255, 0.18);
+      --overlay-popup-fg: #FFFFFF;
+      --overlay-page-bg: #202020;
+      --overlay-page-border: rgba(255, 255, 255, 0.08);
+      --overlay-page-fg: #FFFFFF;
+      --overlay-page-hint: rgba(255, 255, 255, 0.6);
+      --overlay-page-hover: rgba(255, 255, 255, 0.08);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.31);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.43);
+      --overlay-reload-card: rgba(30, 30, 30, 0.86);
+      --overlay-reload-text: rgba(255, 255, 255, 0.92);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="material-you"][data-theme-variant="light"] {
+      --bg-app: #F6F0FF;
+      --bg-surface: #FFF7FF;
+      --bg-color: #FFF7FF;
+      --sidebar-bg: #FFF7FF;
+      --border-color: rgba(42, 26, 61, 0.1);
+      --text-primary: #2B153E;
+      --text-secondary: #5F4B74;
+      --accent-blue: #7A3BDB;
+      --divider: rgba(42, 26, 61, 0.1);
+      --card-bg: rgba(122, 59, 219, 0.1);
+      --card-border: rgba(122, 59, 219, 0.2);
+      --item-hover: rgba(122, 59, 219, 0.14);
+      --shadow-color: rgba(122, 59, 219, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(122, 59, 219, 0.24);
+      --hyperos-g1: #F6F0FF;
+      --hyperos-g2: #EAD9FF;
+      --hyperos-g3: #F1E6FF;
+      --hyperos-g4: #C9A7FF;
+      --hyperos-g5: #FFF7FF;
+      --overlay-toolbar-bg: #FFF7FF;
+      --overlay-toolbar-border: rgba(42, 26, 61, 0.1);
+      --overlay-toolbar-line: rgba(42, 26, 61, 0.1);
+      --overlay-toolbar-shadow: rgba(42, 26, 61, 0.2);
+      --overlay-toolbar-fg: #2B153E;
+      --overlay-button-hover: rgba(122, 59, 219, 0.14);
+      --overlay-button-active: rgba(122, 59, 219, 0.22);
+      --overlay-status-bg: rgba(35, 20, 50, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFF7FF;
+      --overlay-popup-border: rgba(42, 26, 61, 0.14);
+      --overlay-popup-fg: #2B153E;
+      --overlay-page-bg: #FFF7FF;
+      --overlay-page-border: rgba(42, 26, 61, 0.14);
+      --overlay-page-fg: #2B153E;
+      --overlay-page-hint: rgba(43, 21, 62, 0.55);
+      --overlay-page-hover: rgba(122, 59, 219, 0.14);
+      --overlay-page-shadow: rgba(42, 26, 61, 0.2);
+      --overlay-reload-mask: rgba(36, 22, 54, 0.48);
+      --overlay-reload-card: rgba(52, 32, 78, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="material-you"][data-theme-variant="dark"] {
+      --bg-app: #1C1329;
+      --bg-surface: #2A1D3B;
+      --bg-color: #2A1D3B;
+      --sidebar-bg: #2A1D3B;
+      --border-color: rgba(226, 210, 255, 0.14);
+      --text-primary: #F0E7FF;
+      --text-secondary: #D2C2EA;
+      --accent-blue: #CDA7FF;
+      --divider: rgba(226, 210, 255, 0.14);
+      --card-bg: rgba(205, 167, 255, 0.18);
+      --card-border: rgba(205, 167, 255, 0.28);
+      --item-hover: rgba(205, 167, 255, 0.22);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(205, 167, 255, 0.28);
+      --hyperos-g1: #1C1329;
+      --hyperos-g2: #2A1D3B;
+      --hyperos-g3: #3B2A55;
+      --hyperos-g4: #4A366A;
+      --hyperos-g5: #2A1D3B;
+      --overlay-toolbar-bg: #2A1D3B;
+      --overlay-toolbar-border: rgba(226, 210, 255, 0.16);
+      --overlay-toolbar-line: rgba(226, 210, 255, 0.2);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-toolbar-fg: #F0E7FF;
+      --overlay-button-hover: rgba(205, 167, 255, 0.22);
+      --overlay-button-active: rgba(205, 167, 255, 0.3);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #2A1D3B;
+      --overlay-popup-border: rgba(226, 210, 255, 0.24);
+      --overlay-popup-fg: #F0E7FF;
+      --overlay-page-bg: #2A1D3B;
+      --overlay-page-border: rgba(226, 210, 255, 0.18);
+      --overlay-page-fg: #F0E7FF;
+      --overlay-page-hint: rgba(226, 210, 255, 0.68);
+      --overlay-page-hover: rgba(205, 167, 255, 0.22);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(49, 31, 74, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="red-sunrise"][data-theme-variant="light"] {
+      --bg-app: #FFF5F3;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(97, 20, 18, 0.12);
+      --text-primary: #3A0B0B;
+      --text-secondary: #7A3C35;
+      --accent-blue: #E5523C;
+      --divider: rgba(97, 20, 18, 0.12);
+      --card-bg: rgba(229, 82, 60, 0.1);
+      --card-border: rgba(229, 82, 60, 0.2);
+      --item-hover: rgba(229, 82, 60, 0.14);
+      --shadow-color: rgba(229, 82, 60, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(229, 82, 60, 0.22);
+      --hyperos-g1: #FFF1EC;
+      --hyperos-g2: #FFD6C8;
+      --hyperos-g3: #FFE7DB;
+      --hyperos-g4: #FFB8A4;
+      --hyperos-g5: #FFFFFF;
+      --overlay-toolbar-bg: #FFF7F4;
+      --overlay-toolbar-border: rgba(97, 20, 18, 0.12);
+      --overlay-toolbar-line: rgba(97, 20, 18, 0.12);
+      --overlay-toolbar-shadow: rgba(97, 20, 18, 0.2);
+      --overlay-toolbar-fg: #3A0B0B;
+      --overlay-button-hover: rgba(229, 82, 60, 0.14);
+      --overlay-button-active: rgba(229, 82, 60, 0.22);
+      --overlay-status-bg: rgba(56, 18, 12, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFF7F4;
+      --overlay-popup-border: rgba(97, 20, 18, 0.14);
+      --overlay-popup-fg: #3A0B0B;
+      --overlay-page-bg: #FFF7F4;
+      --overlay-page-border: rgba(97, 20, 18, 0.14);
+      --overlay-page-fg: #3A0B0B;
+      --overlay-page-hint: rgba(58, 11, 11, 0.55);
+      --overlay-page-hover: rgba(229, 82, 60, 0.14);
+      --overlay-page-shadow: rgba(97, 20, 18, 0.2);
+      --overlay-reload-mask: rgba(54, 18, 12, 0.48);
+      --overlay-reload-card: rgba(64, 26, 20, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="red-sunrise"][data-theme-variant="dark"] {
+      --bg-app: #1A0B0A;
+      --bg-surface: #2B1512;
+      --bg-color: #2B1512;
+      --sidebar-bg: #2B1512;
+      --border-color: rgba(255, 210, 200, 0.14);
+      --text-primary: #FFEDE8;
+      --text-secondary: #F1BEB3;
+      --accent-blue: #FF907B;
+      --divider: rgba(255, 210, 200, 0.14);
+      --card-bg: rgba(255, 144, 123, 0.18);
+      --card-border: rgba(255, 144, 123, 0.28);
+      --item-hover: rgba(255, 144, 123, 0.22);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(255, 144, 123, 0.28);
+      --hyperos-g1: #1A0B0A;
+      --hyperos-g2: #2B1512;
+      --hyperos-g3: #3C1D18;
+      --hyperos-g4: #4D241E;
+      --hyperos-g5: #2B1512;
+      --overlay-toolbar-bg: #2B1512;
+      --overlay-toolbar-border: rgba(255, 210, 200, 0.18);
+      --overlay-toolbar-line: rgba(255, 210, 200, 0.22);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-toolbar-fg: #FFEDE8;
+      --overlay-button-hover: rgba(255, 144, 123, 0.22);
+      --overlay-button-active: rgba(255, 144, 123, 0.3);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #2B1512;
+      --overlay-popup-border: rgba(255, 210, 200, 0.24);
+      --overlay-popup-fg: #FFEDE8;
+      --overlay-page-bg: #2B1512;
+      --overlay-page-border: rgba(255, 210, 200, 0.2);
+      --overlay-page-fg: #FFEDE8;
+      --overlay-page-hint: rgba(255, 210, 200, 0.68);
+      --overlay-page-hover: rgba(255, 144, 123, 0.22);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(51, 22, 18, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="emptiness-color"][data-theme-variant="light"] {
+      --bg-app: #F5F6F8;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(27, 31, 35, 0.08);
+      --text-primary: #1B1F23;
+      --text-secondary: #5B636B;
+      --accent-blue: #6B7280;
+      --divider: rgba(27, 31, 35, 0.08);
+      --card-bg: rgba(27, 31, 35, 0.03);
+      --card-border: rgba(27, 31, 35, 0.06);
+      --item-hover: rgba(27, 31, 35, 0.06);
+      --shadow-color: rgba(27, 31, 35, 0.08);
+      --shadow-main: 0 4px 12px var(--shadow-color);
+      --logo-glow: rgba(27, 31, 35, 0.08);
+      --hyperos-g1: #F3F4F6;
+      --hyperos-g2: #E5E7EB;
+      --hyperos-g3: #F9FAFB;
+      --hyperos-g4: #D1D5DB;
+      --hyperos-g5: #FFFFFF;
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(27, 31, 35, 0.08);
+      --overlay-toolbar-line: rgba(27, 31, 35, 0.08);
+      --overlay-toolbar-shadow: rgba(27, 31, 35, 0.16);
+      --overlay-toolbar-fg: #1B1F23;
+      --overlay-button-hover: rgba(27, 31, 35, 0.06);
+      --overlay-button-active: rgba(27, 31, 35, 0.12);
+      --overlay-status-bg: rgba(27, 31, 35, 0.26);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(27, 31, 35, 0.12);
+      --overlay-popup-fg: #1B1F23;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(27, 31, 35, 0.12);
+      --overlay-page-fg: #1B1F23;
+      --overlay-page-hint: rgba(27, 31, 35, 0.5);
+      --overlay-page-hover: rgba(27, 31, 35, 0.06);
+      --overlay-page-shadow: rgba(27, 31, 35, 0.16);
+      --overlay-reload-mask: rgba(27, 31, 35, 0.43);
+      --overlay-reload-card: rgba(30, 30, 30, 0.86);
+      --overlay-reload-text: rgba(255, 255, 255, 0.92);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="emptiness-color"][data-theme-variant="dark"] {
+      --bg-app: #101113;
+      --bg-surface: #1B1C1F;
+      --bg-color: #1B1C1F;
+      --sidebar-bg: #1B1C1F;
+      --border-color: rgba(230, 233, 238, 0.12);
+      --text-primary: #F1F3F5;
+      --text-secondary: #C3C7CC;
+      --accent-blue: #A1A6AD;
+      --divider: rgba(230, 233, 238, 0.12);
+      --card-bg: rgba(161, 166, 173, 0.14);
+      --card-border: rgba(161, 166, 173, 0.22);
+      --item-hover: rgba(161, 166, 173, 0.2);
+      --shadow-color: rgba(0, 0, 0, 0.4);
+      --shadow-main: 0 10px 30px var(--shadow-color);
+      --logo-glow: rgba(161, 166, 173, 0.2);
+      --hyperos-g1: #101113;
+      --hyperos-g2: #1B1C1F;
+      --hyperos-g3: #23252A;
+      --hyperos-g4: #2C2F36;
+      --hyperos-g5: #1B1C1F;
+      --overlay-toolbar-bg: #1B1C1F;
+      --overlay-toolbar-border: rgba(230, 233, 238, 0.16);
+      --overlay-toolbar-line: rgba(230, 233, 238, 0.2);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.32);
+      --overlay-toolbar-fg: #F1F3F5;
+      --overlay-button-hover: rgba(161, 166, 173, 0.2);
+      --overlay-button-active: rgba(161, 166, 173, 0.28);
+      --overlay-status-bg: rgba(0, 0, 0, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #1B1C1F;
+      --overlay-popup-border: rgba(230, 233, 238, 0.2);
+      --overlay-popup-fg: #F1F3F5;
+      --overlay-page-bg: #1B1C1F;
+      --overlay-page-border: rgba(230, 233, 238, 0.18);
+      --overlay-page-fg: #F1F3F5;
+      --overlay-page-hint: rgba(230, 233, 238, 0.62);
+      --overlay-page-hover: rgba(161, 166, 173, 0.2);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.32);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.46);
+      --overlay-reload-card: rgba(26, 27, 30, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="mung-bean"][data-theme-variant="light"] {
+      --bg-app: #F3FFF7;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(18, 63, 44, 0.1);
+      --text-primary: #0F3D2A;
+      --text-secondary: #3F6B57;
+      --accent-blue: #45B97C;
+      --divider: rgba(18, 63, 44, 0.1);
+      --card-bg: rgba(69, 185, 124, 0.1);
+      --card-border: rgba(69, 185, 124, 0.2);
+      --item-hover: rgba(69, 185, 124, 0.14);
+      --shadow-color: rgba(69, 185, 124, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(69, 185, 124, 0.22);
+      --hyperos-g1: #ECFFF4;
+      --hyperos-g2: #CFF5DF;
+      --hyperos-g3: #E4FFF0;
+      --hyperos-g4: #B5EBCB;
+      --hyperos-g5: #FFFFFF;
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(18, 63, 44, 0.1);
+      --overlay-toolbar-line: rgba(18, 63, 44, 0.1);
+      --overlay-toolbar-shadow: rgba(18, 63, 44, 0.2);
+      --overlay-toolbar-fg: #0F3D2A;
+      --overlay-button-hover: rgba(69, 185, 124, 0.14);
+      --overlay-button-active: rgba(69, 185, 124, 0.22);
+      --overlay-status-bg: rgba(16, 50, 35, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(18, 63, 44, 0.14);
+      --overlay-popup-fg: #0F3D2A;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(18, 63, 44, 0.14);
+      --overlay-page-fg: #0F3D2A;
+      --overlay-page-hint: rgba(15, 61, 42, 0.52);
+      --overlay-page-hover: rgba(69, 185, 124, 0.14);
+      --overlay-page-shadow: rgba(18, 63, 44, 0.2);
+      --overlay-reload-mask: rgba(16, 50, 35, 0.48);
+      --overlay-reload-card: rgba(28, 58, 45, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="mung-bean"][data-theme-variant="dark"] {
+      --bg-app: #0D1A14;
+      --bg-surface: #16231C;
+      --bg-color: #16231C;
+      --sidebar-bg: #16231C;
+      --border-color: rgba(199, 240, 219, 0.14);
+      --text-primary: #E7FFF1;
+      --text-secondary: #B7E6CD;
+      --accent-blue: #7FE3B1;
+      --divider: rgba(199, 240, 219, 0.14);
+      --card-bg: rgba(127, 227, 177, 0.18);
+      --card-border: rgba(127, 227, 177, 0.28);
+      --item-hover: rgba(127, 227, 177, 0.22);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(127, 227, 177, 0.26);
+      --hyperos-g1: #0D1A14;
+      --hyperos-g2: #16231C;
+      --hyperos-g3: #1C2E25;
+      --hyperos-g4: #24392F;
+      --hyperos-g5: #16231C;
+      --overlay-toolbar-bg: #16231C;
+      --overlay-toolbar-border: rgba(199, 240, 219, 0.18);
+      --overlay-toolbar-line: rgba(199, 240, 219, 0.22);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-toolbar-fg: #E7FFF1;
+      --overlay-button-hover: rgba(127, 227, 177, 0.22);
+      --overlay-button-active: rgba(127, 227, 177, 0.3);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #16231C;
+      --overlay-popup-border: rgba(199, 240, 219, 0.24);
+      --overlay-popup-fg: #E7FFF1;
+      --overlay-page-bg: #16231C;
+      --overlay-page-border: rgba(199, 240, 219, 0.2);
+      --overlay-page-fg: #E7FFF1;
+      --overlay-page-hint: rgba(199, 240, 219, 0.68);
+      --overlay-page-hover: rgba(127, 227, 177, 0.22);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(21, 40, 32, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="orange-wish"][data-theme-variant="light"] {
+      --bg-app: #FFF6EE;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(80, 40, 12, 0.12);
+      --text-primary: #4A2A11;
+      --text-secondary: #7B5A3E;
+      --accent-blue: #FF8A3D;
+      --divider: rgba(80, 40, 12, 0.12);
+      --card-bg: rgba(255, 138, 61, 0.1);
+      --card-border: rgba(255, 138, 61, 0.2);
+      --item-hover: rgba(255, 138, 61, 0.14);
+      --shadow-color: rgba(255, 138, 61, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(255, 138, 61, 0.24);
+      --hyperos-g1: #FFF1E4;
+      --hyperos-g2: #FFD9BF;
+      --hyperos-g3: #FFEBDD;
+      --hyperos-g4: #FFC69B;
+      --hyperos-g5: #FFFFFF;
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(80, 40, 12, 0.12);
+      --overlay-toolbar-line: rgba(80, 40, 12, 0.12);
+      --overlay-toolbar-shadow: rgba(80, 40, 12, 0.2);
+      --overlay-toolbar-fg: #4A2A11;
+      --overlay-button-hover: rgba(255, 138, 61, 0.14);
+      --overlay-button-active: rgba(255, 138, 61, 0.22);
+      --overlay-status-bg: rgba(62, 32, 12, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(80, 40, 12, 0.14);
+      --overlay-popup-fg: #4A2A11;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(80, 40, 12, 0.14);
+      --overlay-page-fg: #4A2A11;
+      --overlay-page-hint: rgba(74, 42, 17, 0.52);
+      --overlay-page-hover: rgba(255, 138, 61, 0.14);
+      --overlay-page-shadow: rgba(80, 40, 12, 0.2);
+      --overlay-reload-mask: rgba(62, 32, 12, 0.48);
+      --overlay-reload-card: rgba(70, 40, 20, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    :root[data-theme-id="orange-wish"][data-theme-variant="dark"] {
+      --bg-app: #1C1108;
+      --bg-surface: #2A190D;
+      --bg-color: #2A190D;
+      --sidebar-bg: #2A190D;
+      --border-color: rgba(255, 220, 195, 0.16);
+      --text-primary: #FFEFE3;
+      --text-secondary: #F2C8A6;
+      --accent-blue: #FFB677;
+      --divider: rgba(255, 220, 195, 0.16);
+      --card-bg: rgba(255, 182, 119, 0.2);
+      --card-border: rgba(255, 182, 119, 0.3);
+      --item-hover: rgba(255, 182, 119, 0.24);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(255, 182, 119, 0.28);
+      --hyperos-g1: #1C1108;
+      --hyperos-g2: #2A190D;
+      --hyperos-g3: #3A2314;
+      --hyperos-g4: #4A2C19;
+      --hyperos-g5: #2A190D;
+      --overlay-toolbar-bg: #2A190D;
+      --overlay-toolbar-border: rgba(255, 220, 195, 0.2);
+      --overlay-toolbar-line: rgba(255, 220, 195, 0.24);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-toolbar-fg: #FFEFE3;
+      --overlay-button-hover: rgba(255, 182, 119, 0.24);
+      --overlay-button-active: rgba(255, 182, 119, 0.32);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #2A190D;
+      --overlay-popup-border: rgba(255, 220, 195, 0.26);
+      --overlay-popup-fg: #FFEFE3;
+      --overlay-page-bg: #2A190D;
+      --overlay-page-border: rgba(255, 220, 195, 0.22);
+      --overlay-page-fg: #FFEFE3;
+      --overlay-page-hint: rgba(255, 220, 195, 0.7);
+      --overlay-page-hover: rgba(255, 182, 119, 0.24);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(46, 28, 16, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="default"][data-theme-variant="light"] {
+      --bg-app: #f2f3f5;
+      --bg-surface: #ffffff;
+      --bg-color: #ffffff;
+      --sidebar-bg: #ffffff;
+      --border-color: rgba(0, 0, 0, 0.08);
+      --text-primary: #1a1c1e;
+      --text-secondary: #5e6368;
+      --accent-blue: #3275F5;
+      --divider: rgba(0, 0, 0, 0.08);
+      --card-bg: rgba(0, 0, 0, 0.03);
+      --card-border: rgba(0, 0, 0, 0.02);
+      --item-hover: rgba(0, 0, 0, 0.05);
+      --shadow-color: rgba(0, 0, 0, 0.06);
+      --shadow-main: 0 4px 12px var(--shadow-color);
+      --logo-glow: rgba(50, 117, 245, 0.1);
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(0, 0, 0, 0.08);
+      --overlay-toolbar-line: rgba(0, 0, 0, 0.08);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.15);
+      --overlay-toolbar-fg: #191919;
+      --overlay-button-hover: rgba(0, 0, 0, 0.06);
+      --overlay-button-active: rgba(0, 0, 0, 0.12);
+      --overlay-status-bg: rgba(0, 0, 0, 0.25);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.3);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(0, 0, 0, 0.12);
+      --overlay-popup-fg: #191919;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(0, 0, 0, 0.08);
+      --overlay-page-fg: #191919;
+      --overlay-page-hint: rgba(0, 0, 0, 0.5);
+      --overlay-page-hover: rgba(0, 0, 0, 0.05);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.15);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.43);
+      --overlay-reload-card: rgba(30, 30, 30, 0.86);
+      --overlay-reload-text: rgba(255, 255, 255, 0.92);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="default"][data-theme-variant="dark"] {
+      --bg-app: #121212;
+      --bg-surface: #1E1E1E;
+      --bg-color: #1E1E1E;
+      --sidebar-bg: #1E1E1E;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #E5E5E5;
+      --text-secondary: #909090;
+      --accent-blue: #4A85F6;
+      --divider: rgba(255, 255, 255, 0.08);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.02);
+      --item-hover: rgba(255, 255, 255, 0.05);
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --shadow-main: 0 8px 32px var(--shadow-color);
+      --logo-glow: rgba(255, 255, 255, 0.15);
+      --overlay-toolbar-bg: #202020;
+      --overlay-toolbar-border: rgba(255, 255, 255, 0.08);
+      --overlay-toolbar-line: rgba(255, 255, 255, 0.15);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.31);
+      --overlay-toolbar-fg: #FFFFFF;
+      --overlay-button-hover: rgba(255, 255, 255, 0.08);
+      --overlay-button-active: rgba(255, 255, 255, 0.15);
+      --overlay-status-bg: rgba(0, 0, 0, 0.25);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.3);
+      --overlay-popup-bg: #202020;
+      --overlay-popup-border: rgba(255, 255, 255, 0.18);
+      --overlay-popup-fg: #FFFFFF;
+      --overlay-page-bg: #202020;
+      --overlay-page-border: rgba(255, 255, 255, 0.08);
+      --overlay-page-fg: #FFFFFF;
+      --overlay-page-hint: rgba(255, 255, 255, 0.6);
+      --overlay-page-hover: rgba(255, 255, 255, 0.08);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.31);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.43);
+      --overlay-reload-card: rgba(30, 30, 30, 0.86);
+      --overlay-reload-text: rgba(255, 255, 255, 0.92);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="material-you"][data-theme-variant="light"] {
+      --bg-app: #F6F0FF;
+      --bg-surface: #FFF7FF;
+      --bg-color: #FFF7FF;
+      --sidebar-bg: #FFF7FF;
+      --border-color: rgba(42, 26, 61, 0.1);
+      --text-primary: #2B153E;
+      --text-secondary: #5F4B74;
+      --accent-blue: #7A3BDB;
+      --divider: rgba(42, 26, 61, 0.1);
+      --card-bg: rgba(122, 59, 219, 0.1);
+      --card-border: rgba(122, 59, 219, 0.2);
+      --item-hover: rgba(122, 59, 219, 0.14);
+      --shadow-color: rgba(122, 59, 219, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(122, 59, 219, 0.24);
+      --overlay-toolbar-bg: #FFF7FF;
+      --overlay-toolbar-border: rgba(42, 26, 61, 0.1);
+      --overlay-toolbar-line: rgba(42, 26, 61, 0.1);
+      --overlay-toolbar-shadow: rgba(42, 26, 61, 0.2);
+      --overlay-toolbar-fg: #2B153E;
+      --overlay-button-hover: rgba(122, 59, 219, 0.14);
+      --overlay-button-active: rgba(122, 59, 219, 0.22);
+      --overlay-status-bg: rgba(35, 20, 50, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFF7FF;
+      --overlay-popup-border: rgba(42, 26, 61, 0.14);
+      --overlay-popup-fg: #2B153E;
+      --overlay-page-bg: #FFF7FF;
+      --overlay-page-border: rgba(42, 26, 61, 0.14);
+      --overlay-page-fg: #2B153E;
+      --overlay-page-hint: rgba(43, 21, 62, 0.55);
+      --overlay-page-hover: rgba(122, 59, 219, 0.14);
+      --overlay-page-shadow: rgba(42, 26, 61, 0.2);
+      --overlay-reload-mask: rgba(36, 22, 54, 0.48);
+      --overlay-reload-card: rgba(52, 32, 78, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="material-you"][data-theme-variant="dark"] {
+      --bg-app: #1C1329;
+      --bg-surface: #2A1D3B;
+      --bg-color: #2A1D3B;
+      --sidebar-bg: #2A1D3B;
+      --border-color: rgba(226, 210, 255, 0.14);
+      --text-primary: #F0E7FF;
+      --text-secondary: #D2C2EA;
+      --accent-blue: #CDA7FF;
+      --divider: rgba(226, 210, 255, 0.14);
+      --card-bg: rgba(205, 167, 255, 0.18);
+      --card-border: rgba(205, 167, 255, 0.28);
+      --item-hover: rgba(205, 167, 255, 0.22);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(205, 167, 255, 0.28);
+      --overlay-toolbar-bg: #2A1D3B;
+      --overlay-toolbar-border: rgba(226, 210, 255, 0.16);
+      --overlay-toolbar-line: rgba(226, 210, 255, 0.2);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-toolbar-fg: #F0E7FF;
+      --overlay-button-hover: rgba(205, 167, 255, 0.22);
+      --overlay-button-active: rgba(205, 167, 255, 0.3);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #2A1D3B;
+      --overlay-popup-border: rgba(226, 210, 255, 0.24);
+      --overlay-popup-fg: #F0E7FF;
+      --overlay-page-bg: #2A1D3B;
+      --overlay-page-border: rgba(226, 210, 255, 0.18);
+      --overlay-page-fg: #F0E7FF;
+      --overlay-page-hint: rgba(226, 210, 255, 0.68);
+      --overlay-page-hover: rgba(205, 167, 255, 0.22);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(49, 31, 74, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="red-sunrise"][data-theme-variant="light"] {
+      --bg-app: #FFF5F3;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(97, 20, 18, 0.12);
+      --text-primary: #3A0B0B;
+      --text-secondary: #7A3C35;
+      --accent-blue: #E5523C;
+      --divider: rgba(97, 20, 18, 0.12);
+      --card-bg: rgba(229, 82, 60, 0.1);
+      --card-border: rgba(229, 82, 60, 0.2);
+      --item-hover: rgba(229, 82, 60, 0.14);
+      --shadow-color: rgba(229, 82, 60, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(229, 82, 60, 0.22);
+      --overlay-toolbar-bg: #FFF7F4;
+      --overlay-toolbar-border: rgba(97, 20, 18, 0.12);
+      --overlay-toolbar-line: rgba(97, 20, 18, 0.12);
+      --overlay-toolbar-shadow: rgba(97, 20, 18, 0.2);
+      --overlay-toolbar-fg: #3A0B0B;
+      --overlay-button-hover: rgba(229, 82, 60, 0.14);
+      --overlay-button-active: rgba(229, 82, 60, 0.22);
+      --overlay-status-bg: rgba(56, 18, 12, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFF7F4;
+      --overlay-popup-border: rgba(97, 20, 18, 0.14);
+      --overlay-popup-fg: #3A0B0B;
+      --overlay-page-bg: #FFF7F4;
+      --overlay-page-border: rgba(97, 20, 18, 0.14);
+      --overlay-page-fg: #3A0B0B;
+      --overlay-page-hint: rgba(58, 11, 11, 0.55);
+      --overlay-page-hover: rgba(229, 82, 60, 0.14);
+      --overlay-page-shadow: rgba(97, 20, 18, 0.2);
+      --overlay-reload-mask: rgba(54, 18, 12, 0.48);
+      --overlay-reload-card: rgba(64, 26, 20, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="red-sunrise"][data-theme-variant="dark"] {
+      --bg-app: #1A0B0A;
+      --bg-surface: #2B1512;
+      --bg-color: #2B1512;
+      --sidebar-bg: #2B1512;
+      --border-color: rgba(255, 210, 200, 0.14);
+      --text-primary: #FFEDE8;
+      --text-secondary: #F1BEB3;
+      --accent-blue: #FF907B;
+      --divider: rgba(255, 210, 200, 0.14);
+      --card-bg: rgba(255, 144, 123, 0.18);
+      --card-border: rgba(255, 144, 123, 0.28);
+      --item-hover: rgba(255, 144, 123, 0.22);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(255, 144, 123, 0.28);
+      --overlay-toolbar-bg: #2B1512;
+      --overlay-toolbar-border: rgba(255, 210, 200, 0.18);
+      --overlay-toolbar-line: rgba(255, 210, 200, 0.22);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-toolbar-fg: #FFEDE8;
+      --overlay-button-hover: rgba(255, 144, 123, 0.22);
+      --overlay-button-active: rgba(255, 144, 123, 0.3);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #2B1512;
+      --overlay-popup-border: rgba(255, 210, 200, 0.24);
+      --overlay-popup-fg: #FFEDE8;
+      --overlay-page-bg: #2B1512;
+      --overlay-page-border: rgba(255, 210, 200, 0.2);
+      --overlay-page-fg: #FFEDE8;
+      --overlay-page-hint: rgba(255, 210, 200, 0.68);
+      --overlay-page-hover: rgba(255, 144, 123, 0.22);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.38);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(51, 22, 18, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="emptiness-color"][data-theme-variant="light"] {
+      --bg-app: #F5F6F8;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(27, 31, 35, 0.08);
+      --text-primary: #1B1F23;
+      --text-secondary: #5B636B;
+      --accent-blue: #6B7280;
+      --divider: rgba(27, 31, 35, 0.08);
+      --card-bg: rgba(27, 31, 35, 0.03);
+      --card-border: rgba(27, 31, 35, 0.06);
+      --item-hover: rgba(27, 31, 35, 0.06);
+      --shadow-color: rgba(27, 31, 35, 0.08);
+      --shadow-main: 0 4px 12px var(--shadow-color);
+      --logo-glow: rgba(27, 31, 35, 0.08);
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(27, 31, 35, 0.08);
+      --overlay-toolbar-line: rgba(27, 31, 35, 0.08);
+      --overlay-toolbar-shadow: rgba(27, 31, 35, 0.16);
+      --overlay-toolbar-fg: #1B1F23;
+      --overlay-button-hover: rgba(27, 31, 35, 0.06);
+      --overlay-button-active: rgba(27, 31, 35, 0.12);
+      --overlay-status-bg: rgba(27, 31, 35, 0.26);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(27, 31, 35, 0.12);
+      --overlay-popup-fg: #1B1F23;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(27, 31, 35, 0.12);
+      --overlay-page-fg: #1B1F23;
+      --overlay-page-hint: rgba(27, 31, 35, 0.5);
+      --overlay-page-hover: rgba(27, 31, 35, 0.06);
+      --overlay-page-shadow: rgba(27, 31, 35, 0.16);
+      --overlay-reload-mask: rgba(27, 31, 35, 0.43);
+      --overlay-reload-card: rgba(30, 30, 30, 0.86);
+      --overlay-reload-text: rgba(255, 255, 255, 0.92);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="emptiness-color"][data-theme-variant="dark"] {
+      --bg-app: #101113;
+      --bg-surface: #1B1C1F;
+      --bg-color: #1B1C1F;
+      --sidebar-bg: #1B1C1F;
+      --border-color: rgba(230, 233, 238, 0.12);
+      --text-primary: #F1F3F5;
+      --text-secondary: #C3C7CC;
+      --accent-blue: #A1A6AD;
+      --divider: rgba(230, 233, 238, 0.12);
+      --card-bg: rgba(161, 166, 173, 0.14);
+      --card-border: rgba(161, 166, 173, 0.22);
+      --item-hover: rgba(161, 166, 173, 0.2);
+      --shadow-color: rgba(0, 0, 0, 0.4);
+      --shadow-main: 0 10px 30px var(--shadow-color);
+      --logo-glow: rgba(161, 166, 173, 0.2);
+      --overlay-toolbar-bg: #1B1C1F;
+      --overlay-toolbar-border: rgba(230, 233, 238, 0.16);
+      --overlay-toolbar-line: rgba(230, 233, 238, 0.2);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.32);
+      --overlay-toolbar-fg: #F1F3F5;
+      --overlay-button-hover: rgba(161, 166, 173, 0.2);
+      --overlay-button-active: rgba(161, 166, 173, 0.28);
+      --overlay-status-bg: rgba(0, 0, 0, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #1B1C1F;
+      --overlay-popup-border: rgba(230, 233, 238, 0.2);
+      --overlay-popup-fg: #F1F3F5;
+      --overlay-page-bg: #1B1C1F;
+      --overlay-page-border: rgba(230, 233, 238, 0.18);
+      --overlay-page-fg: #F1F3F5;
+      --overlay-page-hint: rgba(230, 233, 238, 0.62);
+      --overlay-page-hover: rgba(161, 166, 173, 0.2);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.32);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.46);
+      --overlay-reload-card: rgba(26, 27, 30, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="mung-bean"][data-theme-variant="light"] {
+      --bg-app: #F3FFF7;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(18, 63, 44, 0.1);
+      --text-primary: #0F3D2A;
+      --text-secondary: #3F6B57;
+      --accent-blue: #45B97C;
+      --divider: rgba(18, 63, 44, 0.1);
+      --card-bg: rgba(69, 185, 124, 0.1);
+      --card-border: rgba(69, 185, 124, 0.2);
+      --item-hover: rgba(69, 185, 124, 0.14);
+      --shadow-color: rgba(69, 185, 124, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(69, 185, 124, 0.22);
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(18, 63, 44, 0.1);
+      --overlay-toolbar-line: rgba(18, 63, 44, 0.1);
+      --overlay-toolbar-shadow: rgba(18, 63, 44, 0.2);
+      --overlay-toolbar-fg: #0F3D2A;
+      --overlay-button-hover: rgba(69, 185, 124, 0.14);
+      --overlay-button-active: rgba(69, 185, 124, 0.22);
+      --overlay-status-bg: rgba(16, 50, 35, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(18, 63, 44, 0.14);
+      --overlay-popup-fg: #0F3D2A;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(18, 63, 44, 0.14);
+      --overlay-page-fg: #0F3D2A;
+      --overlay-page-hint: rgba(15, 61, 42, 0.52);
+      --overlay-page-hover: rgba(69, 185, 124, 0.14);
+      --overlay-page-shadow: rgba(18, 63, 44, 0.2);
+      --overlay-reload-mask: rgba(16, 50, 35, 0.48);
+      --overlay-reload-card: rgba(28, 58, 45, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="mung-bean"][data-theme-variant="dark"] {
+      --bg-app: #0D1A14;
+      --bg-surface: #16231C;
+      --bg-color: #16231C;
+      --sidebar-bg: #16231C;
+      --border-color: rgba(199, 240, 219, 0.14);
+      --text-primary: #E7FFF1;
+      --text-secondary: #B7E6CD;
+      --accent-blue: #7FE3B1;
+      --divider: rgba(199, 240, 219, 0.14);
+      --card-bg: rgba(127, 227, 177, 0.18);
+      --card-border: rgba(127, 227, 177, 0.28);
+      --item-hover: rgba(127, 227, 177, 0.22);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(127, 227, 177, 0.26);
+      --overlay-toolbar-bg: #16231C;
+      --overlay-toolbar-border: rgba(199, 240, 219, 0.18);
+      --overlay-toolbar-line: rgba(199, 240, 219, 0.22);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-toolbar-fg: #E7FFF1;
+      --overlay-button-hover: rgba(127, 227, 177, 0.22);
+      --overlay-button-active: rgba(127, 227, 177, 0.3);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #16231C;
+      --overlay-popup-border: rgba(199, 240, 219, 0.24);
+      --overlay-popup-fg: #E7FFF1;
+      --overlay-page-bg: #16231C;
+      --overlay-page-border: rgba(199, 240, 219, 0.2);
+      --overlay-page-fg: #E7FFF1;
+      --overlay-page-hint: rgba(199, 240, 219, 0.68);
+      --overlay-page-hover: rgba(127, 227, 177, 0.22);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(21, 40, 32, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="orange-wish"][data-theme-variant="light"] {
+      --bg-app: #FFF6EE;
+      --bg-surface: #FFFFFF;
+      --bg-color: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --border-color: rgba(80, 40, 12, 0.12);
+      --text-primary: #4A2A11;
+      --text-secondary: #7B5A3E;
+      --accent-blue: #FF8A3D;
+      --divider: rgba(80, 40, 12, 0.12);
+      --card-bg: rgba(255, 138, 61, 0.1);
+      --card-border: rgba(255, 138, 61, 0.2);
+      --item-hover: rgba(255, 138, 61, 0.14);
+      --shadow-color: rgba(255, 138, 61, 0.18);
+      --shadow-main: 0 6px 22px var(--shadow-color);
+      --logo-glow: rgba(255, 138, 61, 0.24);
+      --overlay-toolbar-bg: #FFFFFF;
+      --overlay-toolbar-border: rgba(80, 40, 12, 0.12);
+      --overlay-toolbar-line: rgba(80, 40, 12, 0.12);
+      --overlay-toolbar-shadow: rgba(80, 40, 12, 0.2);
+      --overlay-toolbar-fg: #4A2A11;
+      --overlay-button-hover: rgba(255, 138, 61, 0.14);
+      --overlay-button-active: rgba(255, 138, 61, 0.22);
+      --overlay-status-bg: rgba(62, 32, 12, 0.28);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #FFFFFF;
+      --overlay-popup-border: rgba(80, 40, 12, 0.14);
+      --overlay-popup-fg: #4A2A11;
+      --overlay-page-bg: #FFFFFF;
+      --overlay-page-border: rgba(80, 40, 12, 0.14);
+      --overlay-page-fg: #4A2A11;
+      --overlay-page-hint: rgba(74, 42, 17, 0.52);
+      --overlay-page-hover: rgba(255, 138, 61, 0.14);
+      --overlay-page-shadow: rgba(80, 40, 12, 0.2);
+      --overlay-reload-mask: rgba(62, 32, 12, 0.48);
+      --overlay-reload-card: rgba(70, 40, 20, 0.9);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
+    }
+
+    .theme-preview-root[data-theme-id="orange-wish"][data-theme-variant="dark"] {
+      --bg-app: #1C1108;
+      --bg-surface: #2A190D;
+      --bg-color: #2A190D;
+      --sidebar-bg: #2A190D;
+      --border-color: rgba(255, 220, 195, 0.16);
+      --text-primary: #FFEFE3;
+      --text-secondary: #F2C8A6;
+      --accent-blue: #FFB677;
+      --divider: rgba(255, 220, 195, 0.16);
+      --card-bg: rgba(255, 182, 119, 0.2);
+      --card-border: rgba(255, 182, 119, 0.3);
+      --item-hover: rgba(255, 182, 119, 0.24);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --shadow-main: 0 12px 34px var(--shadow-color);
+      --logo-glow: rgba(255, 182, 119, 0.28);
+      --overlay-toolbar-bg: #2A190D;
+      --overlay-toolbar-border: rgba(255, 220, 195, 0.2);
+      --overlay-toolbar-line: rgba(255, 220, 195, 0.24);
+      --overlay-toolbar-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-toolbar-fg: #FFEFE3;
+      --overlay-button-hover: rgba(255, 182, 119, 0.24);
+      --overlay-button-active: rgba(255, 182, 119, 0.32);
+      --overlay-status-bg: rgba(0, 0, 0, 0.3);
+      --overlay-status-fg: #FFFFFF;
+      --overlay-status-sep: rgba(255, 255, 255, 0.32);
+      --overlay-popup-bg: #2A190D;
+      --overlay-popup-border: rgba(255, 220, 195, 0.26);
+      --overlay-popup-fg: #FFEFE3;
+      --overlay-page-bg: #2A190D;
+      --overlay-page-border: rgba(255, 220, 195, 0.22);
+      --overlay-page-fg: #FFEFE3;
+      --overlay-page-hint: rgba(255, 220, 195, 0.7);
+      --overlay-page-hover: rgba(255, 182, 119, 0.24);
+      --overlay-page-shadow: rgba(0, 0, 0, 0.36);
+      --overlay-reload-mask: rgba(0, 0, 0, 0.48);
+      --overlay-reload-card: rgba(46, 28, 16, 0.92);
+      --overlay-reload-text: rgba(255, 255, 255, 0.94);
+      --overlay-dev-watermark: rgba(255, 255, 255, 0.47);
     }
 
     * {
@@ -1174,27 +2195,6 @@
       background-color: #FF453A;
     }
 
-    .toolbar-preview-number {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      color: #FFFFFF;
-      font-size: 12px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .toolbar-preview-btn-capsule .toolbar-preview-number {
-      width: 16px;
-      height: 16px;
-      font-size: 10px;
-      background: rgba(255, 255, 255, 0.15);
-    }
-
     .toolbar-preview-hero {
       margin: -32px -48px 24px;
       padding: 44px 48px 52px;
@@ -1855,6 +2855,113 @@
       font-weight: 500;
     }
 
+    .theme-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      width: 100%;
+    }
+
+    .theme-card {
+      border-radius: 14px;
+      border: 1px solid var(--divider);
+      background: var(--bg-surface);
+      box-shadow: var(--shadow-main);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .theme-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .theme-card.active {
+      border-color: var(--accent-blue);
+      box-shadow: 0 8px 20px rgba(50, 117, 245, 0.2);
+    }
+
+    .theme-preview {
+      border-radius: 10px;
+      border: 1px solid var(--divider);
+      background: var(--bg-app);
+      overflow: hidden;
+      height: 90px;
+    }
+
+    .theme-preview-root {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-stack);
+    }
+
+    .theme-preview-app {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      height: 100%;
+    }
+
+
+    .theme-preview-sidebar {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--divider);
+    }
+
+    .theme-preview-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+    }
+
+    .theme-preview-title {
+      width: 60%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--text-primary);
+      opacity: 0.75;
+    }
+
+    .theme-preview-card {
+      width: 90%;
+      height: 18px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+    }
+
+    .theme-preview-button {
+      width: 46%;
+      height: 10px;
+      border-radius: 6px;
+      background: var(--accent-blue);
+    }
+
+    .theme-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0 2px 2px 2px;
+    }
+
+    .theme-meta-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .theme-meta-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
     .about-header {
       position: relative;
       width: calc(100% + 96px);
@@ -2372,6 +3479,13 @@
         </svg>
         <span data-i18n="nav.main">主程序</span>
       </div>
+      <div class="sidebar-item" data-section="theme">
+        <svg class="sidebar-icon" viewBox="0 0 24 24">
+          <path d="M12 3a9 9 0 100 18 9 9 0 000-18z" />
+          <path d="M12 7a5 5 0 000 10V7z" />
+        </svg>
+        <span data-i18n="nav.theme">主题</span>
+      </div>
       <div class="sidebar-item" data-section="fonts">
         <svg class="sidebar-icon" viewBox="0 0 24 24">
           <path d="M4 20h16" />
@@ -2447,25 +3561,6 @@
           </div>
         </div>
 
-        <div class="group-title" data-i18n="group.appearance">外观</div>
-        <div class="settings-group">
-          <div class="settings-item">
-            <div class="item-info">
-              <span class="item-label" data-i18n="appearance.mode.label">外观模式</span>
-              <span class="item-desc" data-i18n="appearance.mode.desc">调整应用程序的显示主题</span>
-            </div>
-            <div class="theme-select">
-              <div class="theme-option" id="theme-Light" onclick="setTheme('Light')" data-i18n="appearance.mode.light">
-                浅色</div>
-              <div class="theme-option" id="theme-Dark" onclick="setTheme('Dark')" data-i18n="appearance.mode.dark">深色
-              </div>
-              <div class="theme-option" id="theme-Auto" onclick="setTheme('Auto')" data-i18n="appearance.mode.auto">跟随系统
-              </div>
-            </div>
-          </div>
-
-        </div>
-
         <div class="group-title" data-i18n="group.startup">启动</div>
         <div class="settings-group">
           <div class="settings-item" onclick="toggleSwitch('General', 'RunAtStartup')">
@@ -2496,6 +3591,33 @@
                     <input type="time" id="splash-end-time" class="styled-input" onchange="setSplashTime('End', this.value)">
                 </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="section-theme">
+        <div class="group-title" data-i18n="group.appearance">外观</div>
+        <div class="settings-group">
+          <div class="settings-item">
+            <div class="item-info">
+              <span class="item-label" data-i18n="appearance.mode.label">外观模式</span>
+              <span class="item-desc" data-i18n="appearance.mode.desc">调整应用程序的显示主题</span>
+            </div>
+            <div class="theme-select">
+              <div class="theme-option" id="theme-Light" onclick="setTheme('Light')" data-i18n="appearance.mode.light">
+                浅色</div>
+              <div class="theme-option" id="theme-Dark" onclick="setTheme('Dark')" data-i18n="appearance.mode.dark">深色
+              </div>
+              <div class="theme-option" id="theme-Auto" onclick="setTheme('Auto')" data-i18n="appearance.mode.auto">跟随系统
+              </div>
+            </div>
+          </div>
+          <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 12px;">
+            <div class="item-info">
+              <span class="item-label" data-i18n="appearance.theme.label">主题</span>
+              <span class="item-desc" data-i18n="appearance.theme.desc">选择一个主题并预览效果</span>
+            </div>
+            <div class="theme-gallery" id="theme-gallery"></div>
           </div>
         </div>
       </div>
@@ -3023,11 +4145,84 @@
       </div>
     </div>
   </div>
+  <template id="theme-template-default" data-theme-id="default" data-theme-name="默认" data-theme-desc="Kazuha 默认主题" data-theme-name-key="appearance.theme.default" data-theme-desc-key="appearance.theme.default.desc">
+    <div class="theme-preview-root">
+      <div class="theme-preview-app">
+        <div class="theme-preview-sidebar"></div>
+        <div class="theme-preview-content">
+          <div class="theme-preview-title"></div>
+          <div class="theme-preview-card"></div>
+          <div class="theme-preview-button"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="theme-template-material-you" data-theme-id="material-you" data-theme-name="紫色心情" data-theme-desc="柔和紫色与轻盈氛围" data-theme-name-key="appearance.theme.materialYou" data-theme-desc-key="appearance.theme.materialYou.desc">
+    <div class="theme-preview-root">
+      <div class="theme-preview-app">
+        <div class="theme-preview-sidebar"></div>
+        <div class="theme-preview-content">
+          <div class="theme-preview-title"></div>
+          <div class="theme-preview-card"></div>
+          <div class="theme-preview-button"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="theme-template-red-sunrise" data-theme-id="red-sunrise" data-theme-name="红日东升" data-theme-desc="旭日暖红与温柔光晕" data-theme-name-key="appearance.theme.redSunrise" data-theme-desc-key="appearance.theme.redSunrise.desc">
+    <div class="theme-preview-root">
+      <div class="theme-preview-app">
+        <div class="theme-preview-sidebar"></div>
+        <div class="theme-preview-content">
+          <div class="theme-preview-title"></div>
+          <div class="theme-preview-card"></div>
+          <div class="theme-preview-button"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="theme-template-emptiness-color" data-theme-id="emptiness-color" data-theme-name="空即是色" data-theme-desc="清净留白与柔和灰阶" data-theme-name-key="appearance.theme.emptinessColor" data-theme-desc-key="appearance.theme.emptinessColor.desc">
+    <div class="theme-preview-root">
+      <div class="theme-preview-app">
+        <div class="theme-preview-sidebar"></div>
+        <div class="theme-preview-content">
+          <div class="theme-preview-title"></div>
+          <div class="theme-preview-card"></div>
+          <div class="theme-preview-button"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="theme-template-mung-bean" data-theme-id="mung-bean" data-theme-name="绿豆冰沙" data-theme-desc="清新薄荷与凉感绿意" data-theme-name-key="appearance.theme.mungBean" data-theme-desc-key="appearance.theme.mungBean.desc">
+    <div class="theme-preview-root">
+      <div class="theme-preview-app">
+        <div class="theme-preview-sidebar"></div>
+        <div class="theme-preview-content">
+          <div class="theme-preview-title"></div>
+          <div class="theme-preview-card"></div>
+          <div class="theme-preview-button"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="theme-template-orange-wish" data-theme-id="orange-wish" data-theme-name="心想事橙" data-theme-desc="柑橘微甜与活力暖色" data-theme-name-key="appearance.theme.orangeWish" data-theme-desc-key="appearance.theme.orangeWish.desc">
+    <div class="theme-preview-root">
+      <div class="theme-preview-app">
+        <div class="theme-preview-sidebar"></div>
+        <div class="theme-preview-content">
+          <div class="theme-preview-title"></div>
+          <div class="theme-preview-card"></div>
+          <div class="theme-preview-button"></div>
+        </div>
+      </div>
+    </div>
+  </template>
 </body>
 <script>
   const I18N = {
     "zh-CN": {
       "nav.main": "常规",
+      "nav.theme": "主题",
       "nav.fonts": "全局应用字体",
       "nav.overlay": "放映",
       "nav.about": "关于",
@@ -3035,6 +4230,7 @@
       "nav.debug": "调试",
       "nav.back": "返回",
       "section.main": "常规",
+      "section.theme": "主题",
       "section.fonts": "全局应用字体",
       "section.overlay": "放映",
       "section.plugins": "工具栏",
@@ -3068,6 +4264,20 @@
       "appearance.mode.light": "浅色",
       "appearance.mode.dark": "深色",
       "appearance.mode.auto": "跟随系统",
+      "appearance.theme.label": "主题",
+      "appearance.theme.desc": "选择一个主题并预览效果",
+      "appearance.theme.default": "默认",
+      "appearance.theme.default.desc": "Kazuha 默认主题",
+      "appearance.theme.materialYou": "紫色心情",
+      "appearance.theme.materialYou.desc": "柔和紫色与轻盈氛围",
+      "appearance.theme.redSunrise": "红日东升",
+      "appearance.theme.redSunrise.desc": "旭日暖红与温柔光晕",
+      "appearance.theme.emptinessColor": "空即是色",
+      "appearance.theme.emptinessColor.desc": "清净留白与柔和灰阶",
+      "appearance.theme.mungBean": "绿豆冰沙",
+      "appearance.theme.mungBean.desc": "清新薄荷与凉感绿意",
+      "appearance.theme.orangeWish": "心想事橙",
+      "appearance.theme.orangeWish.desc": "柑橘微甜与活力暖色",
       "general.runAtStartup.label": "开机自启",
       "general.splashMode.label": "启动画面",
       "general.splashMode.always": "每次都显示",
@@ -3170,6 +4380,7 @@
     },
     "zh-TW": {
       "nav.main": "一般",
+      "nav.theme": "主題",
       "nav.fonts": "全域字型",
       "nav.overlay": "放映",
       "nav.about": "關於",
@@ -3177,6 +4388,7 @@
       "nav.debug": "偵錯",
       "nav.back": "返回",
       "section.main": "一般",
+      "section.theme": "主題",
       "section.fonts": "全域字型",
       "section.overlay": "放映",
       "section.plugins": "工具列",
@@ -3210,6 +4422,20 @@
       "appearance.mode.light": "淺色",
       "appearance.mode.dark": "深色",
       "appearance.mode.auto": "跟隨系統",
+      "appearance.theme.label": "主題",
+      "appearance.theme.desc": "選擇主題並預覽效果",
+      "appearance.theme.default": "預設",
+      "appearance.theme.default.desc": "Kazuha 預設主題",
+      "appearance.theme.materialYou": "紫色心情",
+      "appearance.theme.materialYou.desc": "柔和紫色與輕盈氛圍",
+      "appearance.theme.redSunrise": "紅日東升",
+      "appearance.theme.redSunrise.desc": "旭日暖紅與溫柔光暈",
+      "appearance.theme.emptinessColor": "空即是色",
+      "appearance.theme.emptinessColor.desc": "清淨留白與柔和灰階",
+      "appearance.theme.mungBean": "綠豆冰沙",
+      "appearance.theme.mungBean.desc": "清新薄荷與涼感綠意",
+      "appearance.theme.orangeWish": "心想事橙",
+      "appearance.theme.orangeWish.desc": "柑橘微甜與活力暖色",
       "general.runAtStartup.label": "開機自啟",
       "general.splashMode.label": "啟動畫面",
       "general.splashMode.always": "每次都顯示",
@@ -3307,6 +4533,7 @@
     },
     "ja-JP": {
       "nav.main": "一般",
+      "nav.theme": "テーマ",
       "nav.fonts": "グローバルフォント",
       "nav.overlay": "プレゼン",
       "nav.about": "情報",
@@ -3314,6 +4541,7 @@
       "nav.debug": "デバッグ",
       "nav.back": "戻る",
       "section.main": "一般",
+      "section.theme": "テーマ",
       "section.fonts": "グローバルフォント",
       "section.overlay": "プレゼン",
       "section.plugins": "ツールバー",
@@ -3347,6 +4575,20 @@
       "appearance.mode.light": "ライト",
       "appearance.mode.dark": "ダーク",
       "appearance.mode.auto": "システムに合わせる",
+      "appearance.theme.label": "テーマ",
+      "appearance.theme.desc": "テーマを選択してプレビューします",
+      "appearance.theme.default": "デフォルト",
+      "appearance.theme.default.desc": "Kazuha のデフォルトテーマ",
+      "appearance.theme.materialYou": "紫色心情",
+      "appearance.theme.materialYou.desc": "柔らかな紫と軽い雰囲気",
+      "appearance.theme.redSunrise": "紅日東昇",
+      "appearance.theme.redSunrise.desc": "朝日の暖色と柔らかな光",
+      "appearance.theme.emptinessColor": "空即是色",
+      "appearance.theme.emptinessColor.desc": "静かな余白と柔らかなグレー",
+      "appearance.theme.mungBean": "緑豆氷沙",
+      "appearance.theme.mungBean.desc": "ミントの清涼感と若草色",
+      "appearance.theme.orangeWish": "心想事橙",
+      "appearance.theme.orangeWish.desc": "柑橘の甘さと温かい色味",
       "general.runAtStartup.label": "起動時に自動実行",
       "general.splashMode.label": "スプラッシュ画面",
       "general.splashMode.always": "常に表示",
@@ -3450,6 +4692,7 @@
     },
     "en-US": {
       "nav.main": "General",
+      "nav.theme": "Theme",
       "nav.fonts": "Global Fonts",
       "nav.overlay": "Presentation",
       "nav.about": "About",
@@ -3457,6 +4700,7 @@
       "nav.debug": "Debug",
       "nav.back": "Back",
       "section.main": "General",
+      "section.theme": "Theme",
       "section.fonts": "Global Fonts",
       "section.overlay": "Presentation",
       "section.plugins": "Toolbar",
@@ -3490,6 +4734,20 @@
       "appearance.mode.light": "Light",
       "appearance.mode.dark": "Dark",
       "appearance.mode.auto": "Follow system",
+      "appearance.theme.label": "Theme",
+      "appearance.theme.desc": "Choose a theme and preview the result",
+      "appearance.theme.default": "Default",
+      "appearance.theme.default.desc": "Kazuha default theme",
+      "appearance.theme.materialYou": "Purple Mood",
+      "appearance.theme.materialYou.desc": "Soft purples with an airy feel",
+      "appearance.theme.redSunrise": "Red Sunrise",
+      "appearance.theme.redSunrise.desc": "Warm reds with a gentle glow",
+      "appearance.theme.emptinessColor": "Form Is Emptiness",
+      "appearance.theme.emptinessColor.desc": "Clean whitespace and soft grays",
+      "appearance.theme.mungBean": "Mung Bean Cooler",
+      "appearance.theme.mungBean.desc": "Minty freshness and mellow greens",
+      "appearance.theme.orangeWish": "Orange Wish",
+      "appearance.theme.orangeWish.desc": "Sweet citrus with warm energy",
       "general.runAtStartup.label": "Run at startup",
       "general.splashMode.label": "Startup Splash",
       "general.splashMode.always": "Always show",
@@ -3915,11 +5173,251 @@
     }
   };
 
+  const ThemeSystem = (() => {
+    const registry = new Map();
+    let currentThemeId = "default";
+    let currentMode = "Light";
+    const tokenKeys = [
+      "--bg-app",
+      "--bg-surface",
+      "--bg-color",
+      "--sidebar-bg",
+      "--border-color",
+      "--text-primary",
+      "--text-secondary",
+      "--accent-blue",
+      "--divider",
+      "--card-bg",
+      "--card-border",
+      "--item-hover",
+      "--shadow-color",
+      "--shadow-main",
+      "--logo-glow",
+      "--overlay-toolbar-bg",
+      "--overlay-toolbar-border",
+      "--overlay-toolbar-line",
+      "--overlay-toolbar-shadow",
+      "--overlay-toolbar-fg",
+      "--overlay-button-hover",
+      "--overlay-button-active",
+      "--overlay-status-bg",
+      "--overlay-status-fg",
+      "--overlay-status-sep",
+      "--overlay-popup-bg",
+      "--overlay-popup-border",
+      "--overlay-popup-fg",
+      "--overlay-page-bg",
+      "--overlay-page-border",
+      "--overlay-page-fg",
+      "--overlay-page-hint",
+      "--overlay-page-hover",
+      "--overlay-page-shadow",
+      "--overlay-reload-mask",
+      "--overlay-reload-card",
+      "--overlay-reload-text",
+      "--overlay-dev-watermark"
+    ];
+
+    const resolveVariant = (mode) => {
+      if (mode === "Auto") {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      return mode === "Dark" ? "dark" : "light";
+    };
+
+    const registerTheme = (def) => {
+      if (!def || !def.id) return;
+      const normalized = {
+        id: String(def.id),
+        name: def.name || "",
+        desc: def.desc || "",
+        nameKey: def.nameKey || "",
+        descKey: def.descKey || "",
+        template: def.template || null
+      };
+      registry.set(normalized.id, normalized);
+      if (def.cssText) {
+        const styleId = `theme-style-${normalized.id}`;
+        let style = document.getElementById(styleId);
+        if (!style) {
+          style = document.createElement("style");
+          style.id = styleId;
+          document.head.appendChild(style);
+        }
+        style.textContent = def.cssText;
+      }
+    };
+
+    const registerThemeFromDom = (themeId) => {
+      if (!themeId) return;
+      const tpl = document.querySelector(`template[data-theme-id="${themeId}"]`);
+      if (!tpl) return;
+      registerTheme({
+        id: themeId,
+        name: tpl.getAttribute("data-theme-name") || "",
+        desc: tpl.getAttribute("data-theme-desc") || "",
+        nameKey: tpl.getAttribute("data-theme-name-key") || "",
+        descKey: tpl.getAttribute("data-theme-desc-key") || "",
+        template: tpl
+      });
+    };
+
+    const discoverThemes = () => {
+      const templates = document.querySelectorAll("template[data-theme-id]");
+      templates.forEach(tpl => {
+        const id = tpl.getAttribute("data-theme-id");
+        registerThemeFromDom(id);
+      });
+    };
+
+    const getThemes = () => Array.from(registry.values());
+
+    const getCurrentThemeId = () => currentThemeId;
+
+    const applyTheme = (themeId, mode) => {
+      const id = themeId || currentThemeId || "default";
+      const m = mode || currentMode || "Light";
+      currentThemeId = id;
+      currentMode = m;
+      const variant = resolveVariant(m);
+      document.documentElement.setAttribute("data-theme-id", id);
+      document.documentElement.setAttribute("data-theme-variant", variant);
+      document.documentElement.setAttribute("data-theme", variant);
+    };
+
+    const buildPreview = (theme, variant) => {
+      if (!theme || !theme.template) return null;
+      const fragment = theme.template.content.cloneNode(true);
+      const root = fragment.firstElementChild || fragment.querySelector(".theme-preview-root");
+      if (root) {
+        root.classList.add("theme-preview-root");
+        root.setAttribute("data-theme-id", theme.id);
+        root.setAttribute("data-theme-variant", variant);
+      }
+      return fragment;
+    };
+
+    const collectTokens = (themeId, variant) => {
+      const probe = document.createElement("div");
+      probe.className = "theme-preview-root";
+      probe.style.position = "absolute";
+      probe.style.visibility = "hidden";
+      probe.style.pointerEvents = "none";
+      probe.style.left = "-9999px";
+      probe.style.top = "-9999px";
+      probe.setAttribute("data-theme-id", themeId);
+      probe.setAttribute("data-theme-variant", variant);
+      document.body.appendChild(probe);
+      const styles = getComputedStyle(probe);
+      const tokens = {};
+      tokenKeys.forEach(key => {
+        const val = styles.getPropertyValue(key);
+        if (val && val.trim()) tokens[key] = val.trim();
+      });
+      probe.remove();
+      return tokens;
+    };
+
+    const exportThemeTokens = () => {
+      const res = {};
+      getThemes().forEach(theme => {
+        res[theme.id] = {
+          light: collectTokens(theme.id, "light"),
+          dark: collectTokens(theme.id, "dark")
+        };
+      });
+      return res;
+    };
+
+    const renderThemeGallery = (containerId, themeId, mode) => {
+      const container = typeof containerId === "string" ? document.getElementById(containerId) : containerId;
+      if (!container) return;
+      const themes = getThemes();
+      if (themes.length === 0) return;
+      const variant = resolveVariant(mode || currentMode || "Light");
+      const activeId = themeId || currentThemeId || "default";
+      container.innerHTML = "";
+      themes.forEach(theme => {
+        const card = document.createElement("div");
+        card.className = "theme-card" + (theme.id === activeId ? " active" : "");
+        const preview = document.createElement("div");
+        preview.className = "theme-preview";
+        const frag = buildPreview(theme, variant);
+        if (frag) preview.appendChild(frag);
+        card.appendChild(preview);
+        const meta = document.createElement("div");
+        meta.className = "theme-meta";
+        const nameEl = document.createElement("div");
+        nameEl.className = "theme-meta-name";
+        const nameText = theme.nameKey ? (getText(theme.nameKey) || theme.name) : theme.name;
+        nameEl.textContent = nameText || theme.id;
+        const descEl = document.createElement("div");
+        descEl.className = "theme-meta-desc";
+        const descText = theme.descKey ? (getText(theme.descKey) || theme.desc) : theme.desc;
+        descEl.textContent = descText || "";
+        meta.appendChild(nameEl);
+        meta.appendChild(descEl);
+        card.appendChild(meta);
+        card.addEventListener("click", () => setThemeId(theme.id));
+        container.appendChild(card);
+      });
+    };
+
+    const unregisterTheme = (themeId) => {
+      if (!themeId) return;
+      registry.delete(themeId);
+    };
+
+    return {
+      registerTheme,
+      registerThemeFromDom,
+      unregisterTheme,
+      discoverThemes,
+      getThemes,
+      getCurrentThemeId,
+      applyTheme,
+      renderThemeGallery,
+      exportThemeTokens
+    };
+  })();
+
+  window.ThemeAPI = {
+    registerTheme: ThemeSystem.registerTheme,
+    registerThemeFromDom: ThemeSystem.registerThemeFromDom,
+    unregisterTheme: ThemeSystem.unregisterTheme,
+    discoverThemes: ThemeSystem.discoverThemes,
+    getThemes: ThemeSystem.getThemes,
+    getCurrentThemeId: ThemeSystem.getCurrentThemeId,
+    applyTheme: ThemeSystem.applyTheme,
+    renderThemeGallery: ThemeSystem.renderThemeGallery,
+    exportThemeTokens: ThemeSystem.exportThemeTokens
+  };
+
+  function syncThemeTokens() {
+    const tokens = ThemeSystem.exportThemeTokens();
+    if (!settings.Appearance) settings.Appearance = {};
+    settings.Appearance.ThemeTokens = tokens;
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_setting) {
+      window.pywebview.api.save_setting("Appearance", "ThemeTokens", tokens);
+    }
+  }
+
   function setOverlayScreen(value) {
     if (!settings.Overlay) settings.Overlay = {};
     settings.Overlay.OverlayScreen = value;
     if (window.pywebview && window.pywebview.api && window.pywebview.api.save_setting) {
       window.pywebview.api.save_setting("Overlay", "OverlayScreen", value);
+    }
+  }
+
+  function setThemeId(themeId) {
+    if (!settings.Appearance) settings.Appearance = {};
+    settings.Appearance.ThemeId = themeId;
+    ThemeSystem.applyTheme(themeId, settings.Appearance.ThemeMode || "Light");
+    ThemeSystem.renderThemeGallery("theme-gallery", themeId, settings.Appearance.ThemeMode || "Light");
+    syncThemeTokens();
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_setting) {
+      window.pywebview.api.save_setting("Appearance", "ThemeId", themeId);
     }
   }
 
@@ -3972,6 +5470,7 @@
         btn.classList.remove("active");
       }
     });
+    ThemeSystem.renderThemeGallery("theme-gallery", settings.Appearance?.ThemeId || "default", settings.Appearance?.ThemeMode || "Light");
   }
 
   function initNav() {
@@ -4038,6 +5537,7 @@
 
   initNav();
   convertNativeSelectsToCustom();
+  ThemeSystem.discoverThemes();
 
   let settings = window.initialSettings || {
     General: { RunAtStartup: false, AutoShowOverlay: true, Language: "zh-CN" },
@@ -4045,7 +5545,7 @@
     Overlay: { ShowStatusBar: true },
     Toolbar: { ShowUndoRedo: false, ShowToolbarText: true },
     Update: { AutoCheck: true, BetaProgram: false },
-    Appearance: { ThemeMode: "Light" }
+    Appearance: { ThemeMode: "Light", ThemeId: "default" }
   };
 
   if (window.initialSettings && window.initialSettings.General && window.initialSettings.General.Language) {
@@ -4252,17 +5752,10 @@
     document.querySelectorAll(".theme-option").forEach(opt => opt.classList.remove("active"));
     const activeOpt = document.getElementById(`theme-${mode}`);
     if (activeOpt) activeOpt.classList.add("active");
-
-    if (mode === "Auto") {
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    } else {
-      document.documentElement.setAttribute("data-theme", mode.toLowerCase());
-    }
-
-    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-    const accent = isDark ? "#E1EBFF" : "#3275F5";
-    document.documentElement.style.setProperty("--accent-blue", accent);
+    const themeId = settings.Appearance && settings.Appearance.ThemeId ? settings.Appearance.ThemeId : "default";
+    ThemeSystem.applyTheme(themeId, mode);
+    ThemeSystem.renderThemeGallery("theme-gallery", themeId, mode);
+    syncThemeTokens();
 
     renderToolbarPreview();
 
@@ -4431,34 +5924,23 @@
     });
   }
 
-  let sortableInstance = null;
-
   function renderToolbarPreview() {
     const preview = document.getElementById("toolbar-preview");
     if (!preview) return;
-
-    if (sortableInstance) {
-      sortableInstance.destroy();
-      sortableInstance = null;
-    }
-
     preview.innerHTML = "";
 
     const showText = !!(settings.Toolbar && settings.Toolbar.ShowToolbarText);
     const order = (settings.Toolbar && settings.Toolbar.ToolbarOrder) || ["select", "pen", "eraser", "spotlight", "timer", "undo", "redo", "apps"];
 
-    let count = 1;
-
-    const createBtn = (labelKey, fallback, toolId) => {
+    const createBtn = (labelKey, fallback, iconName, toolId) => {
       const btn = document.createElement("div");
       btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
       btn.dataset.id = toolId;
 
-      const num = document.createElement("div");
-      num.className = "toolbar-preview-number";
-      num.textContent = count++;
+      const icon = document.createElement("div");
+      icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
 
-      btn.appendChild(num);
+      btn.appendChild(icon);
 
       if (showText) {
         const label = document.createElement("div");
@@ -4469,45 +5951,56 @@
       return btn;
     };
 
+    const createSeparator = () => {
+      const sep = document.createElement("div");
+      sep.className = "toolbar-preview-separator";
+      return sep;
+    };
+
     order.forEach(itemId => {
       if (itemId === "select") {
-        preview.appendChild(createBtn("toolbar.select", "选择", "select"));
+        preview.appendChild(createBtn("toolbar.select", "选择", "select", "select"));
       } else if (itemId === "pen") {
-        preview.appendChild(createBtn("toolbar.pen", "画笔", "pen"));
+        preview.appendChild(createBtn("toolbar.pen", "画笔", "pen", "pen"));
       } else if (itemId === "eraser") {
-        preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser"));
+        preview.appendChild(createBtn("toolbar.eraser", "橡皮擦", "eraser", "eraser"));
       } else if (itemId === "spotlight") {
         const showSpotlight = !!(settings.Toolbar && settings.Toolbar.ShowSpotlight);
         if (showSpotlight) {
-          preview.appendChild(createBtn("toolbar.spotlight", "聚光灯", "spotlight"));
+          preview.appendChild(createBtn("toolbar.spotlight", "聚光灯", "spotlight", "spotlight"));
         }
       } else if (itemId === "timer") {
         const showTimer = !!(settings.Toolbar && settings.Toolbar.ShowTimer);
         if (showTimer) {
-          preview.appendChild(createBtn("toolbar.timer", "计时器", "timer"));
+          preview.appendChild(createBtn("toolbar.timer", "计时器", "timer", "timer"));
         }
       } else if (itemId === "undo") {
         const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
         if (showUndoRedo) {
-          preview.appendChild(createBtn("toolbar.undo", "撤销", "undo"));
+          preview.appendChild(createBtn("toolbar.undo", "撤销", "undo", "undo"));
         }
       } else if (itemId === "redo") {
         const showUndoRedo = !!(settings.Toolbar && settings.Toolbar.ShowUndoRedo);
         if (showUndoRedo) {
-          preview.appendChild(createBtn("toolbar.redo", "重做", "redo"));
+          preview.appendChild(createBtn("toolbar.redo", "重做", "redo", "redo"));
         }
       } else if (itemId === "apps") {
         if (toolbarApps && toolbarApps.length > 0) {
           toolbarApps.forEach((app, idx) => {
             const btn = document.createElement("div");
             btn.className = "toolbar-preview-btn" + (showText ? " toolbar-preview-btn-capsule" : "");
-            btn.dataset.id = "apps";
-            
-            const num = document.createElement("div");
-            num.className = "toolbar-preview-number";
-            num.textContent = count++;
+            btn.dataset.id = "apps"; // Group apps as one logical unit for sorting simplicity or keep separate
+            const icon = document.createElement("div");
+            icon.className = "toolbar-preview-btn-icon";
 
-            btn.appendChild(num);
+            if (app.icon) {
+              icon.innerHTML = `<img src="${app.icon}" class="toolbar-app-icon-img" style="position: relative; z-index: 1;">`;
+            } else {
+              const firstChar = (app.name || "?").charAt(0).toUpperCase();
+              icon.innerHTML = `<span style="font-size: ${showText ? '10px' : '14px'}; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: 600; color: #FFFFFF; position: relative; z-index: 1;">${firstChar}</span>`;
+            }
+
+            btn.appendChild(icon);
             if (showText) {
               const label = document.createElement("div");
               label.className = "toolbar-preview-btn-label";
@@ -4521,11 +6014,12 @@
       }
     });
 
-    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit"));
+    preview.appendChild(createSeparator());
+    preview.appendChild(createBtn("toolbar.end_show", "结束显示", "exit", "exit"));
 
     // Initialize Sortable
     if (typeof Sortable !== 'undefined') {
-      sortableInstance = new Sortable(preview, {
+      new Sortable(preview, {
         animation: 150,
         draggable: ".toolbar-preview-btn",
         filter: "[data-id='exit']", // Don't allow moving the exit button
@@ -4774,9 +6268,10 @@
   })();
 
   // JS Bridge for real-time updates
-  function updateTheme(mode) {
+  function updateTheme(mode, themeId) {
     if (!settings.Appearance) settings.Appearance = {};
-    settings.Appearance.ThemeMode = mode;
+    if (mode) settings.Appearance.ThemeMode = mode;
+    if (themeId) settings.Appearance.ThemeId = themeId;
     applySettingsToUI();
   }
 

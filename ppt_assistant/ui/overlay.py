@@ -13,7 +13,7 @@ import math
 import shiboken6
 from ppt_assistant.core.config import cfg, SETTINGS_PATH
 from ppt_assistant.core.timer_manager import TimerManager
-from qfluentwidgets import FluentWidget, FluentIcon as FIF, BodyLabel, IconWidget, themeColor
+from qfluentwidgets import FluentWidget, FluentIcon as FIF, BodyLabel, IconWidget, themeColor, Theme, isDarkTheme
 
 try:
     import psutil
@@ -60,6 +60,111 @@ def _get_overlay_font_stack():
 
 
 LANGUAGE = _load_language()
+
+def _resolve_is_light():
+    mode = cfg.themeMode.value
+    if isinstance(mode, Theme):
+        if mode == Theme.AUTO:
+            return not isDarkTheme()
+        return mode == Theme.LIGHT
+    mode_str = str(mode).lower()
+    if mode_str == "auto":
+        return not isDarkTheme()
+    return mode_str == "light"
+
+def _get_theme_id():
+    try:
+        if os.path.exists(SETTINGS_PATH):
+            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return (data.get("Appearance", {}) or {}).get("ThemeId", "default")
+    except Exception:
+        return "default"
+    return "default"
+
+def _load_theme_tokens():
+    try:
+        if os.path.exists(SETTINGS_PATH):
+            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            tokens = (data.get("Appearance", {}) or {}).get("ThemeTokens", {}) or {}
+            return tokens if isinstance(tokens, dict) else {}
+    except Exception:
+        return {}
+    return {}
+
+def _parse_color(value, fallback=None):
+    if isinstance(value, QColor):
+        return value
+    if not value:
+        return fallback if isinstance(fallback, QColor) else QColor(fallback or "#000000")
+    v = str(value).strip()
+    try:
+        if v.startswith("rgba") or v.startswith("rgb"):
+            inner = v[v.find("(") + 1 : v.find(")")]
+            parts = [p.strip() for p in inner.split(",")]
+            if len(parts) >= 3:
+                r = int(float(parts[0]))
+                g = int(float(parts[1]))
+                b = int(float(parts[2]))
+                a = 255
+                if len(parts) >= 4:
+                    a_val = float(parts[3])
+                    a = int(a_val * 255) if a_val <= 1 else int(a_val)
+                return QColor(r, g, b, max(0, min(255, a)))
+    except Exception:
+        pass
+    c = QColor(v)
+    if c.isValid():
+        return c
+    return fallback if isinstance(fallback, QColor) else QColor(fallback or "#000000")
+
+def _theme_token(tokens, key):
+    if not tokens:
+        return None
+    val = tokens.get(key)
+    if isinstance(val, str):
+        val = val.strip()
+    return val or None
+
+def _get_palette(is_light=False):
+    theme_id = _get_theme_id()
+    variant = "light" if is_light else "dark"
+    all_tokens = _load_theme_tokens()
+    theme_tokens = (all_tokens.get(theme_id, {}) or {}).get(variant, {}) if isinstance(all_tokens, dict) else {}
+    return {
+        "accent": _theme_token(theme_tokens, "--accent-blue") or ("#3275F5" if is_light else "#E1EBFF"),
+        "card_bg": _theme_token(theme_tokens, "--card-bg") or ("rgba(0, 0, 0, 0.03)" if is_light else "rgba(255, 255, 255, 0.03)"),
+        "card_border": _theme_token(theme_tokens, "--card-border") or ("rgba(0, 0, 0, 0.02)" if is_light else "rgba(255, 255, 255, 0.02)"),
+        "item_hover": _theme_token(theme_tokens, "--item-hover") or ("rgba(0, 0, 0, 0.05)" if is_light else "rgba(255, 255, 255, 0.05)"),
+        "status_fg": _theme_token(theme_tokens, "--overlay-status-fg") or "#FFFFFF",
+        "status_bg": _theme_token(theme_tokens, "--overlay-status-bg") or "#40000000",
+        "status_sep": _theme_token(theme_tokens, "--overlay-status-sep") or "rgba(255, 255, 255, 0.3)",
+        "toolbar_bg": _theme_token(theme_tokens, "--overlay-toolbar-bg") or _theme_token(theme_tokens, "--bg-surface") or ("#FFFFFF" if is_light else "#202020"),
+        "toolbar_border": _theme_token(theme_tokens, "--overlay-toolbar-border") or _theme_token(theme_tokens, "--divider") or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.08)"),
+        "toolbar_line": _theme_token(theme_tokens, "--overlay-toolbar-line") or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.15)"),
+        "toolbar_fg": _theme_token(theme_tokens, "--overlay-toolbar-fg") or _theme_token(theme_tokens, "--text-primary") or ("#191919" if is_light else "#FFFFFF"),
+        "toolbar_shadow": _parse_color(_theme_token(theme_tokens, "--overlay-toolbar-shadow"), QColor(0, 0, 0, 15) if is_light else QColor(0, 0, 0, 80)),
+        "btn_hover_bg": _theme_token(theme_tokens, "--overlay-button-hover") or ("rgba(0, 0, 0, 0.06)" if is_light else "rgba(255, 255, 255, 0.08)"),
+        "btn_active_bg": _theme_token(theme_tokens, "--overlay-button-active") or ("rgba(0, 0, 0, 0.12)" if is_light else "rgba(255, 255, 255, 0.15)"),
+        "pageflip_bg": _theme_token(theme_tokens, "--overlay-page-bg") or _theme_token(theme_tokens, "--bg-surface") or ("#FFFFFF" if is_light else "#202020"),
+        "pageflip_border": _theme_token(theme_tokens, "--overlay-page-border") or _theme_token(theme_tokens, "--divider") or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.08)"),
+        "pageflip_fg": _theme_token(theme_tokens, "--overlay-page-fg") or _theme_token(theme_tokens, "--text-primary") or ("#191919" if is_light else "#FFFFFF"),
+        "pageflip_hint": _theme_token(theme_tokens, "--overlay-page-hint") or ("rgba(0, 0, 0, 0.5)" if is_light else "rgba(255, 255, 255, 0.6)"),
+        "pageflip_hover": _theme_token(theme_tokens, "--overlay-page-hover") or ("rgba(0, 0, 0, 0.05)" if is_light else "rgba(255, 255, 255, 0.08)"),
+        "pageflip_shadow": _parse_color(_theme_token(theme_tokens, "--overlay-page-shadow"), QColor(0, 0, 0, 15) if is_light else QColor(0, 0, 0, 80)),
+        "popup_bg": _theme_token(theme_tokens, "--overlay-popup-bg") or ("white" if is_light else "rgb(32, 32, 32)"),
+        "popup_border": _theme_token(theme_tokens, "--overlay-popup-border") or ("rgba(0, 0, 0, 0.12)" if is_light else "rgba(255, 255, 255, 0.18)"),
+        "popup_fg": _theme_token(theme_tokens, "--overlay-popup-fg") or ("#191919" if is_light else "#FFFFFF"),
+        "mask_overlay_bg": _theme_token(theme_tokens, "--overlay-reload-mask") or "rgba(0, 0, 0, 110)",
+        "mask_card_bg": _theme_token(theme_tokens, "--overlay-reload-card") or "rgba(30, 30, 30, 220)",
+        "mask_text_fg": _theme_token(theme_tokens, "--overlay-reload-text") or "rgba(255, 255, 255, 0.92)",
+        "dev_watermark": _theme_token(theme_tokens, "--overlay-dev-watermark") or "rgba(255, 255, 255, 120)"
+    }
+
+def _p(key, is_light=False):
+    pal = _get_palette(is_light)
+    return pal.get(key)
 
 _TRANSLATIONS = {
     "zh-CN": {
@@ -448,8 +553,8 @@ class StatusBarWidget(QFrame):
 
     def _update_palette(self, is_light=False):
         self._is_light = is_light
-        fg = "#FFFFFF"
-        bg = "#40000000"
+        fg = _p("status_fg", is_light) or "#FFFFFF"
+        bg = _p("status_bg", is_light) or "#40000000"
         font_stack = _get_overlay_font_stack()
         scale = cfg.scale.value
 
@@ -473,7 +578,7 @@ class StatusBarWidget(QFrame):
                 font-weight: 500;
             }}
             QFrame#Separator {{
-                background-color: rgba(255, 255, 255, 0.3);
+                background-color: {_p("status_sep", is_light) or "rgba(255, 255, 255, 0.3)"};
             }}
             IconWidget {{
                 color: {fg};
@@ -618,9 +723,9 @@ class PenColorPopup(QFrame):
             (237, 125, 49), (165, 165, 165), (255, 192, 0), (91, 155, 213), (112, 173, 71)
         ]
         
-        bg = "white" if is_light else "rgb(32, 32, 32)"
-        border = "rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.1)"
-        fg = "black" if is_light else "white"
+        bg = _p("popup_bg", is_light) or ("white" if is_light else "rgb(32, 32, 32)")
+        border = _p("popup_border", is_light) or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.1)")
+        fg = _p("popup_fg", is_light) or ("black" if is_light else "white")
         font_stack = _get_overlay_font_stack()
         
         # Main layout for the popup window
@@ -794,7 +899,7 @@ class CustomToolButton(QFrame):
         if not os.path.exists(icon_path):
             return
             
-        color_hex = "#FFFFFF"
+        color_hex = _p("toolbar_fg", is_light) or ("#191919" if is_light else "#FFFFFF")
         if self.is_exit:
             color_hex = "#FF453A"
 
@@ -842,12 +947,8 @@ class CustomToolButton(QFrame):
         show_text = cfg.showToolbarText.value and bool(self.text)
         
         # Hover colors based on theme
-        if is_light:
-            hover_bg = "rgba(0, 0, 0, 0.06)"
-            active_bg = "rgba(0, 0, 0, 0.12)"
-        else:
-            hover_bg = "rgba(255, 255, 255, 0.08)"
-            active_bg = "rgba(255, 255, 255, 0.15)"
+        hover_bg = _p("btn_hover_bg", is_light) or ("rgba(0, 0, 0, 0.06)" if is_light else "rgba(255, 255, 255, 0.08)")
+        active_bg = _p("btn_active_bg", is_light) or ("rgba(0, 0, 0, 0.12)" if is_light else "rgba(255, 255, 255, 0.15)")
 
         if is_active:
             bg = active_bg
@@ -875,20 +976,22 @@ class CustomToolButton(QFrame):
         else:
             self.icon_label.setStyleSheet("background: transparent; border-radius: 0; padding: 0;")
         
+        text_color = _p("toolbar_fg", is_light) or ("#191919" if is_light else "#FFFFFF")
         # Update text style
         self.text_label.setStyleSheet(f"""
             QLabel {{
                 font-size: 11px;
                 font-weight: 400;
                 font-family: {_get_overlay_font_stack()};
-                color: rgba(255, 255, 255, {fg_alpha});
+                color: rgba({_parse_color(text_color).red()}, {_parse_color(text_color).green()}, {_parse_color(text_color).blue()}, {fg_alpha});
                 background: transparent;
             }}
         """)
         
         # Sync palette for MarqueeLabel's custom painting
         palette = self.text_label.palette()
-        palette.setColor(QPalette.WindowText, QColor(255, 255, 255, int(255 * fg_alpha)))
+        text_qcolor = _parse_color(text_color, QColor(255, 255, 255))
+        palette.setColor(QPalette.WindowText, QColor(text_qcolor.red(), text_qcolor.green(), text_qcolor.blue(), int(255 * fg_alpha)))
         self.text_label.setPalette(palette)
         
         self.text_label.setVisible(show_text)
@@ -902,6 +1005,7 @@ class CustomToolButton(QFrame):
             self.layout.setContentsMargins(0, 0, 0, 0)
             self.layout.setSpacing(0)
             self.text_label.setFixedWidth(0) # Hide effectively if needed, though setVisible handles it
+        self.set_icon_color(is_light)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -923,9 +1027,9 @@ class SlidePreviewPopup(FluentWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(6)
-        bg = "white" if self._is_light else "rgb(32, 32, 32)"
-        border = "rgba(0, 0, 0, 0.12)" if self._is_light else "rgba(255, 255, 255, 0.18)"
-        fg = "#191919" if self._is_light else "#FFFFFF"
+        bg = _p("popup_bg", self._is_light) or ("white" if self._is_light else "rgb(32, 32, 32)")
+        border = _p("popup_border", self._is_light) or ("rgba(0, 0, 0, 0.12)" if self._is_light else "rgba(255, 255, 255, 0.18)")
+        fg = _p("popup_fg", self._is_light) or ("#191919" if self._is_light else "#FFFFFF")
         self.setStyleSheet(f"""
             SlidePreviewPopup {{
                 background-color: {bg};
@@ -967,9 +1071,13 @@ class SlidePreviewPopup(FluentWidget):
             btn = QPushButton(self.card_container)
             btn.setFlat(True)
             # Set a simple placeholder or empty icon
+            card_bg = _p("card_bg", self._is_light) or ("#F5F6F8" if self._is_light else "rgba(255, 255, 255, 0.06)")
+            card_border = _p("card_border", self._is_light) or ("rgba(0,0,0,0.05)" if self._is_light else "rgba(255,255,255,0.08)")
+            card_hover = _p("item_hover", self._is_light) or ("#FFFFFF" if self._is_light else "rgba(255, 255, 255, 0.12)")
+            accent = _p("accent", self._is_light) or ("#3275F5" if self._is_light else "#E1EBFF")
             btn.setStyleSheet(
-                "QPushButton { border-radius: 14px; border: 1px solid rgba(0,0,0,0.05); background-color: #F5F6F8; }"
-                "QPushButton:hover { border: 1px solid rgba(50,117,245,0.5); background-color: #FFFFFF; }"
+                f"QPushButton {{ border-radius: 14px; border: 1px solid {card_border}; background-color: {card_bg}; }}"
+                f"QPushButton:hover {{ border: 1px solid {accent}; background-color: {card_hover}; }}"
             )
             
             # Check if exists in cache/disk first for speed
@@ -1143,10 +1251,11 @@ class ReloadMask(QWidget):
         super().__init__(parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
         font_stack = _get_overlay_font_stack()
+        is_light = _resolve_is_light()
         self.setStyleSheet(
-            "ReloadMask { background-color: rgba(0, 0, 0, 110); }"
-            "QFrame { background-color: rgba(30, 30, 30, 220); border-radius: 16px; }"
-            f"QLabel {{ color: rgba(255, 255, 255, 0.92); font-size: 14px; font-weight: 500; font-family: {font_stack}; }}"
+            f"ReloadMask {{ background-color: {_p('mask_overlay_bg', is_light) or 'rgba(0, 0, 0, 110)'}; }}"
+            f"QFrame {{ background-color: {_p('mask_card_bg', is_light) or 'rgba(30, 30, 30, 220)'}; border-radius: 16px; }}"
+            f"QLabel {{ color: {_p('mask_text_fg', is_light) or 'rgba(255, 255, 255, 0.92)'}; font-size: 14px; font-weight: 500; font-family: {font_stack}; }}"
         )
 
         outer = QVBoxLayout(self)
@@ -1194,6 +1303,7 @@ class OverlayWindow(QWidget):
             self.setWindowIcon(QIcon(icon_path))
             
         self.setWindowTitle(_t("overlay.title"))
+        self._is_light = _resolve_is_light()
         self.status_bar = None
         self.plugins = []
         self.monitor = None
@@ -1215,7 +1325,7 @@ class OverlayWindow(QWidget):
             label.setFont(font)
             label.setAlignment(Qt.AlignRight | Qt.AlignBottom)
             label.setStyleSheet(
-                "color: rgba(255, 255, 255, 120);"
+                f"color: {_p('dev_watermark', self._is_light) or 'rgba(255, 255, 255, 120)'};"
             )
             label.resize(340, 36)
             self._dev_watermark = label
@@ -1352,6 +1462,7 @@ class OverlayWindow(QWidget):
         self._has_status_plugin = has_status_plugin
         if cfg.showStatusBar.value and has_status_plugin:
             self.status_bar = StatusBarWidget(self)
+            self.status_bar._update_palette(self._is_light)
             self.status_bar.show()
         cfg.showStatusBar.valueChanged.connect(self._on_status_bar_visibility_changed)
         
@@ -1364,8 +1475,13 @@ class OverlayWindow(QWidget):
         self.toolbar.pen_clicked.connect(self.request_ptr_pen.emit)
         self.toolbar.eraser_clicked.connect(self.request_ptr_eraser.emit)
         self.toolbar.pen_color_changed.connect(self.request_pen_color.emit)
+        self.toolbar.update_style(self._is_light)
         
         self._init_flippers()
+        if hasattr(self, "left_flipper"):
+            self.left_flipper.update_style(self._is_light)
+        if hasattr(self, "right_flipper"):
+            self.right_flipper.update_style(self._is_light)
         
         self.update_layout()
 
@@ -1474,6 +1590,7 @@ class OverlayWindow(QWidget):
         if visible and getattr(self, "_has_status_plugin", False):
             if self.status_bar is None:
                 self.status_bar = StatusBarWidget(self)
+                self.status_bar._update_palette(self._is_light)
             self.status_bar.show()
         else:
             if self.status_bar is not None:
@@ -1751,16 +1868,10 @@ class ToolbarWidget(QWidget):
                 return
             show_text = cfg.showToolbarText.value
 
-            if self._is_light:
-                bg = "#FFFFFF"
-                border = "rgba(0, 0, 0, 0.08)"
-                line_color = "rgba(0, 0, 0, 0.08)"
-                shadow_color = QColor(0, 0, 0, 15)
-            else:
-                bg = "#202020"
-                border = "rgba(255, 255, 255, 0.08)"
-                line_color = "rgba(255, 255, 255, 0.15)"
-                shadow_color = QColor(0, 0, 0, 80)
+            bg = _p("toolbar_bg", self._is_light) or ("#FFFFFF" if self._is_light else "#202020")
+            border = _p("toolbar_border", self._is_light) or ("rgba(0, 0, 0, 0.08)" if self._is_light else "rgba(255, 255, 255, 0.08)")
+            line_color = _p("toolbar_line", self._is_light) or ("rgba(0, 0, 0, 0.08)" if self._is_light else "rgba(255, 255, 255, 0.15)")
+            shadow_color = _parse_color(_p("toolbar_shadow", self._is_light), QColor(0, 0, 0, 15) if self._is_light else QColor(0, 0, 0, 80))
 
             self.layout.activate()
             self.adjustSize()
@@ -2204,21 +2315,12 @@ class PageFlipWidget(QFrame):
         self._is_light = is_light
         scale = cfg.scale.value
         
-        # Settings Design Style
-        if self._is_light:
-            bg = "#FFFFFF"
-            border = "rgba(0, 0, 0, 0.08)"
-            fg = "#191919"
-            hint_fg = "rgba(0, 0, 0, 0.5)"
-            hover_bg = "rgba(0, 0, 0, 0.05)"
-            shadow_color = QColor(0, 0, 0, 15)
-        else:
-            bg = "#202020"
-            border = "rgba(255, 255, 255, 0.08)"
-            fg = "white"
-            hint_fg = "rgba(255, 255, 255, 0.6)"
-            hover_bg = "rgba(255, 255, 255, 0.08)"
-            shadow_color = QColor(0, 0, 0, 80)
+        bg = _p("pageflip_bg", self._is_light) or ("#FFFFFF" if self._is_light else "#202020")
+        border = _p("pageflip_border", self._is_light) or ("rgba(0, 0, 0, 0.08)" if self._is_light else "rgba(255, 255, 255, 0.08)")
+        fg = _p("pageflip_fg", self._is_light) or ("#191919" if self._is_light else "white")
+        hint_fg = _p("pageflip_hint", self._is_light) or ("rgba(0, 0, 0, 0.5)" if self._is_light else "rgba(255, 255, 255, 0.6)")
+        hover_bg = _p("pageflip_hover", self._is_light) or ("rgba(0, 0, 0, 0.05)" if self._is_light else "rgba(255, 255, 255, 0.08)")
+        shadow_color = _parse_color(_p("pageflip_shadow", self._is_light), QColor(0, 0, 0, 15) if self._is_light else QColor(0, 0, 0, 80))
         
         # Calculate radius to ensure it's always a capsule (pill shape)
         # Use min dimension for radius

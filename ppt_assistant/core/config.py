@@ -27,6 +27,7 @@ class Config(QConfig):
         EnumSerializer(Theme),
         restart=False,
     )
+    themeId = ConfigItem("Appearance", "ThemeId", "default", restart=False)
 
     runAtStartup = ConfigItem("General", "RunAtStartup", False, BoolValidator())
     autoShowOverlay = ConfigItem("General", "AutoShowOverlay", True, BoolValidator())
@@ -188,6 +189,7 @@ def _on_theme_changed(theme):
 
 def _bind_auto_save():
     cfg.themeMode.valueChanged.connect(_on_theme_changed)
+    cfg.themeId.valueChanged.connect(lambda *_: _save_cfg())
     cfg.runAtStartup.valueChanged.connect(_on_run_at_startup_changed)
     cfg.autoShowOverlay.valueChanged.connect(lambda *_: _save_cfg())
     cfg.showUndoRedo.valueChanged.connect(lambda *_: _save_cfg())

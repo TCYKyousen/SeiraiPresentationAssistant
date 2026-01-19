@@ -809,6 +809,7 @@ class PPTAssistantApp:
             self._settings_mtime = mtime
             
             old_theme = cfg.themeMode.value
+            old_theme_id = cfg.themeId.value if hasattr(cfg, "themeId") else "default"
             old_lang = getattr(self, "_current_language", "zh-CN")
             old_qt_font = getattr(self, "_current_qt_font", "")
             old_overlay_font = getattr(self, "_current_overlay_font", "")
@@ -855,7 +856,9 @@ class PPTAssistantApp:
                 cfg.toolbarOrder.value != old_toolbar_order or
                 new_overlay_font != old_overlay_font or
                 cfg.safeArea.value != old_safe_area or
-                cfg.scale.value != old_scale):
+                cfg.scale.value != old_scale or
+                cfg.themeMode.value != old_theme or
+                (hasattr(cfg, "themeId") and cfg.themeId.value != old_theme_id)):
                 if not self._reloading_overlay:
                     self._reload_timer.start()
             

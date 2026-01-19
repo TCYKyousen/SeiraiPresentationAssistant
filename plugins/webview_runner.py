@@ -62,9 +62,12 @@ class Api:
     def update_settings(self, settings):
         self.settings = settings
         theme_mode = settings.get("Appearance", {}).get("ThemeMode", "Light")
+        theme_id = settings.get("Appearance", {}).get("ThemeId", "default")
             
         if self._window:
-            self._window.evaluate_js(f"if (typeof updateTheme === 'function') updateTheme('{theme_mode}')")
+            self._window.evaluate_js(
+                f"if (typeof updateTheme === 'function') updateTheme({json.dumps(theme_mode)}, {json.dumps(theme_id)})"
+            )
 
     def get_settings(self):
         return self.settings
