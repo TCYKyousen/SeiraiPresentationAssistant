@@ -32,7 +32,7 @@ class Config(QConfig):
     runAtStartup = ConfigItem("General", "RunAtStartup", False, BoolValidator())
     autoShowOverlay = ConfigItem("General", "AutoShowOverlay", True, BoolValidator())
 
-    showUndoRedo = ConfigItem("Toolbar", "ShowUndoRedo", True, BoolValidator())
+    showClear = ConfigItem("Toolbar", "ShowClear", True, BoolValidator())
     showSpotlight = ConfigItem("Toolbar", "ShowSpotlight", True, BoolValidator())
     showTimer = ConfigItem("Toolbar", "ShowTimer", True, BoolValidator())
     showToolbarText = ConfigItem("Toolbar", "ShowToolbarText", False, BoolValidator())
@@ -62,7 +62,7 @@ class Config(QConfig):
     splashEndTime = ConfigItem("General", "SplashEndTime", "20:00", restart=False)
 
     quickLaunchApps = ConfigItem("Toolbar", "QuickLaunchApps", [], restart=False)
-    toolbarOrder = ConfigItem("Toolbar", "ToolbarOrder", ["select", "pen", "eraser", "spotlight", "timer", "undo", "redo", "apps"], restart=False)
+    toolbarOrder = ConfigItem("Toolbar", "ToolbarOrder", ["select", "pen", "eraser", "spotlight", "timer", "clear", "apps"], restart=False)
 
 
 cfg = Config()
@@ -192,7 +192,7 @@ def _bind_auto_save():
     cfg.themeId.valueChanged.connect(lambda *_: _save_cfg())
     cfg.runAtStartup.valueChanged.connect(_on_run_at_startup_changed)
     cfg.autoShowOverlay.valueChanged.connect(lambda *_: _save_cfg())
-    cfg.showUndoRedo.valueChanged.connect(lambda *_: _save_cfg())
+    cfg.showClear.valueChanged.connect(lambda *_: _save_cfg())
     cfg.showSpotlight.valueChanged.connect(lambda *_: _save_cfg())
     cfg.showTimer.valueChanged.connect(lambda *_: _save_cfg())
     cfg.showStatusBar.valueChanged.connect(lambda *_: _save_cfg())

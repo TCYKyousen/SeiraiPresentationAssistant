@@ -211,6 +211,25 @@
       flex-direction: column;
     }
 
+    .rtl {
+      direction: rtl;
+    }
+
+    .rtl .container {
+      flex-direction: row-reverse;
+    }
+
+    .rtl .page-title,
+    .rtl .dialog-title,
+    .rtl .dialog-desc,
+    .rtl .time-up-text {
+      text-align: right;
+    }
+
+    .rtl .dialog-buttons {
+      flex-direction: row-reverse;
+    }
+
     .container {
       flex: 1;
       display: flex;
@@ -924,6 +943,24 @@
         "dialog.cancel": "Cancel",
         "dialog.confirm": "Confirm",
         "general.devWatermark": "In-Development/Technical Preview\nFinal quality not guaranteed ({version})"
+      },
+      "ug-CN": {
+        "nav.stopwatch": "سۇۋقاچ",
+        "nav.timer": "ۋاقىت بەلگىلەش",
+        "nav.clock": "سائەت",
+        "title.stopwatch": "سۇۋقاچ",
+        "title.timer": "ۋاقىت بەلگىلەش",
+        "title.clock": "نۆۋەتتىكى ۋاقىت",
+        "timer.hour": "س",
+        "timer.minute": "د",
+        "timer.second": "چ",
+        "timer.totalSeconds": "جەمئى {n} سېكۇنت",
+        "bell.timeUp": "ۋاقىت توشتى",
+        "dialog.exit.title": "چىقىشنى جەزملەشتۈرۈش",
+        "dialog.exit.desc": "ۋاقىت بەلگىلەش ئىشلەۋاتىدۇ. چىقسىڭىز نۆۋەتتىكى جەريان تازىلىنىدۇ. داۋاملىشىمىز؟",
+        "dialog.cancel": "بىكار",
+        "dialog.confirm": "جەزملەشتۈر",
+        "general.devWatermark": "تېخنىكىلىق ئالدىن كۆرۈش نۇسخىسى\nسۈپەت كاپالەتلەنمەيدۇ ({version})"
       }
     };
 
@@ -940,14 +977,17 @@
 
     function getDefaultFontStack(lang) {
       const isSpecial = lang === "zh-TW" || lang === "ja-JP";
-      if (lang === "zh-TW") {
-        return "\"Microsoft JhengHei\", \"MiSans Latin\", \"HarmonyOS Sans TC\", \"SF Pro\", \"苹方-繁\", \"PingFang TC\", system-ui, -apple-system, sans-serif";
-      }
-      if (lang === "ja-JP") {
-        return "\"Yu Gothic UI\", \"Meiryo\", \"MiSans Latin\", \"HarmonyOS Sans JP\", \"SF Pro\", system-ui, -apple-system, sans-serif";
-      }
-      return "\"MiSans Latin\", \"HarmonyOS Sans SC\", \"SF Pro\", \"苹方-简\", \"PingFang SC\", \"Segoe UI\", \"Microsoft YaHei\", system-ui, -apple-system, sans-serif";
+    if (lang === "zh-TW") {
+      return "\"Microsoft JhengHei\", \"MiSans Latin\", \"HarmonyOS Sans TC\", \"SF Pro\", \"苹方-繁\", \"PingFang TC\", system-ui, -apple-system, sans-serif";
     }
+    if (lang === "ja-JP") {
+      return "\"Yu Gothic UI\", \"Meiryo\", \"MiSans Latin\", \"HarmonyOS Sans JP\", \"SF Pro\", system-ui, -apple-system, sans-serif";
+    }
+    if (lang === "ug-CN") {
+      return "\"Microsoft Uighur\", \"ALKATIP Basma Tom\", \"MiSans Latin\", \"HarmonyOS Sans SC\", \"SF Pro\", system-ui, -apple-system, sans-serif";
+    }
+    return "\"MiSans Latin\", \"HarmonyOS Sans SC\", \"SF Pro\", \"苹方-简\", \"PingFang SC\", \"Segoe UI\", \"Microsoft YaHei\", system-ui, -apple-system, sans-serif";
+  }
 
     function getSelectedWebFont(lang) {
       const profiles = settings && settings.Fonts && settings.Fonts.Profiles;
@@ -970,6 +1010,9 @@
 
     function applyI18n() {
       document.documentElement.lang = currentLanguage;
+      const isRtl = currentLanguage === "ug-CN";
+      document.documentElement.dir = isRtl ? "rtl" : "ltr";
+      document.documentElement.classList.toggle("rtl", isRtl);
       applyLanguageFont();
       const nodes = document.querySelectorAll("[data-i18n]");
       nodes.forEach(node => {

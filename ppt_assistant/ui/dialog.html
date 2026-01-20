@@ -54,6 +54,20 @@
       background: var(--bg-body) !important;
     }
 
+    .rtl {
+      direction: rtl;
+    }
+
+    .rtl .dialog-container,
+    .rtl .dialog-title,
+    .rtl .dialog-text {
+      text-align: right;
+    }
+
+    .rtl .dialog-buttons {
+      flex-direction: row-reverse;
+    }
+
     .dialog-window {
       background: var(--bg-body);
       width: 100%;
@@ -313,6 +327,24 @@
         "dialog.fontWarning.text": "Enabling custom fonts may cause the following issues:\n\n1. Broken layout, overflowing controls, or unexpected line breaks\n2. Missing glyphs for some characters, symbols, or languages, shown as squares or question marks\n3. Blurry or misaligned text under different DPI or display scaling\n4. Behavior that differs from the developer environment on certain systems or PowerPoint versions\n\nThe developer is not responsible for any visual glitches, crashes, or presentation incidents caused by custom fonts and does not provide dedicated support for such issues.",
         "dialog.fontWarning.confirm": "I understand and accept these risks",
         "general.devWatermark": "In-Development/Technical Preview\nFinal quality not guaranteed ({version})"
+      },
+      "ug-CN": {
+        "dialog.generic.ok": "جەزملەشتۈر",
+        "dialog.generic.cancel": "بىكار",
+        "dialog.crash.title": "پروگرامما ئۈزۈلۈپ قالدى (´；ω；`)",
+        "dialog.crash.confirm": "ياپ",
+        "dialog.crash.cancel": "خاتالىقنى كۆچۈرۈش",
+        "dialog.multiInstance.title": "باشقا نەشرى ئىشلىۋاتىدۇ",
+        "dialog.multiInstance.text": "بىر نەشرى ئاللىقاچان ئىشلىۋاتىدۇ.\n\nنېمە قىلىمىز؟",
+        "dialog.multiInstance.confirm": "كونا نەشرىنى توختىتىپ قوزغىتىش",
+        "dialog.multiInstance.cancel": "ئىككىلىسىنى تاقاش",
+        "testDialog.title": "سىناق سۆزلەشكۈ",
+        "testDialog.confirm": "چۈشەندىم",
+        "testDialog.cancel": "تاقاش",
+        "dialog.fontWarning.title": "خەت نۇسخىسى خەۋپ ئاگاھلاندۇرۇشى",
+        "dialog.fontWarning.text": "خاس خەت نۇسخىسىنى قوزغىتىش تۆۋەندىكى مەسىلىلەرنى كەلتۈرۈپ چىقىرىشى مۇمكىن:\n\n1. لايىھە بۇزۇلۇشى ياكى قىسىلىپ كېتىشى\n2. بەزى ھەرپ-بەلگىلەرنىڭ يوقاپ كېتىشى\n3. DPI ياكى كۆرۈنۈش دەرىجىسىگە باغلىق سۈپەت پەرقى\n4. مەلۇم سىستېمىلاردا باشقا نەتىجە كۆرۈنۈشى\n\nبۇنىڭدىن كېلىپ چىققان مەسىلىلەرگە تەرەققىيات تەرەپ مەسئۇلىيەت ئالمايدۇ.",
+        "dialog.fontWarning.confirm": "خەۋپنى چۈشەندىم",
+        "general.devWatermark": "تېخنىكىلىق ئالدىن كۆرۈش نۇسخىسى\nسۈپەت كاپالەتلەنمەيدۇ ({version})"
       }
     };
 
@@ -327,6 +359,7 @@
           currentLanguage = s.General.Language;
         }
       }
+      applyDirection(currentLanguage);
     }
 
     function getText(key) {
@@ -344,6 +377,9 @@
       }
       if (lang === "ja-JP") {
         return "\"Yu Gothic UI\", \"Meiryo\", \"MiSans Latin\", \"HarmonyOS Sans JP\", \"SF Pro\", system-ui, -apple-system, sans-serif";
+      }
+      if (lang === "ug-CN") {
+        return "\"Microsoft Uighur\", \"ALKATIP Basma Tom\", \"MiSans Latin\", \"HarmonyOS Sans SC\", \"SF Pro\", system-ui, -apple-system, sans-serif";
       }
       return "\"MiSans Latin\", \"HarmonyOS Sans SC\", \"SF Pro\", \"苹方-简\", \"PingFang SC\", \"Segoe UI\", \"Microsoft YaHei\", system-ui, -apple-system, sans-serif";
     }
@@ -364,6 +400,12 @@
       document.documentElement.lang = targetLang;
     }
 
+    function applyDirection(lang) {
+      const isRtl = lang === "ug-CN";
+      document.documentElement.dir = isRtl ? "rtl" : "ltr";
+      document.documentElement.classList.toggle("rtl", isRtl);
+    }
+
     function init(data) {
       const isCrash = !!data.isError;
       const isMulti = data.code === "multi_instance";
@@ -376,6 +418,7 @@
       } else {
         applyLanguageFont();
       }
+      applyDirection(currentLanguage);
 
       if (!data.title) {
         if (isCrash) {

@@ -365,7 +365,7 @@ class Api:
             
             self.settings = data
             
-            if category == "Appearance" and key == "ThemeMode":
+            if category == "Appearance" and key in ("ThemeMode", "ThemeId"):
                 self.update_settings(data)
                 
         except Exception as e:
@@ -395,7 +395,7 @@ class Api:
         raise RuntimeError("这是一个手动触发的测试崩溃。")
 
     def create_dialog(self):
-        msg = "曾许下心愿 等待你的出现\n褪色的秋千 有本书会纪念\n我循着时间 捡起梦的照片\n童话还没有兑现 却需要说再见"
+        msg = "君不见，黄河之水天上来，奔流到海不复回！君不见，高堂明镜悲白发，朝如青丝暮成雪！\n人生得意须尽欢，莫使金樽空对月。\n天生我材必有用，千金散尽还复来。\n烹羊宰牛且为乐，会须一饮三百杯。\n岑夫子，丹丘生。将进酒，君莫停。\n与君歌一曲，请君为我倾耳听。\n钟鼓馔玉不足贵，但愿长醉不复醒。\n古来圣贤皆寂寞，惟有饮者留其名。\n陈王昔时宴平乐，斗酒十千恣欢谑。\n主人何为言少钱？径须沽取对君酌。\n五花马，千金裘。呼儿将出换美酒，与尔同销万古愁。"
         base_dir = os.path.dirname(os.path.abspath(__file__))
         html_path = os.path.join(os.path.dirname(base_dir), "ppt_assistant", "ui", "dialog.html")
         

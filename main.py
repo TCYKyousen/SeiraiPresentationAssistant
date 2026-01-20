@@ -618,6 +618,7 @@ class PPTAssistantApp:
         overlay_font = lang_profile.get("overlay", "") or qt_font
         self._current_qt_font = qt_font.strip() if isinstance(qt_font, str) else ""
         self._current_overlay_font = overlay_font.strip() if isinstance(overlay_font, str) else ""
+        self._overlay_rebuild_at = (data.get("Overlay", {}) or {}).get("RecreateOverlayAt")
 
         self._settings_mtime = os.path.getmtime(SETTINGS_PATH) if os.path.exists(SETTINGS_PATH) else 0
         self._settings_timer = QTimer()
@@ -756,6 +757,7 @@ class PPTAssistantApp:
 
         self.overlay.request_next.connect(self.monitor.go_next)
         self.overlay.request_prev.connect(self.monitor.go_previous)
+        self.overlay.request_clear.connect(self.monitor.clear_screen)
         self.overlay.request_end.connect(self.monitor.end_show)
 
         self.overlay.request_ptr_arrow.connect(lambda: self.monitor.set_pointer_type(1))
@@ -815,12 +817,13 @@ class PPTAssistantApp:
             old_overlay_font = getattr(self, "_current_overlay_font", "")
             old_toolbar_text = cfg.showToolbarText.value
             old_status_bar = cfg.showStatusBar.value
-            old_undo_redo = cfg.showUndoRedo.value
+            old_clear = cfg.showClear.value
             old_spotlight = cfg.showSpotlight.value
             old_timer = cfg.showTimer.value
             old_toolbar_order = cfg.toolbarOrder.value
             old_safe_area = cfg.safeArea.value
             old_scale = cfg.scale.value
+            old_rebuild_at = getattr(self, "_overlay_rebuild_at", None)
             # old_layout_mode = cfg.toolbarLayout.value
 
             reload_cfg()
@@ -838,6 +841,7 @@ class PPTAssistantApp:
             overlay_font = lang_profile.get("overlay", "") or qt_font
             new_qt_font = qt_font.strip() if isinstance(qt_font, str) else ""
             new_overlay_font = overlay_font.strip() if isinstance(overlay_font, str) else ""
+            new_rebuild_at = (data.get("Overlay", {}) or {}).get("RecreateOverlayAt")
 
             self._current_language = new_lang
             self._current_qt_font = new_qt_font
@@ -846,27 +850,39 @@ class PPTAssistantApp:
             if new_qt_font != old_qt_font:
                 _apply_global_font(self.app)
             
-            # If language or critical layout changed, reload overlay
-            if (new_lang != old_lang or 
-                cfg.showToolbarText.value != old_toolbar_text or 
-                cfg.showStatusBar.value != old_status_bar or
-                cfg.showUndoRedo.value != old_undo_redo or
-                cfg.showSpotlight.value != old_spotlight or
-                cfg.showTimer.value != old_timer or
-                cfg.toolbarOrder.value != old_toolbar_order or
-                new_overlay_font != old_overlay_font or
-                cfg.safeArea.value != old_safe_area or
-                cfg.scale.value != old_scale or
-                cfg.themeMode.value != old_theme or
-                (hasattr(cfg, "themeId") and cfg.themeId.value != old_theme_id)):
+            should_reload = (
+                new_lang != old_lang
+                or new_overlay_font != old_overlay_font
+                or cfg.themeMode.value != old_theme
+                or (hasattr(cfg, "themeId") and cfg.themeId.value != old_theme_id)
+                or cfg.showClear.value != old_clear
+                or cfg.showSpotlight.value != old_spotlight
+                or cfg.showTimer.value != old_timer
+                or cfg.showToolbarText.value != old_toolbar_text
+                or cfg.toolbarOrder.value != old_toolbar_order
+                or cfg.safeArea.value != old_safe_area
+                or cfg.scale.value != old_scale
+            )
+            
+            if should_reload:
                 if not self._reloading_overlay:
                     self._reload_timer.start()
+            else:
+                if self.overlay:
+                    if new_rebuild_at and new_rebuild_at != old_rebuild_at:
+                        if not self._reloading_overlay:
+                            self._reload_timer.start()
+                    if cfg.showStatusBar.value != old_status_bar:
+                        self.overlay._on_status_bar_visibility_changed(cfg.showStatusBar.value)
             
             # Layout mode change is now handled by auto-reload above, no restart prompt needed
             
             if cfg.themeMode.value != old_theme:
                 if hasattr(self, 'tray'):
                     self.tray._update_icon()
+            
+            if new_rebuild_at is not None:
+                self._overlay_rebuild_at = new_rebuild_at
 
     def _reload_overlay(self):
         """Recreate the overlay window to apply language and layout changes."""
@@ -888,6 +904,7 @@ class PPTAssistantApp:
             # Re-connect signals
             new_overlay.request_next.connect(self.monitor.go_next)
             new_overlay.request_prev.connect(self.monitor.go_previous)
+            new_overlay.request_clear.connect(self.monitor.clear_screen)
             new_overlay.request_end.connect(self.monitor.end_show)
             new_overlay.request_ptr_arrow.connect(lambda: self.monitor.set_pointer_type(1))
             new_overlay.request_ptr_pen.connect(lambda: self.monitor.set_pointer_type(2))

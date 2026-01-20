@@ -45,6 +45,16 @@ _TRANSLATIONS = {
         "timer.notify.title": "Time's up",
         "timer.notify.body": "Countdown finished",
     },
+    "ug-CN": {
+        "tray.tooltip": "Kazuha ياردەمچىسى",
+        "tray.title": "Kazuha",
+        "tray.settings": "تەڭشەكلەر",
+        "tray.timer": "ۋاقىت بەلگىلەش قىستۇرمىسى",
+        "tray.restart": "قايتا قوزغىتىش",
+        "tray.exit": "چېكىنىش",
+        "timer.notify.title": "ۋاقىت توشتى",
+        "timer.notify.body": "قايتۇرما ۋاقىت تاماملاندى",
+    },
 }
 
 

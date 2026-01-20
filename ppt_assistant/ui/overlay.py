@@ -14,6 +14,7 @@ import shiboken6
 from ppt_assistant.core.config import cfg, SETTINGS_PATH
 from ppt_assistant.core.timer_manager import TimerManager
 from qfluentwidgets import FluentWidget, FluentIcon as FIF, BodyLabel, IconWidget, themeColor, Theme, isDarkTheme
+from ppt_assistant.core.theme_data import THEMES
 
 try:
     import psutil
@@ -61,8 +62,18 @@ def _get_overlay_font_stack():
 
 LANGUAGE = _load_language()
 
+def _get_theme_mode():
+    try:
+        if os.path.exists(SETTINGS_PATH):
+            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return (data.get("Appearance", {}) or {}).get("ThemeMode", cfg.themeMode.value)
+    except Exception:
+        return cfg.themeMode.value
+    return cfg.themeMode.value
+
 def _resolve_is_light():
-    mode = cfg.themeMode.value
+    mode = _get_theme_mode()
     if isinstance(mode, Theme):
         if mode == Theme.AUTO:
             return not isDarkTheme()
@@ -82,16 +93,6 @@ def _get_theme_id():
         return "default"
     return "default"
 
-def _load_theme_tokens():
-    try:
-        if os.path.exists(SETTINGS_PATH):
-            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            tokens = (data.get("Appearance", {}) or {}).get("ThemeTokens", {}) or {}
-            return tokens if isinstance(tokens, dict) else {}
-    except Exception:
-        return {}
-    return {}
 
 def _parse_color(value, fallback=None):
     if isinstance(value, QColor):
@@ -119,47 +120,47 @@ def _parse_color(value, fallback=None):
         return c
     return fallback if isinstance(fallback, QColor) else QColor(fallback or "#000000")
 
-def _theme_token(tokens, key):
-    if not tokens:
-        return None
-    val = tokens.get(key)
-    if isinstance(val, str):
-        val = val.strip()
-    return val or None
-
 def _get_palette(is_light=False):
     theme_id = _get_theme_id()
     variant = "light" if is_light else "dark"
-    all_tokens = _load_theme_tokens()
-    theme_tokens = (all_tokens.get(theme_id, {}) or {}).get(variant, {}) if isinstance(all_tokens, dict) else {}
+    
+    if theme_id not in THEMES:
+        theme_id = "default"
+        
+    theme_data = THEMES.get(theme_id, {}).get(variant, {})
+    default_data = THEMES["default"][variant]
+    
+    def g(key):
+        return theme_data.get(key) or default_data.get(key)
+
     return {
-        "accent": _theme_token(theme_tokens, "--accent-blue") or ("#3275F5" if is_light else "#E1EBFF"),
-        "card_bg": _theme_token(theme_tokens, "--card-bg") or ("rgba(0, 0, 0, 0.03)" if is_light else "rgba(255, 255, 255, 0.03)"),
-        "card_border": _theme_token(theme_tokens, "--card-border") or ("rgba(0, 0, 0, 0.02)" if is_light else "rgba(255, 255, 255, 0.02)"),
-        "item_hover": _theme_token(theme_tokens, "--item-hover") or ("rgba(0, 0, 0, 0.05)" if is_light else "rgba(255, 255, 255, 0.05)"),
-        "status_fg": _theme_token(theme_tokens, "--overlay-status-fg") or "#FFFFFF",
-        "status_bg": _theme_token(theme_tokens, "--overlay-status-bg") or "#40000000",
-        "status_sep": _theme_token(theme_tokens, "--overlay-status-sep") or "rgba(255, 255, 255, 0.3)",
-        "toolbar_bg": _theme_token(theme_tokens, "--overlay-toolbar-bg") or _theme_token(theme_tokens, "--bg-surface") or ("#FFFFFF" if is_light else "#202020"),
-        "toolbar_border": _theme_token(theme_tokens, "--overlay-toolbar-border") or _theme_token(theme_tokens, "--divider") or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.08)"),
-        "toolbar_line": _theme_token(theme_tokens, "--overlay-toolbar-line") or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.15)"),
-        "toolbar_fg": _theme_token(theme_tokens, "--overlay-toolbar-fg") or _theme_token(theme_tokens, "--text-primary") or ("#191919" if is_light else "#FFFFFF"),
-        "toolbar_shadow": _parse_color(_theme_token(theme_tokens, "--overlay-toolbar-shadow"), QColor(0, 0, 0, 15) if is_light else QColor(0, 0, 0, 80)),
-        "btn_hover_bg": _theme_token(theme_tokens, "--overlay-button-hover") or ("rgba(0, 0, 0, 0.06)" if is_light else "rgba(255, 255, 255, 0.08)"),
-        "btn_active_bg": _theme_token(theme_tokens, "--overlay-button-active") or ("rgba(0, 0, 0, 0.12)" if is_light else "rgba(255, 255, 255, 0.15)"),
-        "pageflip_bg": _theme_token(theme_tokens, "--overlay-page-bg") or _theme_token(theme_tokens, "--bg-surface") or ("#FFFFFF" if is_light else "#202020"),
-        "pageflip_border": _theme_token(theme_tokens, "--overlay-page-border") or _theme_token(theme_tokens, "--divider") or ("rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.08)"),
-        "pageflip_fg": _theme_token(theme_tokens, "--overlay-page-fg") or _theme_token(theme_tokens, "--text-primary") or ("#191919" if is_light else "#FFFFFF"),
-        "pageflip_hint": _theme_token(theme_tokens, "--overlay-page-hint") or ("rgba(0, 0, 0, 0.5)" if is_light else "rgba(255, 255, 255, 0.6)"),
-        "pageflip_hover": _theme_token(theme_tokens, "--overlay-page-hover") or ("rgba(0, 0, 0, 0.05)" if is_light else "rgba(255, 255, 255, 0.08)"),
-        "pageflip_shadow": _parse_color(_theme_token(theme_tokens, "--overlay-page-shadow"), QColor(0, 0, 0, 15) if is_light else QColor(0, 0, 0, 80)),
-        "popup_bg": _theme_token(theme_tokens, "--overlay-popup-bg") or ("white" if is_light else "rgb(32, 32, 32)"),
-        "popup_border": _theme_token(theme_tokens, "--overlay-popup-border") or ("rgba(0, 0, 0, 0.12)" if is_light else "rgba(255, 255, 255, 0.18)"),
-        "popup_fg": _theme_token(theme_tokens, "--overlay-popup-fg") or ("#191919" if is_light else "#FFFFFF"),
-        "mask_overlay_bg": _theme_token(theme_tokens, "--overlay-reload-mask") or "rgba(0, 0, 0, 110)",
-        "mask_card_bg": _theme_token(theme_tokens, "--overlay-reload-card") or "rgba(30, 30, 30, 220)",
-        "mask_text_fg": _theme_token(theme_tokens, "--overlay-reload-text") or "rgba(255, 255, 255, 0.92)",
-        "dev_watermark": _theme_token(theme_tokens, "--overlay-dev-watermark") or "rgba(255, 255, 255, 120)"
+        "accent": g("accent"),
+        "card_bg": g("card_bg"),
+        "card_border": g("card_border"),
+        "item_hover": g("item_hover"),
+        "status_fg": g("status_fg"),
+        "status_bg": g("status_bg"),
+        "status_sep": g("status_sep"),
+        "toolbar_bg": g("toolbar_bg"),
+        "toolbar_border": g("toolbar_border"),
+        "toolbar_line": g("toolbar_line"),
+        "toolbar_fg": g("toolbar_fg"),
+        "toolbar_shadow": _parse_color(g("toolbar_shadow")),
+        "btn_hover_bg": g("btn_hover_bg"),
+        "btn_active_bg": g("btn_active_bg"),
+        "pageflip_bg": g("pageflip_bg"),
+        "pageflip_border": g("pageflip_border"),
+        "pageflip_fg": g("pageflip_fg"),
+        "pageflip_hint": g("pageflip_hint"),
+        "pageflip_hover": g("pageflip_hover"),
+        "pageflip_shadow": _parse_color(g("pageflip_shadow")),
+        "popup_bg": g("popup_bg"),
+        "popup_border": g("popup_border"),
+        "popup_fg": g("popup_fg"),
+        "mask_overlay_bg": g("mask_overlay_bg"),
+        "mask_card_bg": g("mask_card_bg"),
+        "mask_text_fg": g("mask_text_fg"),
+        "dev_watermark": g("dev_watermark")
     }
 
 def _p(key, is_light=False):
@@ -175,8 +176,7 @@ _TRANSLATIONS = {
         "toolbar.eraser": "橡皮",
         "toolbar.spotlight": "聚光灯",
         "toolbar.timer": "计时器",
-        "toolbar.undo": "上一步",
-        "toolbar.redo": "下一步",
+        "toolbar.clear": "清屏",
         "toolbar.end_show": "结束放映",
         "toolbar.page": "页码",
         "toolbar.theme_colors": "主题颜色",
@@ -195,8 +195,7 @@ _TRANSLATIONS = {
         "toolbar.eraser": "橡皮擦",
         "toolbar.spotlight": "聚光燈",
         "toolbar.timer": "計時器",
-        "toolbar.undo": "上一步",
-        "toolbar.redo": "下一步",
+        "toolbar.clear": "清屏",
         "toolbar.end_show": "結束播放",
         "toolbar.page": "頁碼",
         "toolbar.theme_colors": "主題顏色",
@@ -215,8 +214,7 @@ _TRANSLATIONS = {
         "toolbar.eraser": "消しゴム",
         "toolbar.spotlight": "スポットライト",
         "toolbar.timer": "タイマー",
-        "toolbar.undo": "戻る",
-        "toolbar.redo": "進む",
+        "toolbar.clear": "クリア",
         "toolbar.end_show": "スライド終了",
         "toolbar.page": "ページ番号",
         "toolbar.theme_colors": "テーマの色",
@@ -235,8 +233,7 @@ _TRANSLATIONS = {
         "toolbar.eraser": "Eraser",
         "toolbar.spotlight": "Spotlight",
         "toolbar.timer": "Timer",
-        "toolbar.undo": "Undo",
-        "toolbar.redo": "Redo",
+        "toolbar.clear": "Clear",
         "toolbar.end_show": "End Show",
         "toolbar.page": "Page number",
         "toolbar.theme_colors": "Theme Colors",
@@ -886,6 +883,7 @@ class CustomToolButton(QFrame):
             """)
         
         self.set_icon_color(False)
+        self.update()
 
     def set_icon_color(self, is_light):
         s = self.icon_size
@@ -1006,6 +1004,7 @@ class CustomToolButton(QFrame):
             self.layout.setSpacing(0)
             self.text_label.setFixedWidth(0) # Hide effectively if needed, though setVisible handles it
         self.set_icon_color(is_light)
+        self.update()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -1281,6 +1280,7 @@ class ReloadMask(QWidget):
 class OverlayWindow(QWidget):
     request_next = Signal()
     request_prev = Signal()
+    request_clear = Signal()
     request_end = Signal()
     request_ptr_arrow = Signal()
     request_ptr_pen = Signal()
@@ -1467,8 +1467,7 @@ class OverlayWindow(QWidget):
         cfg.showStatusBar.valueChanged.connect(self._on_status_bar_visibility_changed)
         
         self.toolbar = ToolbarWidget(self, self.plugins) 
-        self.toolbar.prev_clicked.connect(self.request_prev.emit)
-        self.toolbar.next_clicked.connect(self.request_next.emit)
+        self.toolbar.clear_clicked.connect(self.request_clear.emit)
         self.toolbar.end_clicked.connect(self.request_end.emit)
         
         self.toolbar.select_clicked.connect(self.request_ptr_arrow.emit)
@@ -1682,6 +1681,7 @@ class OverlayWindow(QWidget):
                 self._reload_mask.raise_()
 
             self.update_mask()
+            self.update()
         finally:
             self._layout_updating = False
 
@@ -1733,6 +1733,19 @@ class OverlayWindow(QWidget):
             self._reload_mask.setGeometry(self.rect())
             self._reload_mask.raise_()
         self.update_mask()
+
+    def apply_theme_update(self):
+        self._is_light = _resolve_is_light()
+        if self.status_bar:
+            self.status_bar._update_palette(self._is_light)
+        if hasattr(self, "toolbar") and self.toolbar:
+            self.toolbar.update_style(self._is_light)
+        if hasattr(self, "left_flipper") and self.left_flipper:
+            self.left_flipper.update_style(self._is_light)
+        if hasattr(self, "right_flipper") and self.right_flipper:
+            self.right_flipper.update_style(self._is_light)
+        self.update_layout()
+        self.update()
         
     def add_slide_widget(self, widget):
         if not widget:
@@ -1814,8 +1827,7 @@ class OverlayWindow(QWidget):
             self.right_flipper.update_style(getattr(self, "_is_light", False))
 
 class ToolbarWidget(QWidget):
-    prev_clicked = Signal()
-    next_clicked = Signal()
+    clear_clicked = Signal()
     end_clicked = Signal()
     select_clicked = Signal()
     pen_clicked = Signal()
@@ -1904,6 +1916,7 @@ class ToolbarWidget(QWidget):
             shadow.setColor(shadow_color)
             shadow.setOffset(0, 8)
             self.setGraphicsEffect(shadow)
+            self.update()
 
             p = self.parent()
             if shiboken6.isValid(p) and hasattr(p, "update_layout"):
@@ -1998,11 +2011,8 @@ class ToolbarWidget(QWidget):
         self.btn_eraser = CustomToolButton("Eraser.svg", _t("toolbar.eraser"), self, tool_name="eraser", text=_t("toolbar.eraser"))
         self.btn_eraser.clicked.connect(lambda: self._on_tool_changed("eraser", self.eraser_clicked))
 
-        self.btn_undo = CustomToolButton("Previous.svg", _t("toolbar.undo"), self, text=_t("toolbar.undo"))
-        self.btn_undo.clicked.connect(self.prev_clicked.emit)
-
-        self.btn_redo = CustomToolButton("Next.svg", _t("toolbar.redo"), self, text=_t("toolbar.redo"))
-        self.btn_redo.clicked.connect(self.next_clicked.emit)
+        self.btn_clear = CustomToolButton("Clear.svg", _t("toolbar.clear"), self, text=_t("toolbar.clear"))
+        self.btn_clear.clicked.connect(self.clear_clicked.emit)
 
         self.btn_spotlight = CustomToolButton("spotlight.svg", _t("toolbar.spotlight"), self, text=_t("toolbar.spotlight"))
         self.btn_spotlight.clicked.connect(lambda: self._execute_plugin_by_name("聚光灯"))
@@ -2030,7 +2040,7 @@ class ToolbarWidget(QWidget):
         self.update_toolbar_layout()
 
         # Connect signals
-        cfg.showUndoRedo.valueChanged.connect(self._on_toolbar_visibility_changed)
+        cfg.showClear.valueChanged.connect(self._on_toolbar_visibility_changed)
         cfg.showSpotlight.valueChanged.connect(self._on_toolbar_visibility_changed)
         cfg.showTimer.valueChanged.connect(self._on_toolbar_visibility_changed)
         cfg.toolbarOrder.valueChanged.connect(self.update_toolbar_layout)
@@ -2045,9 +2055,10 @@ class ToolbarWidget(QWidget):
                 item.widget().setParent(None)
         
         order = cfg.toolbarOrder.value
-        has_undo_redo = cfg.showUndoRedo.value
+        has_clear = cfg.showClear.value
         has_spotlight = cfg.showSpotlight.value
         has_timer = cfg.showTimer.value
+        clear_added = False
 
         for item_id in order:
             if item_id == "select":
@@ -2056,14 +2067,12 @@ class ToolbarWidget(QWidget):
                 self.layout.addWidget(self.btn_pen)
             elif item_id == "eraser":
                 self.layout.addWidget(self.btn_eraser)
-            elif item_id == "undo":
-                self.btn_undo.setVisible(has_undo_redo)
-                if has_undo_redo:
-                    self.layout.addWidget(self.btn_undo)
-            elif item_id == "redo":
-                self.btn_redo.setVisible(has_undo_redo)
-                if has_undo_redo:
-                    self.layout.addWidget(self.btn_redo)
+            elif item_id in ("clear", "undo", "redo"):
+                if not clear_added:
+                    self.btn_clear.setVisible(has_clear)
+                    if has_clear:
+                        self.layout.addWidget(self.btn_clear)
+                    clear_added = True
             elif item_id == "spotlight":
                 self.btn_spotlight.setVisible(has_spotlight)
                 if has_spotlight:

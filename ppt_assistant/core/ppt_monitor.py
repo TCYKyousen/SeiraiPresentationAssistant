@@ -319,6 +319,28 @@ class PPTWorker(QObject):
             pass
 
     @Slot()
+    def clear_screen(self):
+        try:
+            app = self._get_active_app()
+            if app and app.SlideShowWindows.Count > 0:
+                ss_win = app.SlideShowWindows(1)
+                hwnd = int(getattr(ss_win, "HWND", 0) or 0)
+                if hwnd and win32gui:
+                    try:
+                        win32gui.SetForegroundWindow(hwnd)
+                    except Exception:
+                        pass
+                if win32api and win32con:
+                    try:
+                        vk = ord("E")
+                        win32api.keybd_event(vk, 0, 0, 0)
+                        win32api.keybd_event(vk, 0, win32con.KEYEVENTF_KEYUP, 0)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    @Slot()
     def end_show(self):
         try:
             app = self._get_active_app()
@@ -392,6 +414,7 @@ class PPTMonitor(QObject):
     _req_stop = Signal()
     _req_next = Signal()
     _req_prev = Signal()
+    _req_clear = Signal()
     _req_end = Signal()
     _req_ptr_type = Signal(int)
     _req_pen_color = Signal(int, int, int)
@@ -418,6 +441,7 @@ class PPTMonitor(QObject):
         self._req_stop.connect(self._worker.stop)
         self._req_next.connect(self._worker.go_next)
         self._req_prev.connect(self._worker.go_previous)
+        self._req_clear.connect(self._worker.clear_screen)
         self._req_end.connect(self._worker.end_show)
         self._req_ptr_type.connect(self._worker.set_pointer_type)
         self._req_pen_color.connect(self._worker.set_pen_color)
@@ -447,6 +471,9 @@ class PPTMonitor(QObject):
 
     def go_previous(self):
         self._req_prev.emit()
+
+    def clear_screen(self):
+        self._req_clear.emit()
 
     def end_show(self):
         self._req_end.emit()
