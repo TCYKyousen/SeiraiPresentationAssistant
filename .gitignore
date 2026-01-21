@@ -1,14 +1,60 @@
-Kazuha.Windows-x86-64-SingleFile.exe
-ppt_assistant/core/__pycache__/config.cpython-313.pyc
-plugins/builtins/settings/__pycache__/plugin.cpython-313.pyc
-ppt_assistant/core/__pycache__/config.cpython-313.pyc
-ppt_assistant/ui/__pycache__/overlay.cpython-313.pyc
-plugins/builtins/settings/__pycache__/plugin.cpython-313.pyc
-plugins/__pycache__/webview_runner.cpython-313.pyc
-plugins/__pycache__/webview_runner.cpython-313.pyc
-ppt_assistant/ui/__pycache__/overlay.cpython-313.pyc
-plugins/__pycache__/webview_runner.cpython-313.pyc
+########################################
+# Python 运行产物
+########################################
+__pycache__/
+*.py[cod]
+*$py.class
+
+########################################
+# 虚拟环境 / 依赖环境
+########################################
+.venv/
+venv/
+ENV/
+env/
+
+########################################
+# 构建 / 打包产物（PyInstaller 等）
+########################################
+build/
+dist/
+*.spec
+*.manifest
+/*.exe
+
+########################################
+# 测试 / 质量工具缓存
+########################################
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+########################################
+# IDE / 编辑器
+########################################
+.vscode/
+.idea/
+*.iml
+
+########################################
+# 项目本地配置（不入库）
+########################################
 settings.json
-settings.json
-settings.json
-KazuhaRemake.spec
+
+########################################
+# 系统文件 / 杂项
+########################################
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+*.tmp
+
+########################################
+# 工具目录（本地生成）
+########################################
+.ace-tool/

@@ -235,7 +235,7 @@ class Api(QObject):
                 "Applications (*.exe *.lnk);;Media (*.mp3 *.wav *.mp4 *.mkv *.png *.jpg *.jpeg *.gif);;All Files (*.*)"
             )
         if not file_path:
-            return self.get_quick_launch_apps()
+            return None if self._window else self.get_quick_launch_apps()
         name = os.path.splitext(os.path.basename(file_path))[0]
         settings_path = self._get_settings_path()
         data = {}
