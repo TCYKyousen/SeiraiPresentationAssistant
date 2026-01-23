@@ -1,0 +1,10 @@
+
+[2026-01-23 00:24:37] Traceback (most recent call last):
+  File "H:\Dev\Kazuha\main.py", line 21, in <module>
+    _wv.main()
+  File "H:\Dev\Kazuha\plugins\webview_runner.py", line 569, in main
+    cef.Initialize(settings=settings)
+  File "cefpython_py39.pyx", line 629, in cefpython_py39.Initialize
+  File "settings.pyx", line 133, in cefpython_py39.SetApplicationSettings
+Exception: Invalid appSettings key: product_name
+

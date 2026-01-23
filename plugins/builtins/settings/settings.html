@@ -810,12 +810,16 @@
       width: 24px;
       height: 24px;
       background-color: currentColor;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
       -webkit-mask-size: contain;
       -webkit-mask-repeat: no-repeat;
       -webkit-mask-position: center;
     }
 
     .icon-back {
+      mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>');
       -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>');
     }
 
@@ -833,6 +837,24 @@
       border: none;
       width: 100%;
       text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sidebar-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--item-hover);
+      border-radius: 10px;
+      transform: translateX(-110%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 0;
+    }
+
+    .sidebar-item > * {
+      position: relative;
+      z-index: 1;
     }
 
     .sidebar-item[data-section="about"] {
@@ -840,14 +862,21 @@
     }
 
     .sidebar-item:hover {
-      background: var(--item-hover);
       color: var(--text-primary);
     }
 
     .sidebar-item.active {
       color: var(--accent-blue);
-      background: var(--card-bg);
       font-weight: 600;
+    }
+
+    .sidebar-item:hover::before {
+      transform: translateX(0);
+    }
+
+    .sidebar-item.active::before {
+      background: var(--card-bg);
+      transform: translateX(0);
     }
 
     .sidebar-icon {
@@ -885,6 +914,7 @@
       box-shadow: var(--shadow-main);
       transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     }
+
 
     .layout.three-island .content {
       transform: none;
@@ -1026,6 +1056,7 @@
 
     input[type="range"] {
       -webkit-appearance: none;
+      appearance: none;
       width: 100px;
       height: 4px;
       background: var(--divider);
@@ -1700,14 +1731,28 @@
       width: 14px;
       height: 14px;
       background-color: #FFFFFF;
+      mask-size: contain;
+      mask-position: center;
+      mask-repeat: no-repeat;
       -webkit-mask-size: contain;
       -webkit-mask-position: center;
       -webkit-mask-repeat: no-repeat;
     }
 
+    .toolbar-preview-btn-icon-real::before {
+      content: none;
+    }
+
     .toolbar-preview-btn-capsule .toolbar-preview-btn-icon::before {
       width: 10px;
       height: 10px;
+    }
+
+    .toolbar-preview-btn-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
 
     .toolbar-preview-btn-icon.icon-select::before {
@@ -2388,6 +2433,28 @@
       border-radius: 12px;
       gap: 4px;
       border: 1px solid var(--card-border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theme-select::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: calc(100% - 8px);
+      width: var(--select-slider-width, 0px);
+      transform: translateX(var(--select-slider-x, 0px));
+      background: var(--bg-surface);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px var(--shadow-color);
+      opacity: var(--select-slider-opacity, 0);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .theme-select.has-slider::before {
+      opacity: 1;
     }
 
     .theme-option {
@@ -2397,13 +2464,30 @@
       cursor: pointer;
       transition: all 0.2s;
       color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
     }
 
+
     .theme-option.active {
-      background: var(--bg-surface);
       color: var(--accent-blue);
-      box-shadow: 0 2px 8px var(--shadow-color);
       font-weight: 500;
+    }
+
+    .theme-select:not(.has-slider) .theme-option.active {
+      background: var(--bg-surface);
+      box-shadow: 0 2px 8px var(--shadow-color);
+    }
+
+    .language-select {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .language-select .theme-option {
+      flex: 1 1 0;
+      text-align: center;
+      padding: 6px 8px;
     }
 
     .theme-gallery {
@@ -2412,6 +2496,7 @@
       gap: 12px;
       width: 100%;
     }
+
 
     .theme-card {
       border-radius: 14px;
@@ -3124,23 +3209,21 @@
         <div class="group-title" data-i18n="group.language">语言</div>
         <div class="settings-group">
           <div class="settings-item" id="item-language" style="flex-direction: column; align-items: stretch; gap: 0;">
-            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-              <div class="item-info">
-                <span class="item-label" data-i18n="general.language.label">界面语言</span>
-                <span class="item-desc" data-i18n="general.language.desc">更改语言后需重启软件才能在所有界面生效</span>
-              </div>
-              <div class="theme-select">
-                <div class="theme-option language-option" data-lang="zh-CN" onclick="setLanguage('zh-CN')"
-                  data-i18n="language.zh-CN">简体中文</div>
-                <div class="theme-option language-option" data-lang="zh-TW" onclick="setLanguage('zh-TW')"
-                  data-i18n="language.zh-TW">繁體中文</div>
-                <div class="theme-option language-option" data-lang="ja-JP" onclick="setLanguage('ja-JP')"
-                  data-i18n="language.ja-JP">日本語</div>
-                <div class="theme-option language-option" data-lang="en-US" onclick="setLanguage('en-US')"
-                  data-i18n="language.en-US">English</div>
-                <div class="theme-option language-option" data-lang="ug-CN" onclick="setLanguage('ug-CN')"
-                  data-i18n="language.ug-CN">ئۇيغۇرچە</div>
-              </div>
+            <div class="item-info">
+              <span class="item-label" data-i18n="general.language.label">界面语言</span>
+              <span class="item-desc" data-i18n="general.language.desc">更改语言后需重启软件才能在所有界面生效</span>
+            </div>
+            <div class="theme-select language-select" style="margin-top: 10px;">
+              <div class="theme-option language-option" data-lang="zh-CN" onclick="setLanguage('zh-CN')"
+                data-i18n="language.zh-CN">简体中文</div>
+              <div class="theme-option language-option" data-lang="zh-TW" onclick="setLanguage('zh-TW')"
+                data-i18n="language.zh-TW">繁體中文</div>
+              <div class="theme-option language-option" data-lang="ja-JP" onclick="setLanguage('ja-JP')"
+                data-i18n="language.ja-JP">日本語</div>
+              <div class="theme-option language-option" data-lang="en-US" onclick="setLanguage('en-US')"
+                data-i18n="language.en-US">English</div>
+              <div class="theme-option language-option" data-lang="ug-CN" onclick="setLanguage('ug-CN')"
+                data-i18n="language.ug-CN">ئۇيغۇرچە</div>
             </div>
             <div class="language-warning" id="language-warning" style="margin-top: 12px; margin-bottom: 4px;">
               <svg class="warning-icon" viewBox="0 0 24 24">
@@ -3693,7 +3776,7 @@
                 </svg>
                 <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px;" data-i18n="update.idle.title">
                   点击上方按钮检查更新</div>
-                <div style="font-size: 13px; opacity: 0.7;" data-i18n="update.idle.desc">将从 GitHub 获取最新版本信息</div>
+                <div style="font-size: 13px; opacity: 0.7;" data-i18n="update.idle.desc">将从所选更新源获取最新版本信息</div>
               </div>
             </div>
 
@@ -3758,12 +3841,13 @@
               <div class="settings-item">
                 <div class="item-info">
                   <div class="item-label" data-i18n="update.settings.source.label">更新源</div>
-                  <div class="item-desc" data-i18n="update.settings.source.desc">在 GitHub 与 bgithub 镜像间切换，改善大陆网络更新体验</div>
+                  <div class="item-desc" data-i18n="update.settings.source.desc">选择 GitHub、bgithub 或 kkgithub 镜像源</div>
                 </div>
                 <div class="item-state">
                   <select class="styled-select" id="sel-Update-Source" onchange="setUpdateSource(this.value)">
                     <option value="github" data-i18n="update.settings.source.github">GitHub</option>
                     <option value="bgithub" data-i18n="update.settings.source.bgithub">bgithub 镜像</option>
+                    <option value="kkgithub" data-i18n="update.settings.source.kkgithub">kkgithub 镜像</option>
                   </select>
                 </div>
               </div>
@@ -4011,7 +4095,7 @@
       "update.pivot.changelog": "更新日志",
       "update.pivot.settings": "更新设置",
       "update.idle.title": "点击上方按钮检查更新",
-      "update.idle.desc": "将从 GitHub 获取最新版本信息",
+      "update.idle.desc": "将从所选更新源获取最新版本信息",
       "update.error.title": "检查更新失败",
       "update.error.desc": "请检查网络连接后重试",
       "update.latest.title": "已是最新版本",
@@ -4025,9 +4109,10 @@
       "update.settings.autoCheck.label": "自动检查更新",
       "update.settings.autoCheck.desc": "启动时自动检查是否有新版本",
       "update.settings.source.label": "更新源",
-      "update.settings.source.desc": "在 GitHub 与 bgithub 镜像间切换，改善大陆网络更新体验",
+      "update.settings.source.desc": "选择 GitHub、bgithub 或 kkgithub 镜像源",
       "update.settings.source.github": "GitHub",
       "update.settings.source.bgithub": "bgithub 镜像",
+      "update.settings.source.kkgithub": "kkgithub 镜像",
       "toolbar.clear": "清屏",
       "toolbar.end_show": "结束放映",
       "about.version.label": "软件版本",
@@ -4181,7 +4266,7 @@
       "update.pivot.changelog": "更新日誌",
       "update.pivot.settings": "更新設定",
       "update.idle.title": "點擊上方按鈕檢查更新",
-      "update.idle.desc": "將從 GitHub 獲取最新版本資訊",
+      "update.idle.desc": "將從所選更新來源取得最新版本資訊",
       "update.error.title": "檢查更新失敗",
       "update.error.desc": "請檢查網路連線後重試",
       "update.latest.title": "已是最新版本",
@@ -4195,9 +4280,10 @@
       "update.settings.autoCheck.label": "自動檢查更新",
       "update.settings.autoCheck.desc": "啟動時自動檢查是否有新版本",
       "update.settings.source.label": "更新來源",
-      "update.settings.source.desc": "在 GitHub 與 bgithub 鏡像間切換，改善大陸網路更新體驗",
+      "update.settings.source.desc": "選擇 GitHub、bgithub 或 kkgithub 鏡像來源",
       "update.settings.source.github": "GitHub",
       "update.settings.source.bgithub": "bgithub 鏡像",
+      "update.settings.source.kkgithub": "kkgithub 鏡像",
       "about.version.label": "軟體版本",
       "about.version.copyright": "COPYRIGHT 2025-2026 Seirai Haraguchi / YunoFactory │ 本程式依據 GNU General Public License 3 授權",
       "about.version.github": "GitHub 儲存庫",
@@ -4354,7 +4440,7 @@
       "update.pivot.changelog": "変更履歴",
       "update.pivot.settings": "更新設定",
       "update.idle.title": "上のボタンをクリックして更新を確認",
-      "update.idle.desc": "GitHub から最新のバージョン情報を取得します",
+      "update.idle.desc": "選択した更新元から最新バージョン情報を取得します",
       "update.error.title": "更新の確認に失敗しました",
       "update.error.desc": "ネットワーク接続を確認して再試行してください",
       "update.latest.title": "最新バージョンです",
@@ -4368,9 +4454,10 @@
       "update.settings.autoCheck.label": "自動更新確認",
       "update.settings.autoCheck.desc": "起動時に自動で新しいバージョンを確認します",
       "update.settings.source.label": "更新元",
-      "update.settings.source.desc": "GitHub と bgithub ミラーを切り替えて更新の取得性を改善します",
+      "update.settings.source.desc": "GitHub、bgithub、kkgithub のミラーを選択します",
       "update.settings.source.github": "GitHub",
       "update.settings.source.bgithub": "bgithub ミラー",
+      "update.settings.source.kkgithub": "kkgithub ミラー",
       "about.version.label": "ソフトウェアバージョン",
       "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ 本プログラムは GNU General Public License 3 に基づきライセンスされています",
       "about.version.github": "GitHub リポジトリ",
@@ -4524,7 +4611,7 @@
       "update.pivot.changelog": "Changelog",
       "update.pivot.settings": "Update Settings",
       "update.idle.title": "Click button above to check for updates",
-      "update.idle.desc": "Fetch latest version info from GitHub",
+      "update.idle.desc": "Fetch latest version info from the selected source",
       "update.error.title": "Update Check Failed",
       "update.error.desc": "Please check your network connection and try again",
       "update.latest.title": "You are up to date",
@@ -4538,9 +4625,10 @@
       "update.settings.autoCheck.label": "Auto-check for updates",
       "update.settings.autoCheck.desc": "Automatically check for new versions on startup",
       "update.settings.source.label": "Update Source",
-      "update.settings.source.desc": "Switch between GitHub and bgithub mirror for better access",
+      "update.settings.source.desc": "Choose GitHub, bgithub, or kkgithub mirror",
       "update.settings.source.github": "GitHub",
-      "update.settings.source.bgithub": "bgithub Mirror",
+      "update.settings.source.bgithub": "bgithub mirror",
+      "update.settings.source.kkgithub": "kkgithub mirror",
       "about.version.label": "Software version",
       "about.version.copyright": "copyright 2025-2026 Seirai Haraguchi / YunoFactory │ Licensed under the GNU General Public License 3",
       "about.version.github": "GitHub repository",
@@ -5186,6 +5274,7 @@
 
   initNav();
   convertNativeSelectsToCustom();
+  window.addEventListener("resize", updateAllSelectSliders);
 
   let settings = window.initialSettings || {
     General: { RunAtStartup: false, AutoShowOverlay: true, Language: "zh-CN" },
@@ -5371,13 +5460,6 @@
 
     renderFontSelects();
 
-    const updateSource = settings.Update?.Source || "github";
-    const updateSourceEl = document.getElementById("sel-Update-Source");
-    if (updateSourceEl) {
-        updateSourceEl.value = updateSource;
-        refreshCustomSelect(updateSourceEl);
-    }
-
     // Overlay Screen
     const overlayScreen = settings.Overlay?.OverlayScreen || "Auto";
     updateScreenList(overlayScreen);
@@ -5400,6 +5482,13 @@
     const endEl = document.getElementById("splash-end-time");
     if (startEl) startEl.value = splashStart;
     if (endEl) endEl.value = splashEnd;
+
+    const updateSource = settings.Update?.Source || "github";
+    const updateSourceEl = document.getElementById("sel-Update-Source");
+    if (updateSourceEl) {
+        updateSourceEl.value = updateSource;
+        refreshCustomSelect(updateSourceEl);
+    }
 
     // Layout mode UI setup removed
 
@@ -5446,10 +5535,14 @@
     }
 
     applyI18n();
-    UpdateManager.applyPersistedState();
     FontManager.switchTab(currentLanguage);
     renderFontSelects();
     loadToolbarApps();
+    updateAllSelectSliders();
+
+    if (window.UpdateManager && typeof window.UpdateManager.restoreFromSettings === "function") {
+      window.UpdateManager.restoreFromSettings();
+    }
 
     // Ensure toolbar action buttons are correctly bound
     const addBtn = document.getElementById("toolbar-add-btn");
@@ -5676,6 +5769,35 @@
     settings.Toolbar.QuickLaunchApps = toolbarApps;
   }
 
+  function updateSelectSlider(container) {
+    if (!container) return;
+    const active = container.querySelector(".theme-option.active");
+    if (!active) {
+      container.classList.remove("has-slider");
+      container.style.setProperty("--select-slider-opacity", "0");
+      return;
+    }
+    const containerRect = container.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const x = activeRect.left - containerRect.left - 4;
+    const width = activeRect.width;
+    container.style.setProperty("--select-slider-x", `${Math.max(0, x)}px`);
+    container.style.setProperty("--select-slider-width", `${Math.max(0, width)}px`);
+    container.classList.add("has-slider");
+    container.style.setProperty("--select-slider-opacity", "1");
+  }
+
+  function updateAllSelectSliders() {
+    const run = () => {
+      document.querySelectorAll(".theme-select").forEach(updateSelectSlider);
+    };
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(run);
+    } else {
+      run();
+    }
+  }
+
   function loadToolbarApps() {
     const fallback = () => {
       const apps = (settings.Toolbar && settings.Toolbar.QuickLaunchApps) || [];
@@ -5733,6 +5855,32 @@
 
       const icon = document.createElement("div");
       icon.className = `toolbar-preview-btn-icon icon-${iconName}`;
+      const iconImg = document.createElement("img");
+      iconImg.className = "toolbar-preview-btn-icon-img";
+      iconImg.style.display = "none";
+      icon.appendChild(iconImg);
+
+      const applyIconSrc = (src) => {
+        if (src) {
+          iconImg.src = src;
+          iconImg.style.display = "block";
+          icon.classList.add("toolbar-preview-btn-icon-real");
+        } else {
+          iconImg.removeAttribute("src");
+          iconImg.style.display = "none";
+          icon.classList.remove("toolbar-preview-btn-icon-real");
+        }
+      };
+
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.get_toolbar_icon) {
+        window.pywebview.api.get_toolbar_icon(iconName).then(src => {
+          applyIconSrc(src);
+        }).catch(() => {
+          applyIconSrc("");
+        });
+      } else {
+        applyIconSrc("");
+      }
 
       btn.appendChild(icon);
 
@@ -6088,11 +6236,21 @@
       }
   }
 
-  function setUpdateSource(value) {
+  function saveUpdateSetting(key, value) {
     if (!settings.Update) settings.Update = {};
-    settings.Update.Source = value;
+    settings.Update[key] = value;
     if (window.pywebview && window.pywebview.api.save_setting) {
-      window.pywebview.api.save_setting("Update", "Source", value);
+      window.pywebview.api.save_setting("Update", key, value);
+    }
+  }
+
+  function setUpdateSource(value) {
+    const source = value || "github";
+    saveUpdateSetting("Source", source);
+    const sel = document.getElementById("sel-Update-Source");
+    if (sel) {
+      sel.value = source;
+      refreshCustomSelect(sel);
     }
   }
 
@@ -6103,8 +6261,49 @@
     latestReleaseUrl: "https://github.com/Yunofactory/Kazuha/releases/latest",
     appVersion: "",
     currentReleaseData: null,
-    currentState: "idle",
-    lastCheckTime: "",
+    repo: "Yunofactory/Kazuha",
+
+    getSource() {
+      return settings.Update?.Source || "github";
+    },
+
+    getApiBaseForSource(source) {
+      if (source === "bgithub") {
+        return "https://bgithub.xyz/https://api.github.com";
+      }
+      if (source === "kkgithub") {
+        return "https://kkgithub.com/https://api.github.com";
+      }
+      return "https://api.github.com";
+    },
+
+    getApiBase() {
+      return this.getApiBaseForSource(this.getSource());
+    },
+
+    getSourceList() {
+      const current = this.getSource();
+      const all = ["github", "bgithub", "kkgithub"];
+      return [current, ...all.filter(s => s !== current)];
+    },
+
+    normalizeReleaseUrl(url, source) {
+      if (!url) return url;
+      const src = source || this.getSource();
+      if (src === "bgithub") {
+        if (url.startsWith("https://github.com")) {
+          return url.replace("https://github.com", "https://bgithub.xyz/https://github.com");
+        }
+        return url;
+      }
+      if (src === "kkgithub") {
+        if (url.startsWith("https://github.com")) {
+          return url.replace("https://github.com", "https://kkgithub.com/https://github.com");
+        }
+        return url;
+      }
+      return url;
+    },
 
     // State management
     setState(state) {
@@ -6113,7 +6312,6 @@
         const el = document.getElementById(`update-state-${s}`);
         if (el) el.style.display = s === state ? 'block' : 'none';
       });
-      this.currentState = state;
     },
 
     // Update status bar
@@ -6130,75 +6328,70 @@
     },
 
     // Update last check time
-    updateLastCheckTime(timeStr) {
-      const finalTime = timeStr || this.getNowTimeString();
+    updateLastCheckTime(timeStr, persist = true) {
+      const nextTime = timeStr || (() => {
+        const now = new Date();
+        return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      })();
       const timeValueEl = document.getElementById('last-check-time-value');
-      if (timeValueEl) timeValueEl.textContent = finalTime;
-      this.lastCheckTime = finalTime;
-      return finalTime;
-    },
-
-    getNowTimeString() {
-      const now = new Date();
-      return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    },
-
-    getSource() {
-      const source = settings.Update?.Source || "github";
-      return source === "bgithub" ? "bgithub" : "github";
-    },
-
-    wrapMirrorUrl(url) {
-      if (!url) return "";
-      if (this.getSource() === "bgithub") return `https://bgithub.xyz/${url}`;
-      return url;
-    },
-
-    getApiUrl() {
-      const apiUrl = "https://api.github.com/repos/Yunofactory/Kazuha/releases/latest";
-      return this.wrapMirrorUrl(apiUrl);
-    },
-
-    saveUpdateSetting(key, value) {
-      if (!settings.Update) settings.Update = {};
-      settings.Update[key] = value;
-      if (window.pywebview && window.pywebview.api.save_setting) {
-        window.pywebview.api.save_setting("Update", key, value);
+      if (timeValueEl) timeValueEl.textContent = nextTime;
+      if (persist) {
+        saveUpdateSetting("LastCheckTime", nextTime);
       }
     },
 
-    persistState(data, persist = true) {
-      if (!persist) return;
-      if (data.state) this.saveUpdateSetting("LastState", data.state);
-      if (data.lastCheckTime) this.saveUpdateSetting("LastCheckTime", data.lastCheckTime);
-      if (data.currentVersion !== undefined) this.saveUpdateSetting("LastCurrentVersion", data.currentVersion);
-      if (data.latestVersion !== undefined) this.saveUpdateSetting("LastLatestVersion", data.latestVersion);
-      if (data.changelog !== undefined) this.saveUpdateSetting("LastChangelog", data.changelog);
-      if (data.releaseUrl !== undefined) this.saveUpdateSetting("LastReleaseUrl", data.releaseUrl);
-      if (data.errorMessage !== undefined) this.saveUpdateSetting("LastError", data.errorMessage);
+    persistState(payload) {
+      Object.entries(payload).forEach(([key, value]) => {
+        saveUpdateSetting(key, value);
+      });
     },
 
-    applyPersistedState() {
-      if (this.currentState === "loading") return;
-      const update = settings.Update || {};
-      const lastTime = update.LastCheckTime;
-      if (lastTime) this.updateLastCheckTime(lastTime);
-      const state = update.LastState || "idle";
+    restoreFromSettings() {
+      const updateSettings = settings.Update || {};
+      const state = updateSettings.State || "idle";
+      if (updateSettings.LastCheckTime) {
+        this.updateLastCheckTime(updateSettings.LastCheckTime, false);
+      }
+
       if (state === "latest") {
-        this.latestReleaseUrl = update.LastReleaseUrl || this.latestReleaseUrl;
-        this.showUpToDate(update.LastCurrentVersion || this.appVersion, update.LastChangelog || "", false);
+        const currentVersion = updateSettings.CurrentVersion || this.appVersion;
+        const changelog = updateSettings.Changelog || "";
+        if (updateSettings.ReleaseUrl) {
+          this.latestReleaseUrl = updateSettings.ReleaseUrl;
+        }
+        this.showUpToDate(currentVersion, changelog);
         return;
       }
+
       if (state === "available") {
-        this.latestReleaseUrl = update.LastReleaseUrl || this.latestReleaseUrl;
-        this.showNewVersion(update.LastCurrentVersion || this.appVersion, update.LastLatestVersion || "", update.LastChangelog || "", false);
-        return;
+        const currentVersion = updateSettings.CurrentVersion || this.appVersion;
+        const latestVersion = updateSettings.LatestVersion || "";
+        const changelog = updateSettings.Changelog || "";
+        if (updateSettings.ReleaseUrl) {
+          this.latestReleaseUrl = updateSettings.ReleaseUrl;
+        }
+        if (latestVersion) {
+          this.showNewVersion(currentVersion, latestVersion, changelog);
+          return;
+        }
       }
+
       if (state === "error") {
-        this.showError(update.LastError || (getText("update.error.desc") || ""), false);
+        const msg = updateSettings.ErrorMessage || (getText("update.error.desc") || "请检查网络连接后重试");
+        this.showError(msg);
         return;
       }
-      this.showReady(false);
+
+      this.setState('idle');
+      this.setActions('check');
+      this.updateStatusBar(
+        getText("update.status.ready") || "准备检查更新",
+        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="8"></line>
+        </svg>`
+      );
     },
 
     // Set header actions
@@ -6232,6 +6425,27 @@
     },
 
     // Check for updates
+    async fetchLatestRelease() {
+      let lastError = null;
+      for (const source of this.getSourceList()) {
+        const apiUrl = `${this.getApiBaseForSource(source)}/repos/${this.repo}/releases/latest`;
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
+          const response = await fetch(apiUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          const release = Array.isArray(data) ? data[0] : data;
+          return { release, source };
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      if (lastError) throw lastError;
+      throw new Error(getText("update.error.desc") || "请检查网络连接后重试");
+    },
+
     async check() {
       this.setState('loading');
       this.setActions('loading');
@@ -6249,22 +6463,13 @@
       );
 
       try {
-        const checkTime = this.updateLastCheckTime();
-        const apiUrl = this.getApiUrl();
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-        const response = await fetch(apiUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-        const release = Array.isArray(data) ? data[0] : data;
-
+        const { release, source } = await this.fetchLatestRelease();
         this.currentReleaseData = release;
-        this.latestReleaseUrl = this.wrapMirrorUrl(release.html_url || this.latestReleaseUrl);
+        this.latestReleaseUrl = this.normalizeReleaseUrl(release.html_url, source);
+        this.updateLastCheckTime();
+        if (source && source !== this.getSource()) {
+          setUpdateSource(source);
+        }
 
         // Version comparison
         const latestVersion = release.tag_name || '';
@@ -6287,20 +6492,25 @@
 
         // If latest <= current, we are up to date (or newer)
         if (compare(latestV, currentV) <= 0 || !latestVersion) {
-          this.showUpToDate(currentV, release ? release.body : '', true, checkTime);
+          this.showUpToDate(currentV, release ? release.body : '');
         } else {
-          this.showNewVersion(currentV, latestVersion, release.body || '', true, checkTime);
+          this.showNewVersion(currentV, latestVersion, release.body || '');
         }
 
       } catch (error) {
         console.error("Check update failed:", error);
-        const checkTime = this.updateLastCheckTime();
-        this.showError(error.message, true, checkTime);
+        this.updateLastCheckTime();
+        const msg = (error && error.message) ? String(error.message) : "";
+        if (msg === "Failed to fetch") {
+          this.showError(getText("update.error.desc") || "请检查网络连接后重试");
+        } else {
+          this.showError(msg || (getText("update.error.desc") || "请检查网络连接后重试"));
+        }
       }
     },
 
     // Show up-to-date state
-    showUpToDate(version, changelog, persist = true, checkTime = "") {
+    showUpToDate(version, changelog) {
       this.setState('latest');
       this.setActions('check');
       this.updateStatusBar(
@@ -6322,18 +6532,19 @@
           changelogEl.textContent = content;
         }
       }
+
       this.persistState({
-        state: "latest",
-        lastCheckTime: checkTime || this.lastCheckTime,
-        currentVersion: version,
-        latestVersion: "",
-        changelog: changelog || "",
-        releaseUrl: this.latestReleaseUrl
-      }, persist);
+        State: "latest",
+        CurrentVersion: version,
+        LatestVersion: version,
+        Changelog: changelog || "",
+        ErrorMessage: "",
+        ReleaseUrl: this.latestReleaseUrl || ""
+      });
     },
 
     // Show new version available
-    showNewVersion(currentVersion, latestVersion, changelog, persist = true, checkTime = "") {
+    showNewVersion(currentVersion, latestVersion, changelog) {
       this.setState('available');
       this.setActions('download');
 
@@ -6360,18 +6571,19 @@
           changelogEl.textContent = changelog || (getText("update.noChangelog") || "暂无更新日志");
         }
       }
+
       this.persistState({
-        state: "available",
-        lastCheckTime: checkTime || this.lastCheckTime,
-        currentVersion,
-        latestVersion,
-        changelog: changelog || "",
-        releaseUrl: this.latestReleaseUrl
-      }, persist);
+        State: "available",
+        CurrentVersion: currentVersion,
+        LatestVersion: latestVersion,
+        Changelog: changelog || "",
+        ErrorMessage: "",
+        ReleaseUrl: this.latestReleaseUrl || ""
+      });
     },
 
     // Show error state
-    showError(errorMessage, persist = true, checkTime = "") {
+    showError(errorMessage) {
       this.setState('error');
       this.setActions('retry');
       this.updateStatusBar(
@@ -6388,11 +6600,15 @@
       if (errorMsgEl && errorMessage) {
         errorMsgEl.textContent = errorMessage;
       }
+
       this.persistState({
-        state: "error",
-        lastCheckTime: checkTime || this.lastCheckTime,
-        errorMessage: errorMessage || ""
-      }, persist);
+        State: "error",
+        CurrentVersion: this.appVersion || "",
+        LatestVersion: "",
+        Changelog: "",
+        ErrorMessage: errorMessage || "",
+        ReleaseUrl: this.latestReleaseUrl || ""
+      });
     },
 
     // Switch between tabs
@@ -6438,8 +6654,15 @@
           <line x1="12" y1="8" x2="12" y2="8"></line>
         </svg>`
       );
+
+      this.persistState({
+        State: "idle",
+        ErrorMessage: ""
+      });
     }
   };
+
+  window.UpdateManager = UpdateManager;
 
   // Show update (3-island layout)
   function showUpdate() {

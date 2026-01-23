@@ -107,32 +107,42 @@ SPLASH_I18N = {
 }
 
 
-def _get_current_language():
+def _load_settings_json():
+    if not os.path.exists(SETTINGS_PATH):
+        return {}
     try:
-        if os.path.exists(SETTINGS_PATH):
-            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            return data.get("General", {}).get("Language", "zh-CN")
+        with open(SETTINGS_PATH, "rb") as f:
+            raw = f.read()
     except Exception:
-        pass
-    return "zh-CN"
+        return {}
+    for enc in ("utf-8", "utf-8-sig", "gbk"):
+        try:
+            text = raw.decode(enc)
+        except UnicodeDecodeError:
+            continue
+        try:
+            data = json.loads(text)
+        except Exception:
+            continue
+        return data if isinstance(data, dict) else {}
+    return {}
+
+
+def _get_current_language():
+    data = _load_settings_json()
+    return data.get("General", {}).get("Language", "zh-CN")
 
 
 def _apply_global_font(app: QApplication):
     root_dir = os.path.dirname(os.path.abspath(__file__))
     font_path = os.path.join(root_dir, "fonts", "MiSansVF.ttf")
     selected_family = ""
-    try:
-        if os.path.exists(SETTINGS_PATH):
-            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            lang = data.get("General", {}).get("Language", "zh-CN")
-            profiles = (data.get("Fonts", {}) or {}).get("Profiles", {}) or {}
-            v = (profiles.get(lang, {}) or {}).get("qt", "")
-            if isinstance(v, str) and v.strip():
-                selected_family = v.strip()
-    except Exception:
-        selected_family = ""
+    data = _load_settings_json()
+    lang = data.get("General", {}).get("Language", "zh-CN")
+    profiles = (data.get("Fonts", {}) or {}).get("Profiles", {}) or {}
+    v = (profiles.get(lang, {}) or {}).get("qt", "")
+    if isinstance(v, str) and v.strip():
+        selected_family = v.strip()
 
     base_family = ""
     if os.path.exists(font_path):
@@ -165,7 +175,8 @@ def _load_version_info():
             raw_code_name = data.get("code_name", "")
             code_name_cn = data.get("code_name_CN", "")
             mapping = {
-                "MomokaKawaragi": "Momoka Kawaragi"
+                "MomokaKawaragi": "Momoka Kawaragi",
+                "NinaIseri": "Nina Iseri",
             }
             code_name = mapping.get(raw_code_name, raw_code_name)
         except Exception:
@@ -622,11 +633,7 @@ class PPTAssistantApp:
         yield 20, "loading_fonts"
         _apply_global_font(self.app)
         self._current_language = _get_current_language()
-        try:
-            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            data = {}
+        data = _load_settings_json()
         profiles = (data.get("Fonts", {}) or {}).get("Profiles", {}) or {}
         lang_profile = profiles.get(self._current_language, {}) or {}
         qt_font = lang_profile.get("qt", "")
@@ -843,11 +850,7 @@ class PPTAssistantApp:
 
             reload_cfg()
 
-            try:
-                with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-            except Exception:
-                data = {}
+            data = _load_settings_json()
 
             new_lang = (data.get("General", {}) or {}).get("Language", "zh-CN")
             profiles = (data.get("Fonts", {}) or {}).get("Profiles", {}) or {}

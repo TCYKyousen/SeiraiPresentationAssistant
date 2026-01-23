@@ -13,6 +13,10 @@ except ImportError:
     win32gui = None
     win32api = None
     win32con = None
+try:
+    import pywintypes
+except ImportError:
+    pywintypes = None
 
 class PPTWorker(QObject):
     """
@@ -73,7 +77,6 @@ class PPTWorker(QObject):
                 self.ppt_app = win32com.client.GetActiveObject("PowerPoint.Application")
             except Exception:
                 self.ppt_app = None
-                self._check_wps_state()
                 return
 
             if self.ppt_app.SlideShowWindows.Count > 0:
@@ -137,12 +140,12 @@ class PPTWorker(QObject):
             
         # If not running PPT, check WPS
         if not self._running:
-            self._check_wps_state()
+            return
 
     def _check_wps_state(self):
         try:
             self.wps_app = win32com.client.GetActiveObject("KWPP.Application")
-        except Exception:
+        except BaseException:
             self.wps_app = None
             self._handle_stop("wps")
             return
@@ -200,7 +203,7 @@ class PPTWorker(QObject):
                     self._handle_stop("wps")
             else:
                 self._handle_stop("wps")
-        except Exception:
+        except BaseException:
             self._handle_stop("wps")
 
     def _handle_stop(self, kind):

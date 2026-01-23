@@ -26,6 +26,8 @@ def run():
         "setuptools",
         "--exclude-module",
         "pkg_resources",
+        "--hidden-import",
+        "PySide6.QtXml",
         "--onefile",
         "--windowed",
         "--name",

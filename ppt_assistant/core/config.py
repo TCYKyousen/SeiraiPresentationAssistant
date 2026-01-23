@@ -89,6 +89,27 @@ if not os.path.exists(PLUGINS_DIR):
 qconfig.load(SETTINGS_PATH, cfg)
 
 
+def _load_settings_json():
+    if not os.path.exists(SETTINGS_PATH):
+        return {}
+    try:
+        with open(SETTINGS_PATH, "rb") as f:
+            raw = f.read()
+    except Exception:
+        return {}
+    for enc in ("utf-8", "utf-8-sig", "gbk", "gb18030", "cp1252"):
+        try:
+            text = raw.decode(enc, errors="ignore")
+        except Exception:
+            continue
+        try:
+            data = json.loads(text)
+        except Exception:
+            continue
+        return data if isinstance(data, dict) else {}
+    return {}
+
+
 def _set_run_at_startup(enabled: bool):
     """设置或取消开机自启 (Windows 注册表)"""
     if sys.platform != "win32":
@@ -96,28 +117,21 @@ def _set_run_at_startup(enabled: bool):
         
     app_name = "Kazuha"
     try:
-        key = winreg.OpenKey(
+        with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
             r"Software\Microsoft\Windows\CurrentVersion\Run",
             0,
             winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE
-        )
-        
-        if enabled:
-            if getattr(sys, "frozen", False):
-                app_path = sys.executable
+        ) as key:
+            if enabled:
+                if getattr(sys, "frozen", False):
+                    app_path = sys.executable
+                else:
+                    return
+                
+                winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, f'"{app_path}" --autostart')
             else:
-                # 开发环境下不建议设置自启，或者设置为 python main.py
                 return
-            
-            winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, f'"{app_path}" --autostart')
-        else:
-            try:
-                winreg.DeleteValue(key, app_name)
-            except FileNotFoundError:
-                pass
-        
-        winreg.CloseKey(key)
     except Exception as e:
         print(f"Error setting startup: {e}")
 
@@ -146,23 +160,11 @@ _apply_theme_and_color(cfg.themeMode.value)
 
 
 def _save_cfg():
-    old_data = {}
-    if os.path.exists(SETTINGS_PATH):
-        try:
-            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                old_data = json.load(f)
-        except Exception:
-            old_data = {}
+    old_data = _load_settings_json()
 
     qconfig.save()
 
-    new_data = {}
-    if os.path.exists(SETTINGS_PATH):
-        try:
-            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-                new_data = json.load(f)
-        except Exception:
-            new_data = {}
+    new_data = _load_settings_json()
 
     merged = old_data if isinstance(old_data, dict) else {}
     if isinstance(new_data, dict):
@@ -207,7 +209,11 @@ def _bind_auto_save():
 
 
 _bind_auto_save()
-_set_run_at_startup(cfg.runAtStartup.value)
+try:
+    if cfg.runAtStartup.value:
+        _set_run_at_startup(True)
+except Exception:
+    pass
 _save_cfg()
 
 
