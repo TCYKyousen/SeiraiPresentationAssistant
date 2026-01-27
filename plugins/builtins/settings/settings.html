@@ -3635,6 +3635,18 @@
               </div>
             </div>
           </div>
+          <div class="settings-item">
+            <div class="item-info">
+              <span class="item-label" data-i18n="overlay.popWindowScale.label">色板缩放倍率</span>
+              <span class="item-desc" data-i18n="overlay.popWindowScale.desc">调整颜色选择弹窗的大小</span>
+            </div>
+            <div class="item-state">
+              <div class="slider-container">
+                <input type="range" id="range-Overlay-PopWindowScale" min="0.5" max="3.0" step="0.1" oninput="updateRangeValue('Overlay', 'PopWindowScale', this.value)" onchange="saveRangeValue('Overlay', 'PopWindowScale', this.value)">
+                <span class="slider-value" id="val-Overlay-PopWindowScale">1.00x</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -4244,6 +4256,8 @@
       "overlay.safeArea.desc": "调整组件与屏幕边缘的距离",
       "overlay.scale.label": "组件缩放倍率",
       "overlay.scale.desc": "调整悬浮窗组件的整体显示大小",
+      "overlay.popWindowScale.label": "色板缩放倍率",
+      "overlay.popWindowScale.desc": "调整颜色选择弹窗的大小",
       "overlay.rebuild.label": "重建顶层窗口",
       "overlay.rebuild.desc": "重新创建顶层效果窗口以应用所有变更",
       "overlay.rebuild.action": "立即重建",
@@ -6357,6 +6371,7 @@
     // Ranges
     initRange("Overlay", "SafeArea", 0, "px");
     initRange("Overlay", "Scale", 1.0, "x", 2);
+    initRange("Overlay", "PopWindowScale", 1.0, "x", 2);
 
     renderFontSelects();
 

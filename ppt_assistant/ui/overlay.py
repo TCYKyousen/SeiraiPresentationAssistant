@@ -830,6 +830,8 @@ class PenColorPopup(QFrame):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_StyledBackground, True)
         
+        self.scale = cfg.popWindowScale.value
+        
         # Office Standard Colors + Theme Colors (approximate)
         # Standard Colors
         self.standard_colors = [
@@ -858,13 +860,13 @@ class PenColorPopup(QFrame):
         self.container.setStyleSheet(f"""
             #PenColorContainer {{
                 background-color: {bg};
-                border-radius: 12px;
+                border-radius: {int(12 * self.scale)}px;
                 border: 1px solid {border};
             }}
             QLabel {{
                 color: {fg};
                 font-family: {font_stack};
-                font-size: 11px;
+                font-size: {int(11 * self.scale)}px;
                 font-weight: 500;
                 background: transparent;
             }}
@@ -872,15 +874,15 @@ class PenColorPopup(QFrame):
         self.layout.addWidget(self.container)
 
         main_layout = QVBoxLayout(self.container)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(8)
+        main_layout.setContentsMargins(int(10 * self.scale), int(10 * self.scale), int(10 * self.scale), int(10 * self.scale))
+        main_layout.setSpacing(int(8 * self.scale))
 
         # Theme Colors
         theme_label = QLabel(_t("toolbar.theme_colors"), self.container)
         main_layout.addWidget(theme_label)
         
         theme_grid = QGridLayout()
-        theme_grid.setSpacing(4)
+        theme_grid.setSpacing(int(4 * self.scale))
         for i, (r, g, b) in enumerate(self.theme_bases):
             btn = self._create_color_btn(r, g, b)
             theme_grid.addWidget(btn, 0, i)
@@ -891,7 +893,7 @@ class PenColorPopup(QFrame):
         main_layout.addWidget(std_label)
         
         std_grid = QGridLayout()
-        std_grid.setSpacing(4)
+        std_grid.setSpacing(int(4 * self.scale))
         for i, (r, g, b) in enumerate(self.standard_colors):
             btn = self._create_color_btn(r, g, b)
             std_grid.addWidget(btn, 0, i)
@@ -899,12 +901,13 @@ class PenColorPopup(QFrame):
 
     def _create_color_btn(self, r, g, b):
         btn = QPushButton(self.container)
-        btn.setFixedSize(20, 20)
+        size = int(20 * self.scale)
+        btn.setFixedSize(size, size)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: rgb({r}, {g}, {b});
-                border-radius: 4px;
+                border-radius: {int(4 * self.scale)}px;
                 border: 1px solid rgba(0, 0, 0, 0.1);
             }}
             QPushButton:hover {{
@@ -1500,10 +1503,26 @@ class OverlayWindow(QWidget):
     def update_geometry(self, rect, screen):
         target_screen = screen
         if not target_screen and rect and not rect.isEmpty():
-            s = QGuiApplication.screenAt(rect.center())
-            if not s:
-                s = QGuiApplication.primaryScreen()
-            target_screen = s
+            # Robust screen detection: find screen with largest intersection
+            best_screen = None
+            max_area = 0
+            
+            for s in QGuiApplication.screens():
+                intersect = s.geometry().intersected(rect)
+                area = intersect.width() * intersect.height()
+                if area > max_area:
+                    max_area = area
+                    best_screen = s
+            
+            if best_screen:
+                target_screen = best_screen
+            else:
+                # Fallback to center point check
+                target_screen = QGuiApplication.screenAt(rect.center())
+        
+        if not target_screen:
+            target_screen = QGuiApplication.primaryScreen()
+
         if target_screen:
             geo = target_screen.geometry()
             if not geo.isEmpty():
